@@ -57,14 +57,14 @@
 
 ```bash
 # 프로젝트 클론
-git clone https://github.com/[your-username]/nanaki.git
+git clone https://github.com/Zzal1225/nanaki.git
 cd nanaki
 
 # 의존성 설치
 npm install
 
-# 환경변수 설정
-cp .env.example .env.local
+# 환경변수 설정 (Firebase 설정 시 추가 예정)
+# cp .env.example .env.local
 # Firebase 설정 정보를 .env.local에 추가
 
 # 개발 서버 시작
@@ -148,22 +148,6 @@ chore: 빌드 과정 또는 보조 도구 변경
 
 **최근 업데이트**: 프로젝트 초기 설정 완료  
 **다음 단계**: Firebase 설정 및 기본 인증 구현
-
----
-
-## 📄 라이선스
-
-MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
-
-## 🤝 기여하기
-
-이 프로젝트에 관심이 있으시면 언제든 피드백을 주세요!
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'feat: Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
 ---
 
