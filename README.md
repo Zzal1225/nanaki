@@ -57,8 +57,8 @@
 
 ```bash
 # 프로젝트 클론
-git clone https://github.com/[your-username]/habit-tracker.git
-cd habit-tracker
+git clone https://github.com/[your-username]/nanaki.git
+cd nanaki
 
 # 의존성 설치
 npm install
