@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 사용자 데이터: 인증된 사용자만 자신의 문서에 접근 가능
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // 스티커 데이터: 인증된 사용자만 자신의 스티커에 접근 가능
+    match /users/{userId}/stickers/{stickerId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // 체중 기록: 인증된 사용자만 자신의 기록에 접근 가능
+    match /users/{userId}/weight/{recordId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // 가계부 기록: 인증된 사용자만 자신의 기록에 접근 가능
+    match /users/{userId}/finance/{recordId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // 목표 설정: 인증된 사용자만 자신의 목표에 접근 가능
+    match /users/{userId}/goals/{goalId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+} 

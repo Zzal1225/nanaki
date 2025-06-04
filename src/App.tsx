@@ -1,4 +1,8 @@
 import { useState } from 'react';
+import FirebaseTest from './components/FirebaseTest';
+import Auth from './components/Auth';
+import HabitTracker from './components/HabitTracker';
+import Calendar from './components/Calendar';
 
 function App() {
   const [count, setCount] = useState(0);
@@ -15,10 +19,30 @@ function App() {
           </p>
 
           {/* 개발 상태 표시 */}
-          <div className='inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full text-sm font-medium'>
-            🚧 Phase 1: 개발 환경 구축 완료!
+          <div className='inline-flex items-center px-4 py-2 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-sm font-medium'>
+            🚀 Phase 2: 캘린더 UI 구현 완료!
           </div>
         </header>
+
+        {/* Firebase 연결 테스트 */}
+        <div className='mb-12'>
+          <FirebaseTest />
+        </div>
+
+        {/* Firebase Authentication 테스트 */}
+        <div className='mb-12'>
+          <Auth />
+        </div>
+
+        {/* 습관 추적 기능 */}
+        <div className='mb-12'>
+          <HabitTracker />
+        </div>
+
+        {/* 캘린더 */}
+        <div className='mb-12'>
+          <Calendar />
+        </div>
 
         {/* 기능 미리보기 섹션 */}
         <div className='grid md:grid-cols-3 gap-6 mb-12'>
@@ -66,19 +90,31 @@ function App() {
             <div className='flex items-center gap-3'>
               <span className='text-green-500'>✅</span>
               <span className='text-gray-700 dark:text-gray-300'>
-                Node.js v22 업그레이드 완료
+                Firebase Authentication 완료 (이메일/구글 로그인)
               </span>
             </div>
             <div className='flex items-center gap-3'>
               <span className='text-green-500'>✅</span>
               <span className='text-gray-700 dark:text-gray-300'>
-                Tailwind CSS 설정 완료
+                Firestore 사용자 프로필 저장 기능 완료
+              </span>
+            </div>
+            <div className='flex items-center gap-3'>
+              <span className='text-green-500'>✅</span>
+              <span className='text-gray-700 dark:text-gray-300'>
+                기본 습관 추적 컴포넌트 구현 완료
+              </span>
+            </div>
+            <div className='flex items-center gap-3'>
+              <span className='text-green-500'>✅</span>
+              <span className='text-gray-700 dark:text-gray-300'>
+                캘린더 UI 구현 완료
               </span>
             </div>
             <div className='flex items-center gap-3'>
               <span className='text-blue-500'>🔄</span>
               <span className='text-gray-700 dark:text-gray-300'>
-                Firebase 연동 준비 중
+                스티커 시스템 Firestore 연동 진행 중
               </span>
             </div>
           </div>
