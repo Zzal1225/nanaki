@@ -1,12 +1,20 @@
 import { useState } from 'react';
+import LearningPage from './components/LearningPage';
 import FirebaseTest from './components/FirebaseTest';
 import Auth from './components/Auth';
 import HabitTracker from './components/HabitTracker';
 import Calendar from './components/Calendar';
 
 function App() {
+  const [showLearning, setShowLearning] = useState(false);
   const [count, setCount] = useState(0);
 
+  // 학습 페이지를 보여주는 경우
+  if (showLearning) {
+    return <LearningPage onBackToProject={() => setShowLearning(false)} />;
+  }
+
+  // nanaki 프로젝트 메인 페이지
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800'>
       <div className='container mx-auto px-4 py-8'>
@@ -18,9 +26,22 @@ function App() {
             📱 토탈 다이어리 PWA - 습관 추적 플랫폼
           </p>
 
+          {/* 학습 페이지 접근 버튼 */}
+          <div className='mb-8'>
+            <button
+              onClick={() => setShowLearning(true)}
+              className='bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 shadow-sm mr-4'
+            >
+              📚 React + TypeScript 학습 페이지
+            </button>
+            <span className='text-sm text-gray-500'>
+              헷갈리면 언제든 학습 내용을 다시 볼 수 있어요!
+            </span>
+          </div>
+
           {/* 개발 상태 표시 */}
-          <div className='inline-flex items-center px-4 py-2 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-sm font-medium'>
-            🚀 Phase 2: 캘린더 UI 구현 완료!
+          <div className='inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full text-sm font-medium'>
+            🚀 nanaki 프로젝트 개발 중
           </div>
         </header>
 
@@ -87,6 +108,12 @@ function App() {
             개발 진행상황
           </h3>
           <div className='space-y-3'>
+            <div className='flex items-center gap-3'>
+              <span className='text-green-500'>✅</span>
+              <span className='text-gray-700 dark:text-gray-300'>
+                React + TypeScript 기초 및 심화 학습 완료
+              </span>
+            </div>
             <div className='flex items-center gap-3'>
               <span className='text-green-500'>✅</span>
               <span className='text-gray-700 dark:text-gray-300'>
