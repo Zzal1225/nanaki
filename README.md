@@ -78,8 +78,9 @@ src/
 ├── components/          # 재사용 가능한 UI 컴포넌트
 │   ├── ui/             # 기본 UI 컴포넌트 (Button, Input 등)
 │   ├── calendar/       # 캘린더 관련 컴포넌트
-│   ├── stickers/       # 스티커 시스템 컴포넌트
-│   └── charts/         # 차트 및 통계 컴포넌트
+│   ├── habits/         # 습관 추적 관련 컴포넌트
+│   ├── auth/           # 인증 관련 컴포넌트
+│   └── LearningPage.tsx # React+TypeScript 학습 컴포넌트 모음
 ├── pages/              # 페이지 컴포넌트
 ├── hooks/              # 커스텀 훅
 ├── store/              # Zustand 상태 관리
@@ -88,6 +89,44 @@ src/
 ├── types/              # TypeScript 타입 정의
 └── styles/             # 글로벌 스타일
 ```
+
+## 📚 개발 학습 과정
+
+이 프로젝트는 주니어 프론트엔드 개발자의 실무 스킬 향상을 위한 학습 과정을 포함합니다.
+
+### 완료된 학습 단계
+
+#### 1. React 기초 (4단계)
+
+- ✅ **컴포넌트**: 함수형 컴포넌트와 JSX 기본 문법
+- ✅ **Props**: 부모-자식 컴포넌트 간 데이터 전달
+- ✅ **State**: useState를 활용한 상태 관리
+- ✅ **TypeScript 기본**: 기본 타입 정의와 Props 타입 지정
+
+#### 2. TypeScript 심화 (3단계)
+
+- ✅ **Interface & Type**: 객체 타입 정의와 차이점 이해
+- ✅ **Generic**: 재사용 가능한 타입 정의 방법
+- ✅ **Union Type & Optional**: 유연한 타입 시스템 활용
+
+#### 3. React 심화 (3단계)
+
+- ✅ **useEffect Hook**: 생명주기와 부수효과 관리
+- ✅ **Custom Hook**: 로직 재사용을 위한 훅 분리
+- ✅ **React Patterns**: 실무에서 자주 사용되는 패턴들
+
+### 학습 컴포넌트 확인
+
+프로젝트 내에서 학습한 내용들을 확인하려면:
+
+```bash
+# 개발 서버 실행 후
+npm run dev
+
+# 앱 우상단의 "학습 모드" 토글 버튼 클릭
+```
+
+`LearningPage.tsx`에서 모든 학습 컴포넌트들을 한 번에 확인할 수 있습니다.
 
 ## 🔧 개발 프로세스
 
@@ -130,6 +169,8 @@ chore: 빌드 과정 또는 보조 도구 변경
 - [x] 프로젝트 설정 및 Git 초기화
 - [x] Node.js v22 업그레이드 및 환경 설정
 - [x] 기본 의존성 설치 및 개발 서버 테스트
+- [x] **React + TypeScript 학습 완료** (10단계)
+- [x] **학습 컨텐츠와 프로젝트 코드 분리**
 - [ ] Firebase 연동 및 인증 구현
 - [ ] 기본 캘린더 UI 구현
 - [ ] 스티커 시스템 MVP
@@ -148,8 +189,23 @@ chore: 빌드 과정 또는 보조 도구 변경
 
 ## 🚧 현재 진행상황
 
-**최근 업데이트**: Node.js v22 업그레이드 완료, 개발 환경 구축 완료  
-**다음 단계**: Tailwind CSS 설정 및 Firebase 연동
+**최근 업데이트**: React + TypeScript 학습 완료, 프로젝트 구조 정리 완료  
+**학습 성과**:
+
+- 실무에서 자주 사용되는 React + TypeScript 패턴 10가지 학습
+- 컴포넌트, Hook, 타입 시스템에 대한 실무 지식 습득
+- 학습 내용과 실제 프로젝트 코드의 명확한 분리
+
+**다음 단계**: Firebase 연동 및 인증 시스템 구현
+
+## 🎓 학습 노트
+
+프로젝트 진행 중 습득한 주요 개념들:
+
+- **Union Type vs Generic**: 실무에서는 Generic보다 Union Type이 더 자주 사용
+- **useEffect Dependency Array**: 의존성 배열의 중요성과 cleanup 함수
+- **Custom Hook 규칙**: 함수형 컴포넌트나 다른 Custom Hook에서만 사용 가능
+- **React Patterns**: Compound Component, Render Props, Higher-Order Component 등
 
 ---
 
