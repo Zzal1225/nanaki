@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# 같은 브랜치에 새 푸시가 오면 이전 실행을 취소해서 시간을 아낀다
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# 코드를 읽기만 하면 되므로 권한을 최소로 둔다
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Node 버전은 .nvmrc 한 곳에서만 관리한다
+          node-version-file: .nvmrc
+          cache: npm
+
+      # npm install과 달리 package-lock.json 그대로 설치해서 로컬과 같은 버전을 보장한다
+      - run: npm ci
+
+      # 빠르고 싼 검사를 앞에 둬서 실패를 빨리 알린다
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
