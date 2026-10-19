@@ -1,26 +1,203 @@
 @import "tailwindcss";
 
+/* 원본: tokens/tokens.json. 값을 바꿀 땐 JSON을 먼저 고치고 여기를 맞춘다. */
+
+/* ---------- 1. 라이트 값 (기본) ---------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  --bg: #f7f7f8;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-hover: #f0f0f2;
+  --surface-pressed: #e6e6ea;
+  --border: #dcdce1;
+  --fg-primary: #121214;
+  --fg-secondary: #5a5a63;
+  --fg-disabled: #a6a6af;
+  --accent: #2e7d4f;
+  --accent-hover: #276c44;
+  --accent-pressed: #205b39;
+  --accent-foreground: #ffffff;
+  --success: #2e7d4f;
+  --warning: #b4480e;
+  --danger: #c8323c;
+  --danger-hover: #b02a33;
+  --danger-pressed: #98232b;
+  --focus-ring: #2e7d4f;
+  --overlay: rgba(18, 18, 20, 0.48);
+
+  --type-expense: #8a6700;
+  --type-expense-subtle: #fbf3d6;
+  --type-review: #c2365f;
+  --type-review-subtle: #fce9ee;
+  --type-workout: #2562c4;
+  --type-workout-subtle: #e6eefb;
+  --type-routine: #8a3fc0;
+  --type-routine-subtle: #f3eafa;
+  --type-body: #097078;
+  --type-body-subtle: #ddf2f2;
+
+  --shadow-card: 0 1px 2px rgba(18, 18, 20, 0.06), 0 1px 3px rgba(18, 18, 20, 0.08);
+  --shadow-float: 0 8px 24px rgba(18, 18, 20, 0.12), 0 2px 6px rgba(18, 18, 20, 0.08);
+
+  /* 구글 로그인 버튼은 브랜드 가이드 색이라 테마 토큰과 별개로 둔다 */
+  --google-button-bg: #ffffff;
+  --google-button-border: #747775;
+  --google-button-fg: #1f1f1f;
 }
 
+/* ---------- 2. 다크 값 ---------- */
+/* :root가 아니라 .dark인 이유: 카메라 화면처럼 일부 영역만 다크로 고정할 수 있게 */
+.dark {
+  color-scheme: dark;
+
+  --bg: #121214;
+  --surface: #1a1a1e;
+  --surface-raised: #24242a;
+  --surface-hover: #2a2a30;
+  --surface-pressed: #34343b;
+  --border: #34343b;
+  --fg-primary: #ececef;
+  --fg-secondary: #a6a6af;
+  --fg-disabled: #5a5a63;
+  --accent: #6cc08f;
+  --accent-hover: #7ecb9e;
+  --accent-pressed: #8fd4ac;
+  --accent-foreground: #0f1f16;
+  --success: #6cc08f;
+  --warning: #f09a6a;
+  --danger: #ee7b80;
+  --danger-hover: #f28e92;
+  --danger-pressed: #f5a1a4;
+  --focus-ring: #6cc08f;
+  --overlay: rgba(0, 0, 0, 0.64);
+
+  --type-expense: #e0b44a;
+  --type-expense-subtle: #39321a;
+  --type-review: #e68da7;
+  --type-review-subtle: #3a2530;
+  --type-workout: #86aaeb;
+  --type-workout-subtle: #1f2a3e;
+  --type-routine: #d7bff4;
+  --type-routine-subtle: #30253c;
+  --type-body: #62c2c2;
+  --type-body-subtle: #173334;
+
+  --shadow-card: none;
+  --shadow-float: none;
+
+  --google-button-bg: #131314;
+  --google-button-border: #8e918f;
+  --google-button-fg: #e3e3e3;
+}
+
+/* ---------- 3. 테마와 무관한 값 ---------- */
+:root {
+  /* Tailwind 기본 간격(1단위=4px)과 같은 값이라 p-1, gap-4 등을 그대로 쓴다. 참고용으로만 둔다 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+}
+
+/* ---------- 4. Tailwind 연결 ---------- */
+/* inline: 클래스가 값을 복사하지 않고 var()를 참조해서, .dark 전환이 클래스에 반영된다 */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-pressed: var(--surface-pressed);
+  --color-border: var(--border);
+  --color-fg-primary: var(--fg-primary);
+  --color-fg-secondary: var(--fg-secondary);
+  --color-fg-disabled: var(--fg-disabled);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-pressed: var(--accent-pressed);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-pressed: var(--danger-pressed);
+  --color-focus-ring: var(--focus-ring);
+  --color-overlay: var(--overlay);
+
+  --color-type-expense: var(--type-expense);
+  --color-type-expense-subtle: var(--type-expense-subtle);
+  --color-type-review: var(--type-review);
+  --color-type-review-subtle: var(--type-review-subtle);
+  --color-type-workout: var(--type-workout);
+  --color-type-workout-subtle: var(--type-workout-subtle);
+  --color-type-routine: var(--type-routine);
+  --color-type-routine-subtle: var(--type-routine-subtle);
+  --color-type-body: var(--type-body);
+  --color-type-body-subtle: var(--type-body-subtle);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-float: var(--shadow-float);
+
+  --color-google-button-bg: var(--google-button-bg);
+  --color-google-button-border: var(--google-button-border);
+  --color-google-button-fg: var(--google-button-fg);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* 테마와 무관한 값은 inline 없이 그대로 선언 */
+@theme {
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  --font-sans: "Pretendard", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --text-display: 32px;
+  --text-display--line-height: 40px;
+  --text-display--font-weight: 700;
+  --text-display--letter-spacing: -0.02em;
+
+  --text-title-lg: 24px;
+  --text-title-lg--line-height: 32px;
+  --text-title-lg--font-weight: 700;
+  --text-title-lg--letter-spacing: -0.01em;
+
+  --text-title: 20px;
+  --text-title--line-height: 28px;
+  --text-title--font-weight: 600;
+
+  --text-body: 16px;
+  --text-body--line-height: 24px;
+  --text-body--font-weight: 400;
+
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 20px;
+  --text-body-sm--font-weight: 400;
+
+  --text-caption: 12px;
+  --text-caption--line-height: 16px;
+  --text-caption--font-weight: 500;
+
+  --text-number-lg: 28px;
+  --text-number-lg--line-height: 34px;
+  --text-number-lg--font-weight: 700;
+  --text-number-lg--letter-spacing: -0.01em;
 }
 
+/* ---------- 5. 기본 스타일 ---------- */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg-primary);
+  font-family: var(--font-sans);
+}
+
+/* 키보드 포커스에서만 링을 보여 준다. 마우스 클릭엔 안 나타남 */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
