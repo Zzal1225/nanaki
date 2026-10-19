@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><meta name="design_doc_mode" content="canvas"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap"><style>
+body{margin:0;background:#E6E6EA;font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#2E7D4F}a:hover{color:#205B39}
+.th-light{--bg:#F7F7F8;--surface:#FFFFFF;--surface-raised:#FFFFFF;--surface-hover:#F0F0F2;--surface-pressed:#E6E6EA;--border:#DCDCE1;--fg-primary:#121214;--fg-secondary:#5A5A63;--fg-disabled:#A6A6AF;--accent:#2E7D4F;--accent-hover:#276C44;--accent-pressed:#205B39;--accent-foreground:#FFFFFF;--success:#2E7D4F;--warning:#B4480E;--danger:#C8323C;--danger-hover:#B02A33;--danger-pressed:#98232B;--overlay:rgba(18,18,20,.48);--type-expense:#9A5C00;--type-expense-subtle:#FCF0DC;--type-review:#C2365F;--type-review-subtle:#FCE9EE;--type-workout:#2562C4;--type-workout-subtle:#E6EEFB;--type-routine:#8A3FC0;--type-routine-subtle:#F3EAFA;--type-body:#097078;--type-body-subtle:#DDF2F2;--shadow-card:0 1px 2px rgba(18,18,20,.06),0 1px 3px rgba(18,18,20,.08);--shadow-float:0 8px 24px rgba(18,18,20,.12),0 2px 6px rgba(18,18,20,.08);color:var(--fg-primary)}
+.th-dark{--bg:#121214;--surface:#1A1A1E;--surface-raised:#24242A;--surface-hover:#2A2A30;--surface-pressed:#34343B;--border:#34343B;--fg-primary:#ECECEF;--fg-secondary:#A6A6AF;--fg-disabled:#5A5A63;--accent:#6CC08F;--accent-hover:#7ECB9E;--accent-pressed:#8FD4AC;--accent-foreground:#0F1F16;--success:#6CC08F;--warning:#F09A6A;--danger:#EE7B80;--danger-hover:#F28E92;--danger-pressed:#F5A1A4;--overlay:rgba(0,0,0,.64);--type-expense:#E2AA5E;--type-expense-subtle:#3A2F1F;--type-review:#E68DA7;--type-review-subtle:#3A2530;--type-workout:#86AAEB;--type-workout-subtle:#1F2A3E;--type-routine:#D7BFF4;--type-routine-subtle:#30253C;--type-body:#62C2C2;--type-body-subtle:#173334;--shadow-card:none;--shadow-float:none;color:var(--fg-primary)}
+</style></helmet>
+<div class="th-light" style="background:var(--surface-pressed);min-height:100vh;padding:48px 48px 96px;display:flex;flex-direction:column;gap:72px">
+
+<header style="display:flex;flex-direction:column;gap:8px">
+<div style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">모바일 375 × 812 · {{ themeName }} 모드 · <a href="nanaki Design System.dc.html">디자인 시스템</a> 토큰만 사용 · <a href="nanaki Mobile Screens 2.dc.html">16–21번 화면</a></div>
+<h1 style="margin:0;font-size:32px;line-height:40px;font-weight:700;letter-spacing:-0.02em">nanaki 모바일 화면</h1>
+</header>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">01</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">로그인</h2></div>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary);max-width:720px">Google 버튼은 브랜드 가이드에 따라 문구를 "Google로 시작하기"로, 색은 가이드 지정값(흰 바탕 · #747775 테두리 · Roboto Medium)으로 둡니다. 토큰 밖 색은 이 버튼에만 씁니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">1</span><span style="font-weight:600">로그인</span></div>
+<div class="{{ themeCls }}" style="width:375px;height:812px;position:relative;overflow:hidden;border-radius:32px;background:var(--bg);color:var(--fg-primary);box-shadow:var(--shadow-float)">
+<div style="height:44px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-size:14px;line-height:20px;font-weight:600"><span>9:41</span><span style="width:25px;height:12px;border-radius:6px;border:1.5px solid currentColor;box-sizing:border-box;padding:1.5px;display:flex"><span style="width:70%;border-radius:1.5px;background:currentColor"></span></span></div>
+<div style="position:absolute;top:132px;left:32px;right:32px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px">
+<div style="width:112px;height:112px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);display:flex;align-items:center;justify-content:center;margin-bottom:24px;box-shadow:var(--shadow-float)"><span style="width:56px;height:56px;display:inline-flex">{{ ic.sprout }}</span></div>
+<span style="font-size:32px;line-height:40px;font-weight:700;letter-spacing:-0.02em">nanaki</span>
+<span style="font-size:20px;line-height:28px;font-weight:500;color:var(--fg-secondary)"><b style="font-weight:700;color:var(--accent)">나</b>는 <b style="font-weight:700;color:var(--accent)">나</b>를 <b style="font-weight:700;color:var(--accent)">키</b>운다</span>
+<span style="font-size:16px;line-height:24px;color:var(--fg-secondary);text-wrap:pretty;margin-top:4px">가계부부터 체형까지, 매일의 기록을 캘린더 하나에 모아요</span>
+</div>
+<div style="position:absolute;left:24px;right:24px;bottom:48px;display:flex;flex-direction:column;gap:12px">
+<div style="height:48px;border-radius:9999px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:12px;font-family:Roboto,'Pretendard Variable',sans-serif;font-size:14px;line-height:20px;font-weight:500;background:{{ g.bg }};border:1px solid {{ g.bd }};color:{{ g.fg }}"><span style="width:20px;height:20px;display:inline-flex">{{ googleG }}</span>Google로 시작하기</div>
+<div style="height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;background:var(--surface);border:1px solid var(--border);box-sizing:border-box">로그인 없이 체험하기</div>
+<div style="display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)"><span style="width:16px;height:16px;display:inline-flex">{{ ic.info }}</span>체험 데이터는 3일 뒤 자동으로 삭제돼요</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">02</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">홈 (캘린더)</h2></div>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary);max-width:720px">오늘 = accent 채운 원, 선택한 날짜 = surface 칸 + fg-primary 2px 테두리, 다른 달 = fg-disabled 숫자 · 점 없음. 날짜 칸에는 타입 점만 둡니다. 금액은 아래 요약에서 -32,000원 형식으로 보여줍니다. 설정에서 끈 타입(루틴)은 점 · 요약 · 다이얼 · 기록 탭에서 모두 숨겨집니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+<div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">2a</span><span style="font-weight:600">월 보기</span><span style="color:var(--fg-secondary)">요약 접힘 · 16일 선택</span></div><dc-import name="nanaki Home" variant="month" theme="{{ themeName }}" hide-routine="{{ hideRoutine }}" hint-size="375px,812px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">2b</span><span style="font-weight:600">월 보기</span><span style="color:var(--fg-secondary)">가계부 줄 펼침</span></div><dc-import name="nanaki Home" variant="expanded" theme="{{ themeName }}" hide-routine="{{ hideRoutine }}" hint-size="375px,812px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">2c</span><span style="font-weight:600">주 보기</span><span style="color:var(--fg-secondary)">오늘 선택 · 상세 넓게</span></div><dc-import name="nanaki Home" variant="week" theme="{{ themeName }}" hide-routine="{{ hideRoutine }}" hint-size="375px,812px"></dc-import></div>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">03</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">스피드 다이얼 열림</h2></div>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary);max-width:720px">가장 자주 쓰는 가계부를 엄지에 가장 가까운 아래쪽에 둡니다. 설정에서 끈 타입(여기선 루틴)은 빠지고 나머지 순서는 유지됩니다. 라벨과 아이콘 모두 누를 수 있고, 한 줄 높이는 48px입니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+<div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">3</span><span style="font-weight:600">스피드 다이얼</span><span style="color:var(--fg-secondary)">overlay 위</span></div><dc-import name="nanaki Home" variant="dial" theme="{{ themeName }}" hide-routine="{{ hideRoutine }}" hint-size="375px,812px"></dc-import></div>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">04</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">가계부 작성</h2></div>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary);max-width:720px">공통 필드 자리: 날짜는 맨 위, 제목 · 태그 · 메모는 구분선 아래 맨 끝. 타입별 필드는 그 사이에만 들어갑니다. 스크롤 전체 길이로 보여줍니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+<sc-for list="{{ ledgerForms }}" as="f" hint-placeholder-count="2">
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">{{ f.id }}</span><span style="font-weight:600">{{ f.label }}</span><span style="color:var(--fg-secondary)">{{ f.note }}</span></div>
+<div class="{{ themeCls }}" style="width:375px;min-height:812px;position:relative;overflow:hidden;border-radius:32px;background:var(--bg);color:var(--fg-primary);box-shadow:var(--shadow-float);display:flex;flex-direction:column">
+<div style="height:44px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-size:14px;line-height:20px;font-weight:600"><span>9:41</span><span style="width:25px;height:12px;border-radius:6px;border:1.5px solid currentColor;box-sizing:border-box;padding:1.5px;display:flex"><span style="width:70%;border-radius:1.5px;background:currentColor"></span></span></div>
+<div style="height:56px;padding:0 4px;display:flex;align-items:center"><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span style="width:24px;height:24px;display:inline-flex">{{ ic.x }}</span></span><span style="flex:1;text-align:center;font-size:16px;line-height:24px;font-weight:600">가계부 쓰기</span><span style="width:44px"></span></div>
+<div style="flex:1;padding:8px 16px 24px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">날짜</span><div style="height:48px;padding:0 12px 0 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;gap:12px;font-size:16px;font-variant-numeric:tabular-nums"><span style="width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.calendar }}</span>2026. 10. 16 (금)<span style="margin-left:auto;width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.chevronDown }}</span></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">금액</span>
+<sc-if value="{{ f.ok }}" hint-placeholder-val="{{ true }}"><div style="height:64px;padding:0 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:flex-end;gap:8px;font-variant-numeric:tabular-nums"><span style="font-size:28px;line-height:34px;font-weight:700;letter-spacing:-0.01em">12,500</span><span style="font-size:20px;line-height:28px;font-weight:600;color:var(--fg-secondary)">원</span></div></sc-if>
+<sc-if value="{{ f.err }}"><div style="height:64px;padding:0 16px;border:2px solid var(--danger);border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:flex-end;gap:8px;font-variant-numeric:tabular-nums"><span style="font-size:28px;line-height:34px;font-weight:700;color:var(--fg-secondary)">0</span><span style="font-size:20px;line-height:28px;font-weight:600;color:var(--fg-secondary)">원</span></div><span style="display:flex;align-items:center;gap:8px;font-size:12px;line-height:16px;font-weight:500;color:var(--danger)"><span style="width:16px;height:16px;display:inline-flex">{{ ic.alert }}</span>금액을 입력해 주세요</span></sc-if>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">분류</span><div style="display:flex;flex-wrap:wrap;gap:8px">
+<span style="height:44px;padding:0 16px 0 12px;border-radius:9999px;background:var(--fg-primary);color:var(--surface);display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:600"><span style="width:16px;height:16px;display:inline-flex">{{ ic.check }}</span>식비</span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">카페</span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">교통</span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">쇼핑</span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">생활</span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">의료</span>
+<span style="height:44px;padding:0 16px 0 12px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:var(--accent)"><span style="width:16px;height:16px;display:inline-flex">{{ ic.plus }}</span>직접 입력</span>
+</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">결제수단</span><div style="height:48px;padding:0 12px 0 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;gap:12px;font-size:16px"><span style="width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.card }}</span>카드<span style="margin-left:auto;width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.chevronDown }}</span></div></div>
+<div style="height:1px;background:var(--border)"></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">제목 <span style="color:var(--fg-secondary);font-weight:400">(선택)</span></span><div style="height:48px;padding:0 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;font-size:16px">회사 근처 국밥</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">태그 <span style="color:var(--fg-secondary);font-weight:400">(선택)</span></span><div style="min-height:48px;padding:8px 12px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px"><span style="height:28px;padding:0 4px 0 12px;border-radius:9999px;background:var(--surface-pressed);display:inline-flex;align-items:center;gap:4px">#점심<span style="width:44px;height:44px;margin:-10px;display:inline-flex;align-items:center;justify-content:center;color:var(--fg-secondary)"><span style="width:14px;height:14px;display:inline-flex">{{ ic.x }}</span></span></span><span style="color:var(--fg-secondary)">태그 입력 후 Enter</span></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">메모 <span style="color:var(--fg-secondary);font-weight:400">(선택)</span></span><div style="height:96px;padding:12px 16px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;flex-direction:column;justify-content:space-between;font-size:16px;line-height:24px;color:var(--fg-secondary)">메모를 남겨보세요<span style="align-self:flex-end;font-size:12px;line-height:16px;color:var(--fg-secondary);font-variant-numeric:tabular-nums">0 / 500</span></div></div>
+</div>
+<div style="padding:12px 16px 32px;background:var(--surface-raised);border-top:1px solid var(--border)"><div style="height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;background:var(--accent);color:var(--accent-foreground)">저장</div></div>
+</div>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">05</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">후기 작성</h2></div>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary);max-width:720px">날짜 · 제목 · 태그 · 메모는 가계부 폼과 같은 자리입니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">5</span><span style="font-weight:600">후기 쓰기</span><span style="color:var(--fg-secondary)">장소 · 사진 2장</span></div>
+<div class="{{ themeCls }}" style="width:375px;min-height:812px;position:relative;overflow:hidden;border-radius:32px;background:var(--bg);color:var(--fg-primary);box-shadow:var(--shadow-float);display:flex;flex-direction:column">
+<div style="height:44px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-size:14px;line-height:20px;font-weight:600"><span>9:41</span><span style="width:25px;height:12px;border-radius:6px;border:1.5px solid currentColor;box-sizing:border-box;padding:1.5px;display:flex"><span style="width:70%;border-radius:1.5px;background:currentColor"></span></span></div>
+<div style="height:56px;padding:0 4px;display:flex;align-items:center"><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span style="width:24px;height:24px;display:inline-flex">{{ ic.x }}</span></span><span style="flex:1;text-align:center;font-size:16px;line-height:24px;font-weight:600">후기 쓰기</span><span style="width:44px"></span></div>
+<div style="flex:1;padding:8px 16px 24px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">날짜</span><div style="height:48px;padding:0 12px 0 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;gap:12px;font-size:16px;font-variant-numeric:tabular-nums"><span style="width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.calendar }}</span>2026. 10. 16 (금)<span style="margin-left:auto;width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.chevronDown }}</span></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">대상 종류</span><div style="display:flex;flex-wrap:wrap;gap:8px">
+<span style="height:44px;padding:0 16px 0 12px;border-radius:9999px;background:var(--fg-primary);color:var(--surface);display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:600"><span style="width:16px;height:16px;display:inline-flex">{{ ic.check }}</span>장소</span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">제품</span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">콘텐츠</span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">경험</span>
+</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">이름</span><div style="height:48px;padding:0 16px;border:2px solid var(--accent);border-radius:10px;background:var(--surface);display:flex;align-items:center;font-size:16px">동네 로스터리<span style="width:1.5px;height:20px;background:var(--accent);margin-left:4px"></span></div></div>
+<div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:14px;line-height:20px;font-weight:500">별점</span><div style="display:flex;align-items:center;margin-left:-8px">
+<span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--type-review)"><span style="width:28px;height:28px;display:inline-flex">{{ ic.starFill }}</span></span><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--type-review)"><span style="width:28px;height:28px;display:inline-flex">{{ ic.starFill }}</span></span><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--type-review)"><span style="width:28px;height:28px;display:inline-flex">{{ ic.starFill }}</span></span><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--type-review)"><span style="width:28px;height:28px;display:inline-flex">{{ ic.starFill }}</span></span><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--fg-secondary)"><span style="width:28px;height:28px;display:inline-flex">{{ ic.star }}</span></span>
+<span style="margin-left:8px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">4 / 5</span></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">사진 <span style="color:var(--fg-secondary);font-weight:400">(선택 · 최대 5장)</span></span><div style="display:flex;gap:8px">
+<div style="width:88px;height:88px;border-radius:10px;border:1px dashed var(--fg-secondary);box-sizing:border-box;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--fg-secondary);font-size:12px;line-height:16px;font-weight:500;font-variant-numeric:tabular-nums"><span style="width:24px;height:24px;display:inline-flex">{{ ic.imagePlus }}</span>2 / 5</div>
+<div style="width:88px;height:88px;border-radius:10px;background:repeating-linear-gradient(45deg,var(--surface-hover) 0 8px,var(--surface-pressed) 8px 16px);position:relative"><span style="position:absolute;top:-6px;right:-6px;width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span style="width:24px;height:24px;border-radius:9999px;background:var(--fg-primary);color:var(--surface);display:flex;align-items:center;justify-content:center"><span style="width:14px;height:14px;display:inline-flex">{{ ic.x }}</span></span></span></div>
+<div style="width:88px;height:88px;border-radius:10px;background:repeating-linear-gradient(45deg,var(--surface-hover) 0 8px,var(--surface-pressed) 8px 16px);position:relative"><span style="position:absolute;top:-6px;right:-6px;width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span style="width:24px;height:24px;border-radius:9999px;background:var(--fg-primary);color:var(--surface);display:flex;align-items:center;justify-content:center"><span style="width:14px;height:14px;display:inline-flex">{{ ic.x }}</span></span></span></div>
+</div></div>
+<div style="height:1px;background:var(--border)"></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">제목 <span style="color:var(--fg-secondary);font-weight:400">(선택)</span></span><div style="height:48px;padding:0 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;font-size:16px">창가 자리가 좋았던 곳</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">태그 <span style="color:var(--fg-secondary);font-weight:400">(선택)</span></span><div style="min-height:48px;padding:8px 12px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px"><span style="height:28px;padding:0 4px 0 12px;border-radius:9999px;background:var(--surface-pressed);display:inline-flex;align-items:center;gap:4px">#재방문<span style="width:44px;height:44px;margin:-10px;display:inline-flex;align-items:center;justify-content:center;color:var(--fg-secondary)"><span style="width:14px;height:14px;display:inline-flex">{{ ic.x }}</span></span></span><span style="height:28px;padding:0 4px 0 12px;border-radius:9999px;background:var(--surface-pressed);display:inline-flex;align-items:center;gap:4px">#조용함<span style="width:44px;height:44px;margin:-10px;display:inline-flex;align-items:center;justify-content:center;color:var(--fg-secondary)"><span style="width:14px;height:14px;display:inline-flex">{{ ic.x }}</span></span></span></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">메모 <span style="color:var(--fg-secondary);font-weight:400">(선택)</span></span><div style="height:96px;padding:12px 16px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;flex-direction:column;justify-content:space-between;font-size:16px;line-height:24px">오후 햇빛이 좋았다. 다음엔 원두도 사볼 것.<span style="align-self:flex-end;font-size:12px;line-height:16px;color:var(--fg-secondary);font-variant-numeric:tabular-nums">22 / 500</span></div></div>
+</div>
+<div style="padding:12px 16px 32px;background:var(--surface-raised);border-top:1px solid var(--border)"><div style="height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;background:var(--accent);color:var(--accent-foreground)">저장</div></div>
+</div>
+</div>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">06</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">기록 보기 (상세)</h2></div>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary);max-width:720px">삭제는 확인 모달 없이 바로 지우고, 5초 동안 토스트로 되돌리기를 제공합니다. 토스트가 뜨는 동안 다이얼 버튼은 위로 비켜섭니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">6a</span><span style="font-weight:600">후기 상세</span><span style="color:var(--fg-secondary)">⋯ 메뉴 열림</span></div>
+<div class="{{ themeCls }}" style="width:375px;height:812px;position:relative;overflow:hidden;border-radius:32px;background:var(--bg);color:var(--fg-primary);box-shadow:var(--shadow-float)">
+<div style="height:44px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-size:14px;line-height:20px;font-weight:600"><span>9:41</span><span style="width:25px;height:12px;border-radius:6px;border:1.5px solid currentColor;box-sizing:border-box;padding:1.5px;display:flex"><span style="width:70%;border-radius:1.5px;background:currentColor"></span></span></div>
+<div style="height:56px;padding:0 4px;display:flex;align-items:center;justify-content:space-between"><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span style="width:24px;height:24px;display:inline-flex">{{ ic.chevronLeft }}</span></span><span style="width:44px;height:44px;border-radius:9999px;background:var(--surface-pressed);display:flex;align-items:center;justify-content:center"><span style="width:24px;height:24px;display:inline-flex">{{ ic.moreH }}</span></span></div>
+<div style="padding:8px 16px;display:flex;flex-direction:column;gap:16px">
+<span style="align-self:flex-start;height:28px;padding:0 12px 0 8px;border-radius:9999px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;background:var(--type-review-subtle);color:var(--type-review)"><span style="width:16px;height:16px;display:inline-flex">{{ ic.review }}</span>후기 · 장소</span>
+<div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">동네 로스터리</span><div style="display:flex;align-items:center;gap:4px;color:var(--type-review)"><span style="width:20px;height:20px;display:inline-flex">{{ ic.starFill }}</span><span style="width:20px;height:20px;display:inline-flex">{{ ic.starFill }}</span><span style="width:20px;height:20px;display:inline-flex">{{ ic.starFill }}</span><span style="width:20px;height:20px;display:inline-flex">{{ ic.starFill }}</span><span style="width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.star }}</span><span style="margin-left:8px;font-size:14px;font-weight:600;color:var(--fg-primary);font-variant-numeric:tabular-nums">4.0</span></div></div>
+<div style="display:flex;gap:8px"><div style="flex:1;height:140px;border-radius:10px;background:repeating-linear-gradient(45deg,var(--surface-hover) 0 8px,var(--surface-pressed) 8px 16px);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--fg-secondary)">사진 1</div><div style="flex:1;height:140px;border-radius:10px;background:repeating-linear-gradient(45deg,var(--surface-hover) 0 8px,var(--surface-pressed) 8px 16px);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--fg-secondary)">사진 2</div></div>
+<div style="background:var(--surface);border-radius:16px;box-shadow:var(--shadow-card);overflow:hidden">
+<div style="min-height:48px;padding:12px 16px;box-sizing:border-box;display:flex;gap:12px;font-size:16px;line-height:24px"><span style="width:56px;flex:none;font-size:14px;color:var(--fg-secondary)">날짜</span><span style="font-variant-numeric:tabular-nums">2026. 10. 16 (금)</span></div>
+<div style="min-height:48px;padding:12px 16px;box-sizing:border-box;display:flex;gap:12px;font-size:16px;line-height:24px;border-top:1px solid var(--border)"><span style="width:56px;flex:none;font-size:14px;color:var(--fg-secondary)">제목</span><span>창가 자리가 좋았던 곳</span></div>
+<div style="min-height:48px;padding:12px 16px;box-sizing:border-box;display:flex;align-items:center;gap:12px;border-top:1px solid var(--border)"><span style="width:56px;flex:none;font-size:14px;color:var(--fg-secondary)">태그</span><div style="display:flex;gap:8px;font-size:14px"><span style="height:28px;padding:0 12px;border-radius:9999px;background:var(--surface-pressed);display:inline-flex;align-items:center">#재방문</span><span style="height:28px;padding:0 12px;border-radius:9999px;background:var(--surface-pressed);display:inline-flex;align-items:center">#조용함</span></div></div>
+<div style="padding:12px 16px;display:flex;gap:12px;font-size:16px;line-height:24px;border-top:1px solid var(--border)"><span style="width:56px;flex:none;font-size:14px;color:var(--fg-secondary)">메모</span><span>오후 햇빛이 좋았다. 다음엔 원두도 사볼 것.</span></div>
+</div>
+</div>
+<div style="position:absolute;top:96px;right:12px;width:168px;padding:4px;box-sizing:border-box;background:var(--surface-raised);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-float);display:flex;flex-direction:column;font-size:16px">
+<div style="height:44px;padding:0 12px;display:flex;align-items:center;gap:12px"><span style="width:20px;height:20px;display:inline-flex">{{ ic.pencil }}</span>수정</div>
+<div style="height:44px;padding:0 12px;display:flex;align-items:center;gap:12px;color:var(--danger)"><span style="width:20px;height:20px;display:inline-flex">{{ ic.trash }}</span>삭제</div>
+</div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">6b</span><span style="font-weight:600">삭제 직후</span><span style="color:var(--fg-secondary)">홈으로 돌아와 토스트</span></div><dc-import name="nanaki Home" variant="toast" theme="{{ themeName }}" hide-routine="{{ hideRoutine }}" hint-size="375px,812px"></dc-import></div>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">07</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">기록 탭</h2></div>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+<div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">7</span><span style="font-weight:600">기록 탭</span><span style="color:var(--fg-secondary)">이번 달 핵심 숫자 + 최근 기록</span></div><dc-import name="nanaki Records" variant="default" theme="{{ themeName }}" hide-routine="{{ hideRoutine }}" hint-size="375px,812px"></dc-import></div>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">08</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">설정</h2></div>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+<sc-for list="{{ settings }}" as="s" hint-placeholder-count="2">
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">{{ s.id }}</span><span style="font-weight:600">{{ s.label }}</span><span style="color:var(--fg-secondary)">{{ s.note }}</span></div>
+<div class="{{ themeCls }}" style="width:375px;min-height:812px;position:relative;overflow:hidden;border-radius:32px;background:var(--bg);color:var(--fg-primary);box-shadow:var(--shadow-float);height:{{ s.h }}">
+<div style="height:44px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-size:14px;line-height:20px;font-weight:600"><span>9:41</span><span style="width:25px;height:12px;border-radius:6px;border:1.5px solid currentColor;box-sizing:border-box;padding:1.5px;display:flex"><span style="width:70%;border-radius:1.5px;background:currentColor"></span></span></div>
+<div style="height:56px;padding:0 4px;display:flex;align-items:center"><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span style="width:24px;height:24px;display:inline-flex">{{ ic.chevronLeft }}</span></span><span style="flex:1;text-align:center;font-size:16px;line-height:24px;font-weight:600">설정</span><span style="width:44px"></span></div>
+<div style="padding:8px 16px 40px;display:flex;flex-direction:column;gap:24px">
+
+<div><div style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);padding:0 4px 8px">기록 타입</div>
+<div style="background:var(--surface);border-radius:16px;box-shadow:var(--shadow-card);overflow:hidden">
+<sc-for list="{{ setTypes }}" as="t" hint-placeholder-count="5">
+<div style="min-height:56px;padding:8px 8px 8px 16px;box-sizing:border-box;display:flex;align-items:center;gap:12px;border-top:{{ t.bt }}">
+<span style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;background:{{ t.s }};color:{{ t.c }}"><span style="width:18px;height:18px;display:inline-flex">{{ t.iconEl }}</span></span>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:16px;line-height:24px;font-weight:500;color:{{ t.fg }}">{{ t.ko }}</span><sc-if value="{{ t.off }}"><span style="display:flex;align-items:center;gap:4px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)"><span style="width:14px;height:14px;display:inline-flex">{{ ic.eyeOff }}</span>기록은 지워지지 않고 숨겨져요</span></sc-if></div>
+<span style="width:56px;height:44px;display:flex;align-items:center;justify-content:center"><sc-if value="{{ t.on }}"><span style="width:44px;height:26px;border-radius:9999px;background:var(--accent);padding:4px;box-sizing:border-box;display:flex;justify-content:flex-end"><span style="width:20px;height:20px;border-radius:9999px;background:var(--accent-foreground)"></span></span></sc-if><sc-if value="{{ t.off }}"><span style="width:44px;height:26px;border-radius:9999px;background:var(--fg-disabled);padding:4px;box-sizing:border-box;display:flex"><span style="width:20px;height:20px;border-radius:9999px;background:var(--surface)"></span></span></sc-if></span>
+</div>
+</sc-for>
+</div></div>
+
+<div><div style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);padding:0 4px 8px">체형</div>
+<div style="background:var(--surface);border-radius:16px;box-shadow:var(--shadow-card);overflow:hidden">
+<div style="min-height:56px;padding:0 8px 0 16px;display:flex;align-items:center;gap:8px;font-size:16px"><span style="flex:1">체형 측정 항목</span><span style="font-size:14px;color:var(--fg-secondary)">체중 · 허리 · 체지방</span><span style="width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.chevronRight }}</span></div>
+</div></div>
+
+<div><div style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);padding:0 4px 8px">데이터</div>
+<div style="background:var(--surface);border-radius:16px;box-shadow:var(--shadow-card);overflow:hidden">
+<div style="padding:16px 16px;display:flex;flex-direction:column;gap:8px"><div style="display:flex;justify-content:space-between;font-size:16px;line-height:24px"><span>저장 공간</span><span style="font-size:14px;color:var(--fg-secondary);font-variant-numeric:tabular-nums">12.4MB 사용 중</span></div><div style="height:6px;border-radius:9999px;background:var(--surface-pressed);overflow:hidden"><div style="width:18%;height:100%;background:var(--accent)"></div></div><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);font-variant-numeric:tabular-nums">기록 312개 · 사진 48장</span></div>
+<div style="min-height:56px;padding:0 16px;display:flex;align-items:center;gap:12px;font-size:16px;border-top:1px solid var(--border)"><span style="width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.download }}</span><span style="flex:1">백업 파일 저장하기</span></div>
+<div style="min-height:56px;padding:0 16px;display:flex;align-items:center;gap:12px;font-size:16px;border-top:1px solid var(--border)"><span style="width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.upload }}</span><span style="flex:1">백업 파일 불러오기</span></div>
+</div></div>
+
+<div><div style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);padding:0 4px 8px">화면</div>
+<div style="background:var(--surface);border-radius:16px;box-shadow:var(--shadow-card);overflow:hidden">
+<div style="min-height:64px;padding:0 12px 0 16px;display:flex;align-items:center;gap:8px;font-size:16px"><span style="flex:1">다크모드</span><div style="height:44px;padding:4px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;font-size:14px;font-weight:600"><span style="width:52px;border-radius:6px;background:var(--fg-primary);color:var(--surface);display:flex;align-items:center;justify-content:center">시스템</span><span style="width:52px;display:flex;align-items:center;justify-content:center;color:var(--fg-secondary)">라이트</span><span style="width:52px;display:flex;align-items:center;justify-content:center;color:var(--fg-secondary)">다크</span></div></div>
+</div></div>
+
+<div><div style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);padding:0 4px 8px">정보</div>
+<div style="background:var(--surface);border-radius:16px;box-shadow:var(--shadow-card);overflow:hidden">
+<div style="min-height:56px;padding:0 8px 0 16px;display:flex;align-items:center;gap:8px;font-size:16px"><span style="flex:1">개인정보처리방침</span><span style="width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.chevronRight }}</span></div>
+</div></div>
+
+<div style="background:var(--surface);border-radius:16px;box-shadow:var(--shadow-card);overflow:hidden"><div style="min-height:56px;padding:0 16px;display:flex;align-items:center;font-size:16px;font-weight:600;color:var(--danger)">계정 삭제</div></div>
+</div>
+
+<sc-if value="{{ s.modal }}">
+<div style="position:absolute;inset:0;background:var(--overlay)"></div>
+<div style="position:absolute;left:24px;right:24px;top:50%;transform:translateY(-50%);background:var(--surface-raised);border-radius:16px;padding:24px 20px 20px;box-shadow:var(--shadow-float);display:flex;flex-direction:column;gap:8px">
+<span style="font-size:20px;line-height:28px;font-weight:600">계정을 삭제할까요?</span>
+<span style="font-size:14px;line-height:20px;color:var(--fg-secondary);text-wrap:pretty">모든 기록과 사진, 설정이 영구적으로 삭제되고 복구할 수 없어요.</span>
+<div style="height:44px;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--accent)"><span style="width:18px;height:18px;display:inline-flex">{{ ic.download }}</span>백업 파일 먼저 저장하기</div>
+<div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;background:var(--danger);color:var(--accent-foreground)">계정 삭제</div>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;background:var(--surface);border:1px solid var(--border);box-sizing:border-box">취소</div>
+</div>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">09</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">빈 상태</h2></div>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary);max-width:720px">구조는 그대로 두고 값만 비웁니다. 기록 탭의 타입 카드는 0으로 남겨 어떤 숫자가 쌓일지 미리 보여줍니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+<div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">9a</span><span style="font-weight:600">홈</span><span style="color:var(--fg-secondary)">기록 0개</span></div><dc-import name="nanaki Home" variant="empty" theme="{{ themeName }}" hide-routine="{{ hideRoutine }}" hint-size="375px,812px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">9b</span><span style="font-weight:600">기록 탭</span><span style="color:var(--fg-secondary)">기록 0개</span></div><dc-import name="nanaki Records" variant="empty" theme="{{ themeName }}" hide-routine="{{ hideRoutine }}" hint-size="375px,812px"></dc-import></div>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">10</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">운동 기록</h2></div>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary);max-width:720px">종목이 유산소면 거리, 근력이면 세트 목록이 나타납니다. 세트 행은 오른쪽 ×로 지우고 아래 버튼으로 추가합니다. 공통 필드는 가계부 폼과 같은 자리입니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+<sc-for list="{{ exForms }}" as="f" hint-placeholder-count="2">
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">{{ f.id }}</span><span style="font-weight:600">운동 기록</span><span style="color:var(--fg-secondary)">{{ f.note }}</span></div>
+<div class="{{ themeCls }}" style="width:375px;min-height:812px;position:relative;overflow:hidden;border-radius:32px;background:var(--bg);color:var(--fg-primary);box-shadow:var(--shadow-float);display:flex;flex-direction:column">
+<div style="height:44px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-size:14px;line-height:20px;font-weight:600"><span>9:41</span><span style="width:25px;height:12px;border-radius:6px;border:1.5px solid currentColor;box-sizing:border-box;padding:1.5px;display:flex"><span style="width:70%;border-radius:1.5px;background:currentColor"></span></span></div>
+<div style="height:56px;padding:0 4px;display:flex;align-items:center"><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span style="width:24px;height:24px;display:inline-flex">{{ ic.x }}</span></span><span style="flex:1;text-align:center;font-size:16px;line-height:24px;font-weight:600">운동 기록</span><span style="width:44px"></span></div>
+<div style="flex:1;padding:8px 16px 24px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">날짜</span><div style="height:48px;padding:0 12px 0 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;gap:12px;font-size:16px;font-variant-numeric:tabular-nums"><span style="width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.calendar }}</span>2026. 10. 16 (금)<span style="margin-left:auto;width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.chevronDown }}</span></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">종목</span><div style="display:flex;flex-wrap:wrap;gap:8px">
+<sc-for list="{{ f.chips }}" as="c" hint-placeholder-count="6"><sc-if value="{{ c.sel }}"><span style="height:44px;padding:0 16px 0 12px;border-radius:9999px;background:var(--fg-primary);color:var(--surface);display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:600"><span style="width:16px;height:16px;display:inline-flex">{{ ic.check }}</span>{{ c.n }}</span></sc-if><sc-if value="{{ c.unsel }}"><span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">{{ c.n }}</span></sc-if></sc-for>
+<span style="height:44px;padding:0 16px 0 12px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:var(--accent)"><span style="width:16px;height:16px;display:inline-flex">{{ ic.plus }}</span>직접 입력</span>
+</div><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">{{ f.kindNote }}</span></div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">시간</span><div style="height:48px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:flex-end;gap:4px;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">{{ f.time }}<span style="font-weight:400;color:var(--fg-secondary)">분</span></div></div>
+<sc-if value="{{ f.cardio }}"><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">거리</span><div style="height:48px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:flex-end;gap:4px;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">5.0<span style="font-weight:400;color:var(--fg-secondary)">km</span></div></div></sc-if>
+</div>
+<sc-if value="{{ f.strength }}">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">세트</span>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) 84px 72px 36px;gap:8px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)"><span>운동명</span><span>무게</span><span>횟수</span><span></span></div>
+<sc-for list="{{ sets }}" as="s" hint-placeholder-count="3"><div style="display:grid;grid-template-columns:minmax(0,1fr) 84px 72px 36px;gap:8px;align-items:center">
+<div style="height:48px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;font-size:16px;min-width:0;overflow:hidden;white-space:nowrap">{{ s.n }}</div>
+<div style="height:48px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:flex-end;gap:4px;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">{{ s.w }}<span style="font-weight:400;font-size:14px;color:var(--fg-secondary)">kg</span></div>
+<div style="height:48px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:flex-end;gap:4px;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">{{ s.r }}<span style="font-weight:400;font-size:14px;color:var(--fg-secondary)">회</span></div>
+<span style="width:44px;height:48px;margin-left:-4px;display:flex;align-items:center;justify-content:center;color:var(--fg-secondary)"><span style="width:20px;height:20px;display:inline-flex">{{ ic.x }}</span></span>
+</div></sc-for>
+<div style="height:44px;border-radius:10px;border:1px dashed var(--fg-secondary);box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;color:var(--accent)"><span style="width:18px;height:18px;display:inline-flex">{{ ic.plus }}</span>세트 추가</div>
+</div>
+</sc-if>
+<div style="height:1px;background:var(--border)"></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">제목 <span style="color:var(--fg-secondary);font-weight:400">(선택)</span></span><div style="height:48px;padding:0 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;font-size:16px">{{ f.title }}</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">태그 <span style="color:var(--fg-secondary);font-weight:400">(선택)</span></span><div style="min-height:48px;padding:8px 12px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;font-size:14px;color:var(--fg-secondary)">태그 입력 후 Enter</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">메모 <span style="color:var(--fg-secondary);font-weight:400">(선택)</span></span><div style="height:96px;padding:12px 16px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;flex-direction:column;justify-content:space-between;font-size:16px;line-height:24px;color:var(--fg-secondary)">메모를 남겨보세요<span style="align-self:flex-end;font-size:12px;line-height:16px;color:var(--fg-secondary);font-variant-numeric:tabular-nums">0 / 500</span></div></div>
+</div>
+<div style="padding:12px 16px 32px;background:var(--surface-raised);border-top:1px solid var(--border)"><div style="height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;background:var(--accent);color:var(--accent-foreground)">저장</div></div>
+</div>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">11</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">체형 기록</h2></div>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary);max-width:720px">둘레 항목은 설정 → 체형 측정 항목에서 고른 것만 나옵니다. 사진은 step 4에서 열 기능이라 지금은 비활성으로 자리만 둡니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">11</span><span style="font-weight:600">체형 기록</span><span style="color:var(--fg-secondary)">체중 + 둘레 3개</span></div>
+<div class="{{ themeCls }}" style="width:375px;min-height:812px;position:relative;overflow:hidden;border-radius:32px;background:var(--bg);color:var(--fg-primary);box-shadow:var(--shadow-float);display:flex;flex-direction:column">
+<div style="height:44px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-size:14px;line-height:20px;font-weight:600"><span>9:41</span><span style="width:25px;height:12px;border-radius:6px;border:1.5px solid currentColor;box-sizing:border-box;padding:1.5px;display:flex"><span style="width:70%;border-radius:1.5px;background:currentColor"></span></span></div>
+<div style="height:56px;padding:0 4px;display:flex;align-items:center"><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span style="width:24px;height:24px;display:inline-flex">{{ ic.x }}</span></span><span style="flex:1;text-align:center;font-size:16px;line-height:24px;font-weight:600">체형 기록</span><span style="width:44px"></span></div>
+<div style="flex:1;padding:8px 16px 24px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">날짜</span><div style="height:48px;padding:0 12px 0 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;gap:12px;font-size:16px;font-variant-numeric:tabular-nums"><span style="width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.calendar }}</span>2026. 10. 16 (금)<span style="margin-left:auto;width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.chevronDown }}</span></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">체중</span><div style="height:64px;padding:0 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:flex-end;gap:8px;font-variant-numeric:tabular-nums"><span style="font-size:28px;line-height:34px;font-weight:700;letter-spacing:-0.01em">68.4</span><span style="font-size:20px;line-height:28px;font-weight:600;color:var(--fg-secondary)">kg</span></div><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);font-variant-numeric:tabular-nums">지난 기록 68.9kg · 10.12</span></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:14px;line-height:20px;font-weight:500">둘레</span><span style="height:44px;margin:-12px 0;padding:0 4px;display:flex;align-items:center;font-size:14px;font-weight:600;color:var(--accent)">항목 편집</span></div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+<div style="height:48px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;gap:4px;font-size:16px;font-variant-numeric:tabular-nums"><span style="flex:1;font-size:14px;color:var(--fg-secondary)">허리</span><b style="font-weight:600">78</b><span style="color:var(--fg-secondary)">cm</span></div>
+<div style="height:48px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;gap:4px;font-size:16px;font-variant-numeric:tabular-nums"><span style="flex:1;font-size:14px;color:var(--fg-secondary)">엉덩이</span><b style="font-weight:600">94</b><span style="color:var(--fg-secondary)">cm</span></div>
+<div style="height:48px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;gap:4px;font-size:16px;font-variant-numeric:tabular-nums"><span style="flex:1;font-size:14px;color:var(--fg-secondary)">허벅지</span><span style="color:var(--fg-secondary)">0</span><span style="color:var(--fg-secondary)">cm</span></div>
+</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500;color:var(--fg-secondary)">사진</span><span style="height:24px;padding:0 8px;border-radius:9999px;background:var(--surface-pressed);color:var(--fg-secondary);font-size:12px;font-weight:600;display:flex;align-items:center">준비 중</span></div>
+<div style="display:flex;gap:12px;align-items:center"><div style="width:88px;height:88px;border-radius:10px;border:1px dashed var(--fg-disabled);box-sizing:border-box;background:var(--surface-hover);display:flex;align-items:center;justify-content:center;color:var(--fg-disabled);flex:none"><span style="width:24px;height:24px;display:inline-flex">{{ ic.imagePlus }}</span></div><span style="font-size:14px;line-height:20px;color:var(--fg-secondary);text-wrap:pretty">변화 비교 사진은 다음 업데이트에서 쓸 수 있어요</span></div></div>
+<div style="height:1px;background:var(--border)"></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">제목 <span style="color:var(--fg-secondary);font-weight:400">(선택)</span></span><div style="height:48px;padding:0 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;font-size:16px;color:var(--fg-secondary)">예: 아침 공복</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">태그 <span style="color:var(--fg-secondary);font-weight:400">(선택)</span></span><div style="min-height:48px;padding:8px 12px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;font-size:14px;color:var(--fg-secondary)">태그 입력 후 Enter</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">메모 <span style="color:var(--fg-secondary);font-weight:400">(선택)</span></span><div style="height:96px;padding:12px 16px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;flex-direction:column;justify-content:space-between;font-size:16px;line-height:24px;color:var(--fg-secondary)">메모를 남겨보세요<span style="align-self:flex-end;font-size:12px;line-height:16px;color:var(--fg-secondary);font-variant-numeric:tabular-nums">0 / 500</span></div></div>
+</div>
+<div style="padding:12px 16px 32px;background:var(--surface-raised);border-top:1px solid var(--border)"><div style="height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;background:var(--accent);color:var(--accent-foreground)">저장</div></div>
+</div>
+</div>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">12</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">루틴 만들기</h2></div>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary);max-width:720px">날짜 자리는 "시작일", 제목 자리는 루틴 "이름"이 맡아 공통 필드 순서를 지킵니다. 기록 연동을 고르면 해당 타입을 기록하는 날 자동으로 체크됩니다. (설정에서 루틴을 켠 경우)</p>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+<sc-for list="{{ routineForms }}" as="f" hint-placeholder-count="2">
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">{{ f.id }}</span><span style="font-weight:600">루틴 만들기</span><span style="color:var(--fg-secondary)">{{ f.note }}</span></div>
+<div class="{{ themeCls }}" style="width:375px;min-height:812px;position:relative;overflow:hidden;border-radius:32px;background:var(--bg);color:var(--fg-primary);box-shadow:var(--shadow-float);display:flex;flex-direction:column">
+<div style="height:44px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-size:14px;line-height:20px;font-weight:600"><span>9:41</span><span style="width:25px;height:12px;border-radius:6px;border:1.5px solid currentColor;box-sizing:border-box;padding:1.5px;display:flex"><span style="width:70%;border-radius:1.5px;background:currentColor"></span></span></div>
+<div style="height:56px;padding:0 4px;display:flex;align-items:center"><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span style="width:24px;height:24px;display:inline-flex">{{ ic.x }}</span></span><span style="flex:1;text-align:center;font-size:16px;line-height:24px;font-weight:600">루틴 만들기</span><span style="width:44px"></span></div>
+<div style="flex:1;padding:8px 16px 24px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">시작일</span><div style="height:48px;padding:0 12px 0 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;gap:12px;font-size:16px;font-variant-numeric:tabular-nums"><span style="width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.calendar }}</span>2026. 10. 16 (금)<span style="margin-left:auto;width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.chevronDown }}</span></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">이름</span><div style="height:48px;padding:0 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;font-size:16px">{{ f.name }}</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">반복</span>
+<div style="height:44px;padding:4px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;font-size:14px;font-weight:600"><span style="flex:1;border-radius:6px;display:flex;align-items:center;justify-content:center;background:{{ f.wBg }};color:{{ f.wFg }}">요일 선택</span><span style="flex:1;border-radius:6px;display:flex;align-items:center;justify-content:center;background:{{ f.mBg }};color:{{ f.mFg }}">매달</span></div>
+<sc-if value="{{ f.weekly }}" hint-placeholder-val="{{ true }}"><div style="display:flex;justify-content:space-between"><sc-for list="{{ f.days }}" as="d" hint-placeholder-count="7"><span style="width:44px;height:44px;border-radius:9999px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;box-sizing:border-box;background:{{ d.bg }};color:{{ d.fg }};border:1px solid {{ d.bd }}">{{ d.n }}</span></sc-for></div></sc-if>
+<sc-if value="{{ f.monthly }}"><div style="display:flex;align-items:center;gap:8px;font-size:16px"><span>매달</span><div style="width:88px;height:48px;padding:0 12px;box-sizing:border-box;border:2px solid var(--accent);border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:flex-end;gap:4px;font-weight:600;font-variant-numeric:tabular-nums">1<span style="font-weight:400;color:var(--fg-secondary)">일</span></div><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">31일이 없는 달은 말일</span></div></sc-if>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">목표</span>
+<div style="height:44px;padding:4px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;font-size:14px;font-weight:600"><span style="flex:1;border-radius:6px;display:flex;align-items:center;justify-content:center;background:{{ f.cBg }};color:{{ f.cFg }}">체크</span><span style="flex:1;border-radius:6px;display:flex;align-items:center;justify-content:center;background:{{ f.nBg }};color:{{ f.nFg }}">횟수</span></div>
+<sc-if value="{{ f.count }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:8px"><div style="width:96px;height:48px;padding:0 12px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:flex-end;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">8</div><div style="flex:1;height:48px;padding:0 16px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;font-size:16px">잔</div></div><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">하루 8잔을 채우면 완료돼요</span></sc-if>
+<sc-if value="{{ f.check }}"><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">한 번 체크하면 완료돼요</span></sc-if>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">기록 연동 <span style="color:var(--fg-secondary);font-weight:400">(선택)</span></span>
+<div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ f.links }}" as="l" hint-placeholder-count="4"><sc-if value="{{ l.sel }}"><span style="height:44px;padding:0 12px 0 12px;border-radius:9999px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;box-sizing:border-box;background:{{ l.s }};color:{{ l.c }};border:2px solid {{ l.c }}"><span style="width:16px;height:16px;display:inline-flex">{{ ic.check }}</span>{{ l.ko }}</span></sc-if><sc-if value="{{ l.unsel }}"><span style="height:44px;padding:0 12px 0 12px;border-radius:9999px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;box-sizing:border-box;background:var(--surface);border:1px solid var(--border)"><span style="width:16px;height:16px;display:inline-flex;color:{{ l.c }}">{{ l.iconEl }}</span>{{ l.ko }}</span></sc-if></sc-for></div>
+<span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">{{ f.linkNote }}</span></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="min-height:44px;display:flex;align-items:center;justify-content:space-between"><span style="font-size:14px;line-height:20px;font-weight:500">알림</span><sc-if value="{{ f.alarm }}" hint-placeholder-val="{{ true }}"><span style="width:44px;height:26px;border-radius:9999px;background:var(--accent);padding:4px;box-sizing:border-box;display:flex;justify-content:flex-end"><span style="width:20px;height:20px;border-radius:9999px;background:var(--accent-foreground)"></span></span></sc-if><sc-if value="{{ f.noAlarm }}"><span style="width:44px;height:26px;border-radius:9999px;background:var(--fg-disabled);padding:4px;box-sizing:border-box;display:flex"><span style="width:20px;height:20px;border-radius:9999px;background:var(--surface)"></span></span></sc-if></div>
+<sc-if value="{{ f.alarm }}" hint-placeholder-val="{{ true }}"><div style="height:48px;padding:0 12px 0 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;gap:12px;font-size:16px;font-variant-numeric:tabular-nums"><span style="width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.clock }}</span>오전 9:00<span style="margin-left:auto;width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.chevronDown }}</span></div></sc-if></div>
+<div style="height:1px;background:var(--border)"></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">태그 <span style="color:var(--fg-secondary);font-weight:400">(선택)</span></span><div style="min-height:48px;padding:8px 12px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;font-size:14px;color:var(--fg-secondary)">태그 입력 후 Enter</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">메모 <span style="color:var(--fg-secondary);font-weight:400">(선택)</span></span><div style="height:96px;padding:12px 16px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;flex-direction:column;justify-content:space-between;font-size:16px;line-height:24px;color:var(--fg-secondary)">메모를 남겨보세요<span style="align-self:flex-end;font-size:12px;line-height:16px;color:var(--fg-secondary);font-variant-numeric:tabular-nums">0 / 500</span></div></div>
+</div>
+<div style="padding:12px 16px 32px;background:var(--surface-raised);border-top:1px solid var(--border)"><div style="height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;background:var(--accent);color:var(--accent-foreground)">루틴 만들기</div></div>
+</div>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">13</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">타입 상세 (공통 틀)</h2></div>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary);max-width:720px">헤더(타입 + 기간 이동) → 요약 카드 1개 → 기록 목록. 요약 카드 안쪽만 타입별로 바뀝니다. 차트는 해당 타입 색 하나와 surface-pressed 트랙만 씁니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+<div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">13a</span><span style="font-weight:600">가계부</span><span style="color:var(--fg-secondary)">월 합계 · 예산 · 분류 막대</span></div><dc-import name="nanaki Type Detail" type="expense" theme="{{ themeName }}" hint-size="375px,812px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">13b</span><span style="font-weight:600">후기</span><span style="color:var(--fg-secondary)">대상 종류 칩</span></div><dc-import name="nanaki Type Detail" type="review" theme="{{ themeName }}" hint-size="375px,812px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">13c</span><span style="font-weight:600">운동</span><span style="color:var(--fg-secondary)">주간 시간 막대</span></div><dc-import name="nanaki Type Detail" type="workout" theme="{{ themeName }}" hint-size="375px,812px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">13d</span><span style="font-weight:600">루틴</span><span style="color:var(--fg-secondary)">오늘 체크 + 달성률</span></div><dc-import name="nanaki Type Detail" type="routine" theme="{{ themeName }}" hint-size="375px,812px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">13e</span><span style="font-weight:600">체형</span><span style="color:var(--fg-secondary)">체중 꺾은선</span></div><dc-import name="nanaki Type Detail" type="body" theme="{{ themeName }}" hint-size="375px,812px"></dc-import></div>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">14</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">검색 결과 · 필터</h2></div>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary);max-width:720px">필터 항목은 고른 타입에 맞춰 생성됩니다. 가계부는 기간 · 금액 범위 · 분류 · 결제수단, 후기는 기간 · 별점 · 대상 종류, 운동은 기간 · 종목 · 시간이 나옵니다. 적용된 필터는 결과 위에 칩으로 남고, 칩의 ×로 하나씩 해제합니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+<sc-for list="{{ searchStates }}" as="q" hint-placeholder-count="2">
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">{{ q.id }}</span><span style="font-weight:600">{{ q.label }}</span><span style="color:var(--fg-secondary)">{{ q.note }}</span></div>
+<div class="{{ themeCls }}" style="width:375px;height:812px;position:relative;overflow:hidden;border-radius:32px;background:var(--bg);color:var(--fg-primary);box-shadow:var(--shadow-float)">
+<div style="height:44px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-size:14px;line-height:20px;font-weight:600"><span>9:41</span><span style="width:25px;height:12px;border-radius:6px;border:1.5px solid currentColor;box-sizing:border-box;padding:1.5px;display:flex"><span style="width:70%;border-radius:1.5px;background:currentColor"></span></span></div>
+<div style="height:56px;padding:0 16px 0 4px;display:flex;align-items:center;gap:4px">
+<span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex:none"><span style="width:24px;height:24px;display:inline-flex">{{ ic.chevronLeft }}</span></span>
+<div style="flex:1;min-width:0;height:48px;padding:0 4px 0 16px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;gap:8px;font-size:16px"><span style="width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.search }}</span><span style="flex:1">카페</span><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--fg-secondary)"><span style="width:18px;height:18px;display:inline-flex">{{ ic.x }}</span></span></div>
+<span style="width:48px;height:48px;margin-left:4px;border-radius:10px;border:1px solid var(--border);box-sizing:border-box;background:var(--surface);display:flex;align-items:center;justify-content:center;position:relative;flex:none"><span style="width:20px;height:20px;display:inline-flex">{{ ic.sliders }}</span><span style="position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 4px;box-sizing:border-box;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums">2</span></span>
+</div>
+<div style="padding:4px 16px 0;display:flex;gap:8px;overflow:hidden;white-space:nowrap">
+<sc-for list="{{ searchTypes }}" as="c" hint-placeholder-count="5">
+<sc-if value="{{ c.sel }}"><span style="flex:none;height:44px;padding:0 12px 0 12px;border-radius:9999px;background:var(--fg-primary);color:var(--surface);display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600"><span style="width:16px;height:16px;display:inline-flex">{{ c.iconEl }}</span>{{ c.ko }}<span style="font-variant-numeric:tabular-nums">{{ c.count }}</span></span></sc-if>
+<sc-if value="{{ c.normal }}"><span style="flex:none;height:44px;padding:0 12px 0 12px;border-radius:9999px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;background:{{ c.s }};color:{{ c.c }}"><span style="width:16px;height:16px;display:inline-flex">{{ c.iconEl }}</span>{{ c.ko }}<span style="font-variant-numeric:tabular-nums">{{ c.count }}</span></span></sc-if>
+<sc-if value="{{ c.dis }}"><span style="flex:none;height:44px;padding:0 12px 0 12px;border-radius:9999px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;background:var(--surface-hover);color:var(--fg-disabled)"><span style="width:16px;height:16px;display:inline-flex">{{ c.iconEl }}</span>{{ c.ko }}<span style="font-variant-numeric:tabular-nums">{{ c.count }}</span></span></sc-if>
+</sc-for>
+</div>
+<div style="padding:12px 16px 0;display:flex;flex-wrap:wrap;gap:8px">
+<span style="height:44px;padding:0 4px 0 12px;border-radius:9999px;background:var(--surface);border:1px solid var(--fg-primary);box-sizing:border-box;display:inline-flex;align-items:center;gap:4px;font-size:14px"><span style="color:var(--fg-secondary)">기간</span><b style="font-weight:600">이번 달</b><span style="width:44px;height:44px;margin:-8px;display:inline-flex;align-items:center;justify-content:center;color:var(--fg-secondary)"><span style="width:14px;height:14px;display:inline-flex">{{ ic.x }}</span></span></span>
+<span style="height:44px;padding:0 4px 0 12px;border-radius:9999px;background:var(--surface);border:1px solid var(--fg-primary);box-sizing:border-box;display:inline-flex;align-items:center;gap:4px;font-size:14px"><span style="color:var(--fg-secondary)">분류</span><b style="font-weight:600">카페</b><span style="width:44px;height:44px;margin:-8px;display:inline-flex;align-items:center;justify-content:center;color:var(--fg-secondary)"><span style="width:14px;height:14px;display:inline-flex">{{ ic.x }}</span></span></span>
+</div>
+<div style="padding:16px 16px 0;display:flex;align-items:center;justify-content:space-between;font-size:14px;line-height:20px"><span style="font-weight:600;font-variant-numeric:tabular-nums">6개</span><span style="display:flex;align-items:center;gap:4px;color:var(--fg-secondary);height:44px;margin:-12px 0">최신순<span style="width:16px;height:16px;display:inline-flex">{{ ic.chevronDown }}</span></span></div>
+<div style="padding:8px 16px;display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{ results }}" as="r" hint-placeholder-count="5">
+<div style="min-height:68px;padding:12px 16px;box-sizing:border-box;border-radius:16px;background:var(--surface);box-shadow:var(--shadow-card);display:flex;align-items:center;gap:12px">
+<span style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;background:var(--type-expense-subtle);color:var(--type-expense)"><span style="width:22px;height:22px;display:inline-flex">{{ ic.wallet }}</span></span>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span style="font-size:16px;line-height:24px;font-weight:600">{{ r.t }} · <span style="background:var(--type-expense-subtle);border-radius:6px;padding:0 4px">카페</span></span><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);font-variant-numeric:tabular-nums">가계부 · {{ r.d }}</span></div>
+<span style="font-size:16px;line-height:24px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.v }}</span>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{ q.sheet }}">
+<div style="position:absolute;inset:0;background:var(--overlay)"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;background:var(--surface-raised);border-radius:16px 16px 0 0;display:flex;flex-direction:column">
+<span style="align-self:center;width:36px;height:4px;border-radius:9999px;background:var(--border);margin:8px 0 4px"></span>
+<div style="height:52px;padding:0 4px 0 16px;display:flex;align-items:center;gap:8px"><span style="font-size:20px;line-height:28px;font-weight:600">필터</span><span style="height:28px;padding:0 12px 0 8px;border-radius:9999px;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;background:var(--type-expense-subtle);color:var(--type-expense)"><span style="width:14px;height:14px;display:inline-flex">{{ ic.wallet }}</span>가계부</span><span style="flex:1"></span><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span style="width:24px;height:24px;display:inline-flex">{{ ic.x }}</span></span></div>
+<div style="padding:4px 16px 16px;display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:600">기간</span><div style="display:flex;flex-wrap:wrap;gap:8px">
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">이번 주</span>
+<span style="height:44px;padding:0 16px 0 12px;border-radius:9999px;background:var(--fg-primary);color:var(--surface);display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:600"><span style="width:16px;height:16px;display:inline-flex">{{ ic.check }}</span>이번 달</span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">지난달</span>
+<span style="height:44px;padding:0 16px 0 12px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:500"><span style="width:16px;height:16px;display:inline-flex;color:var(--fg-secondary)">{{ ic.calendar }}</span>직접 선택</span>
+</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:600">금액 범위</span><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:48px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:flex-end;gap:4px;font-size:16px;color:var(--fg-secondary)">최소<span style="color:var(--fg-secondary)">원</span></div><span style="color:var(--fg-secondary)">~</span><div style="flex:1;height:48px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:flex-end;gap:4px;font-size:16px;color:var(--fg-secondary)">최대<span style="color:var(--fg-secondary)">원</span></div></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:600">분류</span><div style="display:flex;flex-wrap:wrap;gap:8px">
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">식비</span>
+<span style="height:44px;padding:0 16px 0 12px;border-radius:9999px;background:var(--fg-primary);color:var(--surface);display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:600"><span style="width:16px;height:16px;display:inline-flex">{{ ic.check }}</span>카페</span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">교통</span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">쇼핑</span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">생활</span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">의료</span>
+</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:600">결제수단</span><div style="display:flex;flex-wrap:wrap;gap:8px">
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">카드</span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">현금</span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;font-size:14px;font-weight:500">계좌이체</span>
+</div></div>
+</div>
+<div style="padding:12px 16px 32px;border-top:1px solid var(--border);display:flex;gap:8px"><div style="flex:1;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;background:var(--surface);border:1px solid var(--border);box-sizing:border-box">초기화</div><div style="flex:2;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;background:var(--accent);color:var(--accent-foreground);font-variant-numeric:tabular-nums">6개 결과 보기</div></div>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">15</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">오프라인</h2></div>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary);max-width:720px">오프라인일 때만 상단 배너와, 아직 전송되지 않은 기록의 작은 구름 아이콘이 보입니다. 온라인일 때(<b>7</b>)는 동기화 표시가 전혀 없습니다. 연결이 돌아왔는데도 전송에 실패하면 토스트로 다시 시도를 제공합니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+<div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">15a</span><span style="font-weight:600">오프라인</span><span style="color:var(--fg-secondary)">배너 + 대기 중 기록 2개</span></div><dc-import name="nanaki Records" variant="offline" theme="{{ themeName }}" hide-routine="{{ hideRoutine }}" hint-size="375px,812px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px"><span style="font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;background:var(--fg-primary);color:var(--surface)">15b</span><span style="font-weight:600">전송 실패</span><span style="color:var(--fg-secondary)">토스트 · 다시 시도</span></div><dc-import name="nanaki Records" variant="offlineFail" theme="{{ themeName }}" hide-routine="{{ hideRoutine }}" hint-size="375px,812px"></dc-import></div>
+</div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;라이트&quot;,&quot;다크&quot;],&quot;default&quot;:&quot;라이트&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;hideRoutine&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;설정 상태&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const themeName = this.props.theme ?? '라이트';
+    const dark = themeName === '다크';
+    const hideRoutine = this.props.hideRoutine ?? true;
+    const IC = {
+      review: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M13 8H7"/><path d="M17 12H7"/>',
+      wallet: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+      dumbbell: '<path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/>',
+      listChecks: '<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>',
+      ruler: '<path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/>',
+      x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+      calendar: '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
+      chevronDown: '<path d="m6 9 6 6 6-6"/>',
+      chevronLeft: '<path d="m15 18-6-6 6-6"/>',
+      chevronRight: '<path d="m9 18 6-6-6-6"/>',
+      check: '<path d="M20 6 9 17l-5-5"/>',
+      plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+      star: '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>',
+      starFill: '<path fill="currentColor" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>',
+      imagePlus: '<path d="M16 5h6"/><path d="M19 2v6"/><path d="M21 11.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7.5"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/><circle cx="9" cy="9" r="2"/>',
+      moreH: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+      pencil: '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>',
+      trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+      alert: '<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>',
+      info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+      card: '<rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/>',
+      download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
+      upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/>',
+      sprout: '<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>',
+      search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+      sliders: '<path d="M21 4h-7"/><path d="M10 4H3"/><path d="M21 12h-9"/><path d="M8 12H3"/><path d="M21 20h-5"/><path d="M12 20H3"/><path d="M14 2v4"/><path d="M8 10v4"/><path d="M16 18v4"/>',
+      clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+      eyeOff: '<path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/>'
+    };
+    const ic = {};
+    for (const k in IC) ic[k] = React.createElement('svg', { key: k, viewBox: '0 0 24 24', width: '100%', height: '100%', fill: 'none', stroke: 'currentColor', strokeWidth: 1.75, strokeLinecap: 'round', strokeLinejoin: 'round', style: { display: 'block' }, dangerouslySetInnerHTML: { __html: IC[k] } });
+    const googleG = React.createElement('svg', { viewBox: '0 0 48 48', width: '100%', height: '100%', style: { display: 'block' }, dangerouslySetInnerHTML: { __html: '<path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>' } });
+    const g = dark ? { bg: '#131314', bd: '#8E918F', fg: '#E3E3E3' } : { bg: '#FFFFFF', bd: '#747775', fg: '#1F1F1F' };
+    const T = [['expense', '가계부', 'wallet'], ['review', '후기', 'review'], ['workout', '운동', 'dumbbell'], ['routine', '루틴', 'listChecks'], ['body', '체형', 'ruler']];
+    const setTypes = T.map(([key, ko, icon], i) => {
+      const off = hideRoutine && key === 'routine';
+      return { ko, iconEl: ic[icon], c: 'var(--type-' + key + ')', s: 'var(--type-' + key + '-subtle)', on: !off, off, fg: off ? 'var(--fg-secondary)' : 'var(--fg-primary)', bt: i ? '1px solid var(--border)' : 'none' };
+    });
+    const exNames = ['러닝', '걷기', '자전거', '수영', '헬스', '요가'];
+    const chipsFor = sel => exNames.map(n => ({ n, sel: n === sel, unsel: n !== sel }));
+    const exForms = [
+      { id: '10a', note: '근력 · 세트 목록', chips: chipsFor('헬스'), strength: true, cardio: false, time: '60', title: '하체 데이', kindNote: '근력 종목 · 세트를 기록해요' },
+      { id: '10b', note: '유산소 · 거리 입력', chips: chipsFor('러닝'), strength: false, cardio: true, time: '30', title: '한강 러닝', kindNote: '유산소 종목 · 거리를 함께 기록해요' }
+    ];
+    const sets = [{ n: '스쿼트', w: '60', r: '10' }, { n: '스쿼트', w: '60', r: '8' }, { n: '레그 프레스', w: '120', r: '12' }];
+    const on = 'var(--fg-primary)', onFg = 'var(--surface)', off = 'transparent', offFg = 'var(--fg-secondary)';
+    const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
+    const linkTypes = T.filter(([k]) => k !== 'routine');
+    const links = sel => linkTypes.map(([key, ko, icon]) => ({ ko, iconEl: ic[icon], c: 'var(--type-' + key + ')', s: 'var(--type-' + key + '-subtle)', sel: key === sel, unsel: key !== sel }));
+    const routineForms = [
+      { id: '12a', note: '요일 반복 · 횟수 목표', name: '물 마시기', weekly: true, monthly: false, count: true, check: false, alarm: true, noAlarm: false,
+        wBg: on, wFg: onFg, mBg: off, mFg: offFg, cBg: off, cFg: offFg, nBg: on, nFg: onFg,
+        days: dayNames.map((n, i) => ({ n, bg: i < 5 ? on : 'var(--surface)', fg: i < 5 ? onFg : 'var(--fg-primary)', bd: i < 5 ? 'transparent' : 'var(--border)' })),
+        links: links(null), linkNote: '연동 없이 직접 체크해요' },
+      { id: '12b', note: '매달 n일 · 체크 목표 · 기록 연동', name: '가계부 정산', weekly: false, monthly: true, count: false, check: true, alarm: false, noAlarm: true,
+        wBg: off, wFg: offFg, mBg: on, mFg: onFg, cBg: on, cFg: onFg, nBg: off, nFg: offFg,
+        days: [], links: links('expense'), linkNote: '그날 가계부를 기록하면 자동으로 체크돼요' }
+    ];
+    const ST = [['전체', '9', null, 'sel0'], ['가계부', '6', 'expense', 'sel'], ['후기', '3', 'review', 'normal'], ['운동', '0', 'workout', 'dis'], ['루틴', '0', 'routine', 'dis'], ['체형', '0', 'body', 'dis']]
+      .filter(r => !(hideRoutine && r[2] === 'routine'));
+    const iconOf = { expense: 'wallet', review: 'review', workout: 'dumbbell', routine: 'listChecks', body: 'ruler' };
+    const searchTypes = ST.map(([ko, count, key, st]) => ({ ko, count, iconEl: key ? ic[iconOf[key]] : ic.search, c: key ? 'var(--type-' + key + ')' : 'var(--fg-primary)', s: key ? 'var(--type-' + key + '-subtle)' : 'var(--surface)', sel: st === 'sel', normal: st === 'normal' || st === 'sel0', dis: st === 'dis' }));
+    const results = [['커피', '-4,500원', '10.16 (금)'], ['블루보틀', '-6,800원', '10.12 (월)'], ['원두 1kg', '-18,000원', '10.09 (금)'], ['디저트', '-7,200원', '10.03 (토)'], ['라떼', '-5,000원', '10.02 (금)']].map(([t, v, d]) => ({ t, v, d }));
+    const searchStates = [{ id: '14a', label: '검색 결과', note: '"카페" · 가계부 · 필터 2개', sheet: false }, { id: '14b', label: '필터 바텀시트', note: '가계부 필터 (자동 생성)', sheet: true }];
+    return {
+      exForms, sets, routineForms, searchTypes, results, searchStates,
+      ic, googleG, g, themeName, hideRoutine, themeCls: dark ? 'th-dark' : 'th-light', setTypes,
+      ledgerForms: [{ id: '4a', label: '가계부 쓰기', note: '입력 완료', ok: true, err: false }, { id: '4b', label: '가계부 쓰기', note: '금액 비었을 때 저장 → 오류', ok: false, err: true }],
+      settings: [{ id: '8a', label: '설정', note: '루틴 끔 · 스크롤 전체', modal: false, h: 'auto' }, { id: '8b', label: '계정 삭제 확인', note: '모달', modal: true, h: '812px' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

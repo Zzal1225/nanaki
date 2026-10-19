@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"><style>
+body{margin:0;font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.th-light{--bg:#F7F7F8;--surface:#FFFFFF;--surface-raised:#FFFFFF;--surface-hover:#F0F0F2;--surface-pressed:#E6E6EA;--border:#DCDCE1;--fg-primary:#121214;--fg-secondary:#5A5A63;--fg-disabled:#A6A6AF;--accent:#2E7D4F;--accent-hover:#276C44;--accent-pressed:#205B39;--accent-foreground:#FFFFFF;--success:#2E7D4F;--warning:#B4480E;--danger:#C8323C;--danger-hover:#B02A33;--danger-pressed:#98232B;--overlay:rgba(18,18,20,.48);--type-expense:#9A5C00;--type-expense-subtle:#FCF0DC;--type-review:#C2365F;--type-review-subtle:#FCE9EE;--type-workout:#2562C4;--type-workout-subtle:#E6EEFB;--type-routine:#8A3FC0;--type-routine-subtle:#F3EAFA;--type-body:#097078;--type-body-subtle:#DDF2F2;--shadow-card:0 1px 2px rgba(18,18,20,.06),0 1px 3px rgba(18,18,20,.08);--shadow-float:0 8px 24px rgba(18,18,20,.12),0 2px 6px rgba(18,18,20,.08);color:var(--fg-primary)}
+.th-dark{--bg:#121214;--surface:#1A1A1E;--surface-raised:#24242A;--surface-hover:#2A2A30;--surface-pressed:#34343B;--border:#34343B;--fg-primary:#ECECEF;--fg-secondary:#A6A6AF;--fg-disabled:#5A5A63;--accent:#6CC08F;--accent-hover:#7ECB9E;--accent-pressed:#8FD4AC;--accent-foreground:#0F1F16;--success:#6CC08F;--warning:#F09A6A;--danger:#EE7B80;--danger-hover:#F28E92;--danger-pressed:#F5A1A4;--overlay:rgba(0,0,0,.64);--type-expense:#E2AA5E;--type-expense-subtle:#3A2F1F;--type-review:#E68DA7;--type-review-subtle:#3A2530;--type-workout:#86AAEB;--type-workout-subtle:#1F2A3E;--type-routine:#D7BFF4;--type-routine-subtle:#30253C;--type-body:#62C2C2;--type-body-subtle:#173334;--shadow-card:none;--shadow-float:none;color:var(--fg-primary)}
+</style></helmet>
+<div class="{{ themeCls }}" style="height:100%;box-sizing:border-box;background:var(--surface);color:var(--fg-primary);border-right:1px solid var(--border);display:flex;flex-direction:column;gap:8px;position:relative;font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif;width:{{ w }};padding:{{ pad }}">
+<sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}">
+<div style="height:48px;padding:0 8px;display:flex;align-items:center;gap:12px"><span style="width:32px;height:32px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);display:flex;align-items:center;justify-content:center"><span style="width:20px;height:20px;display:inline-flex">{{ ic.sprout }}</span></span><span style="font-size:20px;line-height:28px;font-weight:700;letter-spacing:-0.01em">nanaki</span></div>
+<div style="margin-top:8px;height:44px;padding:0 12px;border-radius:10px;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;background:{{ newBg }};color:var(--accent-foreground)"><span style="width:20px;height:20px;display:inline-flex">{{ ic.plus }}</span>새 기록<span style="margin-left:auto;width:18px;height:18px;display:inline-flex;transform:{{ chevRot }}">{{ ic.chevronDown }}</span></div>
+<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">
+<sc-for list="{{ nav }}" as="n" hint-placeholder-count="3"><div style="height:44px;padding:0 12px;border-radius:10px;display:flex;align-items:center;gap:12px;font-size:16px;background:{{ n.bg }};color:{{ n.fg }};font-weight:{{ n.fw }}"><span style="width:22px;height:22px;display:inline-flex;color:{{ n.ic }}">{{ n.iconEl }}</span><span style="position:relative">{{ n.label }}<sc-if value="{{ n.ai }}"><span style="position:absolute;left:100%;top:-7px;margin-left:4px;height:16px;padding:0 4px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);font-size:12px;line-height:16px;font-weight:700">AI</span></sc-if></span></div></sc-for>
+</div>
+<span style="flex:1"></span>
+<div style="height:44px;padding:0 12px;border-radius:10px;display:flex;align-items:center;gap:12px;font-size:16px;color:var(--fg-secondary)"><span style="width:22px;height:22px;display:inline-flex">{{ ic.settings }}</span>설정</div>
+</sc-if>
+<sc-if value="{{ collapsed }}">
+<div style="height:48px;display:flex;align-items:center;justify-content:center"><span style="width:32px;height:32px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);display:flex;align-items:center;justify-content:center"><span style="width:20px;height:20px;display:inline-flex">{{ ic.sprout }}</span></span></div>
+<div style="margin:8px auto 0;width:44px;height:44px;border-radius:10px;background:var(--accent);color:var(--accent-foreground);display:flex;align-items:center;justify-content:center"><span style="width:22px;height:22px;display:inline-flex">{{ ic.plus }}</span></div>
+<div style="margin-top:8px;display:flex;flex-direction:column;align-items:center;gap:4px">
+<sc-for list="{{ nav }}" as="n" hint-placeholder-count="3"><div style="width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;position:relative;background:{{ n.bg }};color:{{ n.ic }}"><span style="width:22px;height:22px;display:inline-flex">{{ n.iconEl }}</span><sc-if value="{{ n.ai }}"><span style="position:absolute;right:-2px;top:2px;height:16px;padding:0 4px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);font-size:12px;line-height:16px;font-weight:700">AI</span></sc-if></div></sc-for>
+</div>
+<span style="flex:1"></span>
+<div style="margin:0 auto;width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--fg-secondary)"><span style="width:22px;height:22px;display:inline-flex">{{ ic.settings }}</span></div>
+</sc-if>
+<sc-if value="{{ menuOpen }}">
+<div style="position:absolute;left:16px;top:128px;width:220px;padding:4px;box-sizing:border-box;background:var(--surface-raised);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-float);display:flex;flex-direction:column;z-index:5">
+<sc-for list="{{ menu }}" as="m" hint-placeholder-count="4"><div style="height:44px;padding:0 8px;border-radius:6px;display:flex;align-items:center;gap:12px;font-size:16px;background:{{ m.bg }}"><span style="width:28px;height:28px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:{{ m.s }};color:{{ m.c }}"><span style="width:16px;height:16px;display:inline-flex">{{ m.iconEl }}</span></span>{{ m.label }}</div></sc-for>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:240,&quot;height&quot;:720},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;records&quot;,&quot;ai&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;collapsed&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;menuOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;라이트&quot;,&quot;다크&quot;],&quot;default&quot;:&quot;라이트&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;hideRoutine&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const active = this.props.active ?? 'home';
+    const collapsed = !!(this.props.collapsed ?? false);
+    const menuOpen = !!(this.props.menuOpen ?? false);
+    const dark = (this.props.theme ?? '라이트') === '다크';
+    const hideRoutine = this.props.hideRoutine ?? true;
+    const IC = {
+      wallet: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+      review: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M13 8H7"/><path d="M17 12H7"/>',
+      dumbbell: '<path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/>',
+      listChecks: '<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>',
+      ruler: '<path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/>',
+      home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+      list: '<path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/>',
+      sparkles: '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>',
+      plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+      chevronDown: '<path d="m6 9 6 6 6-6"/>',
+      settings: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+      sprout: '<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>'
+    };
+    const ic = {};
+    for (const k in IC) ic[k] = React.createElement('svg', { key: k, viewBox: '0 0 24 24', width: '100%', height: '100%', fill: 'none', stroke: 'currentColor', strokeWidth: 1.75, strokeLinecap: 'round', strokeLinejoin: 'round', style: { display: 'block' }, dangerouslySetInnerHTML: { __html: IC[k] } });
+    const nav = [['home', '홈', 'home'], ['records', '기록', 'list'], ['ai', '나키', 'sparkles']].map(([k, label, icon]) => {
+      const on = k === active;
+      return { label, iconEl: ic[icon], ai: k === 'ai', bg: on ? 'var(--surface-hover)' : 'transparent', fg: on ? 'var(--fg-primary)' : 'var(--fg-secondary)', ic: on ? 'var(--accent)' : 'var(--fg-secondary)', fw: on ? '600' : '500' };
+    });
+    const menu = [['expense', '가계부 쓰기', 'wallet'], ['review', '후기 쓰기', 'review'], ['workout', '운동 기록', 'dumbbell'], ['body', '체형 기록', 'ruler'], ['routine', '루틴 만들기', 'listChecks']]
+      .filter(r => !(hideRoutine && r[0] === 'routine'))
+      .map(([key, label, icon], i) => ({ label, iconEl: ic[icon], c: 'var(--type-' + key + ')', s: 'var(--type-' + key + '-subtle)', bg: i === 0 ? 'var(--surface-hover)' : 'transparent' }));
+    return {
+      ic, nav, menu, menuOpen, collapsed, expanded: !collapsed,
+      w: collapsed ? '72px' : '240px', pad: collapsed ? '16px 12px' : '16px',
+      newBg: menuOpen ? 'var(--accent-pressed)' : 'var(--accent)', chevRot: menuOpen ? 'rotate(180deg)' : 'none',
+      themeCls: dark ? 'th-dark' : 'th-light'
+    };
+  }
+}
+</script>
+</body>
+</html>

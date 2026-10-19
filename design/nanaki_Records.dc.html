@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"><style>
+body{margin:0;font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.th-light{--bg:#F7F7F8;--surface:#FFFFFF;--surface-raised:#FFFFFF;--surface-hover:#F0F0F2;--surface-pressed:#E6E6EA;--border:#DCDCE1;--fg-primary:#121214;--fg-secondary:#5A5A63;--fg-disabled:#A6A6AF;--accent:#2E7D4F;--accent-hover:#276C44;--accent-pressed:#205B39;--accent-foreground:#FFFFFF;--success:#2E7D4F;--warning:#B4480E;--danger:#C8323C;--danger-hover:#B02A33;--danger-pressed:#98232B;--overlay:rgba(18,18,20,.48);--type-expense:#9A5C00;--type-expense-subtle:#FCF0DC;--type-review:#C2365F;--type-review-subtle:#FCE9EE;--type-workout:#2562C4;--type-workout-subtle:#E6EEFB;--type-routine:#8A3FC0;--type-routine-subtle:#F3EAFA;--type-body:#097078;--type-body-subtle:#DDF2F2;--shadow-card:0 1px 2px rgba(18,18,20,.06),0 1px 3px rgba(18,18,20,.08);--shadow-float:0 8px 24px rgba(18,18,20,.12),0 2px 6px rgba(18,18,20,.08);color:var(--fg-primary)}
+.th-dark{--bg:#121214;--surface:#1A1A1E;--surface-raised:#24242A;--surface-hover:#2A2A30;--surface-pressed:#34343B;--border:#34343B;--fg-primary:#ECECEF;--fg-secondary:#A6A6AF;--fg-disabled:#5A5A63;--accent:#6CC08F;--accent-hover:#7ECB9E;--accent-pressed:#8FD4AC;--accent-foreground:#0F1F16;--success:#6CC08F;--warning:#F09A6A;--danger:#EE7B80;--danger-hover:#F28E92;--danger-pressed:#F5A1A4;--overlay:rgba(0,0,0,.64);--type-expense:#E2AA5E;--type-expense-subtle:#3A2F1F;--type-review:#E68DA7;--type-review-subtle:#3A2530;--type-workout:#86AAEB;--type-workout-subtle:#1F2A3E;--type-routine:#D7BFF4;--type-routine-subtle:#30253C;--type-body:#62C2C2;--type-body-subtle:#173334;--shadow-card:none;--shadow-float:none;color:var(--fg-primary)}
+</style></helmet>
+<div class="{{ themeCls }}" style="width:375px;height:812px;position:relative;overflow:hidden;border-radius:32px;background:var(--bg);color:var(--fg-primary);box-shadow:var(--shadow-float);font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif">
+<div style="height:44px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-size:14px;line-height:20px;font-weight:600"><span>9:41</span><span style="width:25px;height:12px;border-radius:6px;border:1.5px solid currentColor;box-sizing:border-box;padding:1.5px;display:flex"><span style="width:70%;border-radius:1.5px;background:currentColor"></span></span></div>
+<sc-if value="{{ offline }}">
+<div style="margin:0 16px 4px;min-height:44px;padding:12px 16px;box-sizing:border-box;background:var(--surface-raised);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;gap:12px;font-size:14px;line-height:20px"><span style="width:20px;height:20px;display:inline-flex;color:var(--warning);flex:none">{{ ic.wifiOff }}</span><span>오프라인이에요. 작성한 기록은 연결되면 저장돼요</span></div>
+</sc-if>
+<div style="height:56px;padding:0 16px;display:flex;align-items:center"><span style="font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">기록</span></div>
+<div style="padding:0 16px;display:flex;gap:8px">
+<div style="flex:1;min-width:0;height:48px;padding:0 16px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;gap:8px;font-size:16px;color:var(--fg-secondary)"><span style="width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.search }}</span>가계부, 후기, 운동… 검색</div>
+<div style="height:48px;padding:0 16px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600"><span style="width:20px;height:20px;display:inline-flex">{{ ic.barChart }}</span>보고서</div>
+</div>
+<div style="padding:16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+<sc-for list="{{ cards }}" as="k" hint-placeholder-count="5">
+<div style="background:var(--surface);border-radius:16px;box-shadow:var(--shadow-card);padding:12px 16px;display:flex;flex-direction:column;gap:8px;grid-column:{{ k.span }}">
+<div style="display:flex;align-items:center;gap:8px"><span style="width:28px;height:28px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;background:{{ k.s }};color:{{ k.c }}"><span style="width:16px;height:16px;display:inline-flex">{{ k.iconEl }}</span></span><span style="font-size:14px;line-height:20px;font-weight:600">{{ k.ko }}</span><span style="margin-left:auto;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);white-space:nowrap">{{ k.metric }}</span></div>
+<span style="font-size:28px;line-height:34px;font-weight:700;letter-spacing:-0.01em;font-variant-numeric:tabular-nums;color:{{ k.vfg }}">{{ k.value }}</span>
+</div>
+</sc-for>
+</div>
+<div style="padding:0 16px;height:32px;display:flex;align-items:center;font-size:16px;line-height:24px;font-weight:600">최근 기록</div>
+<sc-if value="{{ notEmpty }}" hint-placeholder-val="{{ true }}">
+<div style="padding:8px 16px;display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{ recent }}" as="r" hint-placeholder-count="3">
+<div style="min-height:68px;padding:12px 16px;box-sizing:border-box;border-radius:16px;background:var(--surface);box-shadow:var(--shadow-card);display:flex;align-items:center;gap:12px">
+<span style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;background:{{ r.s }};color:{{ r.c }}"><span style="width:22px;height:22px;display:inline-flex">{{ r.iconEl }}</span></span>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span style="font-size:16px;line-height:24px;font-weight:600">{{ r.title }}</span><span style="display:flex;align-items:center;gap:4px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);font-variant-numeric:tabular-nums">{{ r.ko }} · {{ r.date }}<sc-if value="{{ r.pending }}"><span title="아직 저장되지 않음" style="width:14px;height:14px;display:inline-flex">{{ ic.cloudUp }}</span></sc-if></span></div>
+<span style="font-size:16px;line-height:24px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.val }}</span>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ empty }}">
+<div style="padding:20px 20px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center">
+<span style="width:64px;height:64px;border-radius:9999px;background:var(--surface-hover);color:var(--fg-secondary);display:flex;align-items:center;justify-content:center;margin-bottom:4px"><span style="width:28px;height:28px;display:inline-flex">{{ ic.inbox }}</span></span>
+<span style="font-size:20px;line-height:28px;font-weight:600">기록이 없어요</span>
+<span style="font-size:14px;line-height:20px;color:var(--fg-secondary)">첫 기록을 남기면 여기에 모여요</span>
+<div style="margin-top:8px;height:44px;padding:0 16px;border-radius:10px;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;background:var(--accent);color:var(--accent-foreground)"><span style="width:18px;height:18px;display:inline-flex">{{ ic.plus }}</span>기록 추가하기</div>
+</div>
+</sc-if>
+<span style="position:absolute;right:16px;width:56px;height:56px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);box-shadow:var(--shadow-float);display:flex;align-items:center;justify-content:center;bottom:{{ fabBottom }}"><span style="width:28px;height:28px;display:inline-flex">{{ ic.plus }}</span></span>
+<div style="position:absolute;left:0;right:0;bottom:0;height:72px;padding-bottom:16px;box-sizing:border-box;background:var(--surface-raised);border-top:1px solid var(--border);display:flex">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)"><span style="width:24px;height:24px;display:inline-flex">{{ ic.home }}</span>홈</div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;line-height:16px;font-weight:600;color:var(--accent)"><span style="width:24px;height:24px;display:inline-flex">{{ ic.list }}</span>기록</div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)"><span style="width:24px;height:24px;display:inline-flex">{{ ic.sparkles }}</span><span style="position:relative">나키<span style="position:absolute;left:100%;top:-8px;margin-left:0px;height:16px;padding:0 4px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);font-size:12px;line-height:16px;font-weight:700">AI</span></span></div>
+</div>
+<sc-if value="{{ fail }}">
+<div style="position:absolute;left:16px;right:16px;bottom:88px;min-height:48px;padding:0 4px 0 16px;border-radius:10px;background:var(--fg-primary);color:var(--surface);box-shadow:var(--shadow-float);display:flex;align-items:center;gap:12px;font-size:14px;line-height:20px"><span style="width:20px;height:20px;display:inline-flex">{{ ic.alert }}</span><span style="flex:1">저장하지 못했어요</span><span style="height:44px;padding:0 12px;display:flex;align-items:center;font-weight:600;text-decoration:underline;text-underline-offset:3px">다시 시도</span></div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:375,&quot;height&quot;:812},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;default&quot;,&quot;empty&quot;,&quot;offline&quot;,&quot;offlineFail&quot;],&quot;default&quot;:&quot;default&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;라이트&quot;,&quot;다크&quot;],&quot;default&quot;:&quot;라이트&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;hideRoutine&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const v = this.props.variant ?? 'default';
+    const empty = v === 'empty', offline = v === 'offline' || v === 'offlineFail', fail = v === 'offlineFail';
+    const dark = (this.props.theme ?? '라이트') === '다크';
+    const hidden = (this.props.hideRoutine ?? true) ? ['t'] : [];
+    const IC = {
+      wallet: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+      review: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M13 8H7"/><path d="M17 12H7"/>',
+      dumbbell: '<path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/>',
+      listChecks: '<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>',
+      ruler: '<path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/>',
+      home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+      list: '<path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/>',
+      sparkles: '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>',
+      plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+      search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+      barChart: '<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+      inbox: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+      wifiOff: '<path d="M12 20h.01"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/><path d="M5 12.859a10 10 0 0 1 5.17-2.69"/><path d="M19 12.859a10 10 0 0 0-2.007-1.523"/><path d="M2 8.82a15 15 0 0 1 4.177-2.643"/><path d="M22 8.82a15 15 0 0 0-11.288-3.764"/><path d="m2 2 20 20"/>',
+      cloudUp: '<path d="M12 13v8"/><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m8 17 4-4 4 4"/>',
+      alert: '<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>'
+    };
+    const ic = {};
+    for (const k in IC) ic[k] = React.createElement('svg', { key: k, viewBox: '0 0 24 24', width: '100%', height: '100%', fill: 'none', stroke: 'currentColor', strokeWidth: 1.75, strokeLinecap: 'round', strokeLinejoin: 'round', style: { display: 'block' }, dangerouslySetInnerHTML: { __html: IC[k] } });
+    const T = { e: ['expense', '가계부', 'wallet'], r: ['review', '후기', 'review'], w: ['workout', '운동', 'dumbbell'], t: ['routine', '루틴', 'listChecks'], b: ['body', '체형', 'ruler'] };
+    const ty = k => ({ c: 'var(--type-' + T[k][0] + ')', s: 'var(--type-' + T[k][0] + '-subtle)', iconEl: ic[T[k][2]], ko: T[k][1] });
+    const raw = [
+      ['e', '이번 달 지출', '-412,300원', '0원'],
+      ['r', '이번 달 작성', '8건', '0건'],
+      ['w', '이번 달', '12회', '0회'],
+      ['t', '달성률', '83%', '0%'],
+      ['b', '최근 체중', '68.4kg', '—']
+    ].filter(([k]) => !hidden.includes(k));
+    const rest = raw.length - 1;
+    const cards = raw.map(([k, metric, val, zero], i) => Object.assign(ty(k), { metric, value: empty ? zero : val, vfg: empty ? 'var(--fg-secondary)' : 'var(--fg-primary)', span: (i === 0 || (rest % 2 === 1 && i === raw.length - 1)) ? '1 / -1' : 'auto' }));
+    let recentRaw = [
+      ['b', '체중 · 허리', '68.4kg', '10.19 (월)', false],
+      ['e', '택시 · 교통', '-7,000원', '10.19 (월)', false],
+      ['r', '동네 로스터리', '★ 4.0', '10.16 (금)', false]
+    ];
+    if (offline) recentRaw = [['e', '저녁 · 식비', '-11,000원', '방금', true], ['w', '러닝 5km', '30분', '방금', true]].concat(recentRaw.slice(0, 1));
+    const recent = recentRaw.filter(([k]) => !hidden.includes(k)).map(([k, title, val, date, pending]) => Object.assign(ty(k), { title, val, date, pending }));
+    return { ic, cards, recent, empty, notEmpty: !empty, offline, fail, fabBottom: fail ? '152px' : '88px', themeCls: dark ? 'th-dark' : 'th-light' };
+  }
+}
+</script>
+</body>
+</html>

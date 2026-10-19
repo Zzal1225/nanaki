@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"><style>
+body{margin:0;font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+@keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
+.th-light{--bg:#F7F7F8;--surface:#FFFFFF;--surface-raised:#FFFFFF;--surface-hover:#F0F0F2;--surface-pressed:#E6E6EA;--border:#DCDCE1;--fg-primary:#121214;--fg-secondary:#5A5A63;--fg-disabled:#A6A6AF;--accent:#2E7D4F;--accent-hover:#276C44;--accent-pressed:#205B39;--accent-foreground:#FFFFFF;--success:#2E7D4F;--warning:#B4480E;--danger:#C8323C;--danger-hover:#B02A33;--danger-pressed:#98232B;--overlay:rgba(18,18,20,.48);--type-expense:#9A5C00;--type-expense-subtle:#FCF0DC;--type-review:#C2365F;--type-review-subtle:#FCE9EE;--type-workout:#2562C4;--type-workout-subtle:#E6EEFB;--type-routine:#8A3FC0;--type-routine-subtle:#F3EAFA;--type-body:#097078;--type-body-subtle:#DDF2F2;--shadow-card:0 1px 2px rgba(18,18,20,.06),0 1px 3px rgba(18,18,20,.08);--shadow-float:0 8px 24px rgba(18,18,20,.12),0 2px 6px rgba(18,18,20,.08);color:var(--fg-primary)}
+.th-dark{--bg:#121214;--surface:#1A1A1E;--surface-raised:#24242A;--surface-hover:#2A2A30;--surface-pressed:#34343B;--border:#34343B;--fg-primary:#ECECEF;--fg-secondary:#A6A6AF;--fg-disabled:#5A5A63;--accent:#6CC08F;--accent-hover:#7ECB9E;--accent-pressed:#8FD4AC;--accent-foreground:#0F1F16;--success:#6CC08F;--warning:#F09A6A;--danger:#EE7B80;--danger-hover:#F28E92;--danger-pressed:#F5A1A4;--overlay:rgba(0,0,0,.64);--type-expense:#E2AA5E;--type-expense-subtle:#3A2F1F;--type-review:#E68DA7;--type-review-subtle:#3A2530;--type-workout:#86AAEB;--type-workout-subtle:#1F2A3E;--type-routine:#D7BFF4;--type-routine-subtle:#30253C;--type-body:#62C2C2;--type-body-subtle:#173334;--shadow-card:none;--shadow-float:none;color:var(--fg-primary)}
+</style></helmet>
+<div class="{{ themeCls }}" style="width:375px;height:812px;position:relative;overflow:hidden;border-radius:32px;background:var(--bg);color:var(--fg-primary);box-shadow:var(--shadow-float);font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif">
+<div style="height:44px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-size:14px;line-height:20px;font-weight:600"><span>9:41</span><span style="width:25px;height:12px;border-radius:6px;border:1.5px solid currentColor;box-sizing:border-box;padding:1.5px;display:flex"><span style="width:70%;border-radius:1.5px;background:currentColor"></span></span></div>
+<div style="height:56px;padding:0 16px;display:flex;align-items:center;justify-content:space-between"><span style="position:relative;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">나키<span style="position:absolute;left:100%;top:-4px;margin-left:4px;height:16px;padding:0 4px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);font-size:12px;line-height:16px;font-weight:700;letter-spacing:0">AI</span></span><span style="height:28px;padding:0 12px;border-radius:9999px;background:var(--surface-hover);display:flex;align-items:center;gap:4px;font-size:12px;line-height:16px;font-weight:600;font-variant-numeric:tabular-nums"><span style="width:14px;height:14px;display:inline-flex;color:var(--accent)">{{ ic.sparkles }}</span>오늘 {{ remain }}/20회</span></div>
+
+<div style="position:absolute;left:0;right:0;top:100px;bottom:140px;overflow:hidden;padding:0 16px;display:flex;flex-direction:column;justify-content:{{ justify }}">
+<sc-if value="{{ start }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:0 8px">
+<span style="width:56px;height:56px;border-radius:9999px;background:var(--surface-hover);color:var(--accent);display:flex;align-items:center;justify-content:center;margin-bottom:4px"><span style="width:28px;height:28px;display:inline-flex">{{ ic.sparkles }}</span></span>
+<span style="font-size:20px;line-height:28px;font-weight:600">기록에 대해 물어보세요</span>
+<span style="font-size:14px;line-height:20px;color:var(--fg-secondary)">nanaki에 남긴 기록만 보고 답해요</span>
+<div style="margin-top:20px;display:flex;flex-direction:column;align-items:stretch;gap:8px;width:100%">
+<sc-for list="{{ examples }}" as="e" hint-placeholder-count="4"><div style="min-height:48px;padding:0 16px;box-sizing:border-box;border-radius:10px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;gap:12px;font-size:16px;text-align:left"><span style="width:18px;height:18px;display:inline-flex;color:var(--accent);flex:none">{{ ic.sparkles }}</span>{{ e }}</div></sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ chatting }}">
+<div style="display:flex;flex-direction:column;gap:16px;padding-bottom:16px">
+<div style="align-self:flex-end;max-width:80%;padding:12px 16px;border-radius:16px 16px 4px 16px;background:var(--accent);color:var(--accent-foreground);font-size:16px;line-height:24px">지난달 외식비 얼마였어?</div>
+<div style="display:flex;gap:12px">
+<span style="width:28px;height:28px;border-radius:9999px;background:var(--surface-hover);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none"><span style="width:16px;height:16px;display:inline-flex">{{ ic.sparkles }}</span></span>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">이 조건으로 찾았어요</span>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<span style="height:28px;padding:0 12px 0 8px;border-radius:9999px;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;background:var(--type-expense-subtle);color:var(--type-expense)"><span style="width:14px;height:14px;display:inline-flex">{{ ic.wallet }}</span>가계부</span>
+<span style="height:28px;padding:0 12px;border-radius:9999px;display:inline-flex;align-items:center;font-size:12px;font-weight:600;background:var(--surface);border:1px solid var(--accent);box-sizing:border-box;font-variant-numeric:tabular-nums">2026년 9월</span>
+<span style="height:28px;padding:0 12px;border-radius:9999px;display:inline-flex;align-items:center;gap:4px;font-size:12px;background:var(--surface);border:1px solid var(--accent);box-sizing:border-box"><span style="color:var(--fg-secondary)">분류</span><b style="font-weight:600">외식</b></span>
+</div></div>
+<div style="font-size:16px;line-height:24px;text-wrap:pretty">9월 외식비는 <b style="font-weight:700;font-variant-numeric:tabular-nums">-186,400원</b>이에요. 14번 외식했고, 8월(-162,000원)보다 24,400원 더 썼어요. 가장 많이 쓴 날은 9월 21일(-42,000원)이에요.</div>
+<div style="height:44px;margin-top:-6px;display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:var(--accent)">원본 기록 보기 · 14건<span style="width:16px;height:16px;display:inline-flex">{{ ic.chevronRight }}</span></div>
+</div></div>
+<sc-if value="{{ loading }}">
+<div style="align-self:flex-end;max-width:80%;padding:12px 16px;border-radius:16px 16px 4px 16px;background:var(--accent);color:var(--accent-foreground);font-size:16px;line-height:24px">이번 주 운동 몇 번 했어?</div>
+<div style="display:flex;gap:12px">
+<span style="width:28px;height:28px;border-radius:9999px;background:var(--surface-hover);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none"><span style="width:16px;height:16px;display:inline-flex">{{ ic.sparkles }}</span></span>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">이 조건으로 찾는 중</span>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<span style="height:28px;padding:0 12px 0 8px;border-radius:9999px;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;background:var(--type-workout-subtle);color:var(--type-workout)"><span style="width:14px;height:14px;display:inline-flex">{{ ic.dumbbell }}</span>운동</span>
+<span style="height:28px;padding:0 12px;border-radius:9999px;display:inline-flex;align-items:center;font-size:12px;font-weight:600;background:var(--surface);border:1px solid var(--accent);box-sizing:border-box;font-variant-numeric:tabular-nums">이번 주 · 10.18 – 10.24</span>
+</div></div>
+<div style="height:24px;display:flex;align-items:center;gap:8px;font-size:14px;color:var(--fg-secondary)"><span style="display:flex;gap:4px"><span style="width:6px;height:6px;border-radius:9999px;background:var(--fg-secondary);animation:pulse 1.2s ease-in-out infinite"></span><span style="width:6px;height:6px;border-radius:9999px;background:var(--fg-secondary);animation:pulse 1.2s ease-in-out .2s infinite"></span><span style="width:6px;height:6px;border-radius:9999px;background:var(--fg-secondary);animation:pulse 1.2s ease-in-out .4s infinite"></span></span>답변을 만들고 있어요</div>
+</div></div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ offline }}">
+<div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:0 12px">
+<span style="width:64px;height:64px;border-radius:9999px;background:var(--surface-hover);color:var(--warning);display:flex;align-items:center;justify-content:center;margin-bottom:4px"><span style="width:28px;height:28px;display:inline-flex">{{ ic.wifiOff }}</span></span>
+<span style="font-size:20px;line-height:28px;font-weight:600;text-wrap:pretty">오프라인 환경에서는 AI봇을 이용할 수 없어요</span>
+<span style="font-size:14px;line-height:20px;color:var(--fg-secondary);text-wrap:pretty">데이터에 연결하시거나 검색/필터 기능을 이용해주세요</span>
+<div style="margin-top:12px;height:44px;padding:0 20px;border-radius:10px;display:flex;align-items:center;gap:8px;font-size:16px;font-weight:600;background:var(--accent);color:var(--accent-foreground)"><span style="width:20px;height:20px;display:inline-flex">{{ ic.search }}</span>검색으로 찾기</div>
+</div>
+</sc-if>
+</div>
+
+<div style="position:absolute;left:0;right:0;bottom:72px;padding:8px 16px 12px;background:var(--bg);border-top:1px solid var(--border);display:flex;gap:8px;align-items:center">
+<div style="flex:1;min-width:0;height:48px;border-radius:9999px;border:1px solid var(--border);box-sizing:border-box;padding:0 4px 0 16px;display:flex;align-items:center;gap:8px;font-size:16px;background:{{ fieldBg }}"><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--fg-secondary)">{{ placeholder }}</span>
+<sc-if value="{{ loading }}"><span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--fg-primary);color:var(--surface);display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;flex:none"><span style="width:10px;height:10px;border-radius:6px;background:currentColor"></span>중단</span></sc-if>
+<sc-if value="{{ notLoading }}" hint-placeholder-val="{{ true }}"><span style="width:44px;height:44px;border-radius:9999px;background:var(--surface-pressed);color:var(--fg-disabled);display:flex;align-items:center;justify-content:center;flex:none"><span style="width:20px;height:20px;display:inline-flex">{{ ic.arrowUp }}</span></span></sc-if>
+</div>
+</div>
+
+<div style="position:absolute;left:0;right:0;bottom:0;height:72px;padding-bottom:16px;box-sizing:border-box;background:var(--surface-raised);border-top:1px solid var(--border);display:flex">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)"><span style="width:24px;height:24px;display:inline-flex">{{ ic.home }}</span>홈</div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)"><span style="width:24px;height:24px;display:inline-flex">{{ ic.list }}</span>기록</div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;line-height:16px;font-weight:600;color:var(--accent)"><span style="width:24px;height:24px;display:inline-flex">{{ ic.sparkles }}</span><span style="position:relative">나키<span style="position:absolute;left:100%;top:-8px;margin-left:0px;height:16px;padding:0 4px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);font-size:12px;line-height:16px;font-weight:700">AI</span></span></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:375,&quot;height&quot;:812},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;start&quot;,&quot;chat&quot;,&quot;loading&quot;,&quot;offline&quot;],&quot;default&quot;:&quot;start&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;라이트&quot;,&quot;다크&quot;],&quot;default&quot;:&quot;라이트&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const v = this.props.variant ?? 'start';
+    const dark = (this.props.theme ?? '라이트') === '다크';
+    const IC = {
+      wallet: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+      dumbbell: '<path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/>',
+      home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+      list: '<path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/>',
+      sparkles: '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>',
+      chevronRight: '<path d="m9 18 6-6-6-6"/>',
+      arrowUp: '<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>',
+      search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+      wifiOff: '<path d="M12 20h.01"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/><path d="M5 12.859a10 10 0 0 1 5.17-2.69"/><path d="M19 12.859a10 10 0 0 0-2.007-1.523"/><path d="M2 8.82a15 15 0 0 1 4.177-2.643"/><path d="M22 8.82a15 15 0 0 0-11.288-3.764"/><path d="m2 2 20 20"/>'
+    };
+    const ic = {};
+    for (const k in IC) ic[k] = React.createElement('svg', { key: k, viewBox: '0 0 24 24', width: '100%', height: '100%', fill: 'none', stroke: 'currentColor', strokeWidth: 1.75, strokeLinecap: 'round', strokeLinejoin: 'round', style: { display: 'block' }, dangerouslySetInnerHTML: { __html: IC[k] } });
+    const start = v === 'start', loading = v === 'loading', offline = v === 'offline', chatting = v === 'chat' || loading;
+    return {
+      ic, start, loading, notLoading: !loading, offline, chatting,
+      examples: ['지난달 외식비 얼마였어?', '이번 주 운동 몇 번 했어?', '최근 한 달 체중 변화 알려줘', '별점 4점 이상 카페 후기 보여줘'],
+      remain: start ? '18' : loading ? '16' : '17',
+      justify: chatting ? 'flex-end' : 'center',
+      placeholder: offline ? '오프라인에서는 쓸 수 없어요' : loading ? '답변을 기다리는 중…' : '기록에 대해 물어보세요',
+      fieldBg: offline || loading ? 'var(--surface-hover)' : 'var(--surface)',
+      themeCls: dark ? 'th-dark' : 'th-light'
+    };
+  }
+}
+</script>
+</body>
+</html>

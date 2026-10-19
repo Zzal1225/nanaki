@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"><style>
+body{margin:0;font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.th-light{--bg:#F7F7F8;--surface:#FFFFFF;--surface-raised:#FFFFFF;--surface-hover:#F0F0F2;--surface-pressed:#E6E6EA;--border:#DCDCE1;--fg-primary:#121214;--fg-secondary:#5A5A63;--fg-disabled:#A6A6AF;--accent:#2E7D4F;--accent-hover:#276C44;--accent-pressed:#205B39;--accent-foreground:#FFFFFF;--success:#2E7D4F;--warning:#B4480E;--danger:#C8323C;--danger-hover:#B02A33;--danger-pressed:#98232B;--overlay:rgba(18,18,20,.48);--type-expense:#9A5C00;--type-expense-subtle:#FCF0DC;--type-review:#C2365F;--type-review-subtle:#FCE9EE;--type-workout:#2562C4;--type-workout-subtle:#E6EEFB;--type-routine:#8A3FC0;--type-routine-subtle:#F3EAFA;--type-body:#097078;--type-body-subtle:#DDF2F2;--shadow-card:0 1px 2px rgba(18,18,20,.06),0 1px 3px rgba(18,18,20,.08);--shadow-float:0 8px 24px rgba(18,18,20,.12),0 2px 6px rgba(18,18,20,.08);color:var(--fg-primary)}
+.th-dark{--bg:#121214;--surface:#1A1A1E;--surface-raised:#24242A;--surface-hover:#2A2A30;--surface-pressed:#34343B;--border:#34343B;--fg-primary:#ECECEF;--fg-secondary:#A6A6AF;--fg-disabled:#5A5A63;--accent:#6CC08F;--accent-hover:#7ECB9E;--accent-pressed:#8FD4AC;--accent-foreground:#0F1F16;--success:#6CC08F;--warning:#F09A6A;--danger:#EE7B80;--danger-hover:#F28E92;--danger-pressed:#F5A1A4;--overlay:rgba(0,0,0,.64);--type-expense:#E2AA5E;--type-expense-subtle:#3A2F1F;--type-review:#E68DA7;--type-review-subtle:#3A2530;--type-workout:#86AAEB;--type-workout-subtle:#1F2A3E;--type-routine:#D7BFF4;--type-routine-subtle:#30253C;--type-body:#62C2C2;--type-body-subtle:#173334;--shadow-card:none;--shadow-float:none;color:var(--fg-primary)}
+</style></helmet>
+<div class="{{ themeCls }}" style="width:375px;height:812px;position:relative;overflow:hidden;border-radius:32px;background:var(--bg);color:var(--fg-primary);box-shadow:var(--shadow-float);font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif">
+<div style="height:44px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-size:14px;line-height:20px;font-weight:600"><span>9:41</span><span style="width:25px;height:12px;border-radius:6px;border:1.5px solid currentColor;box-sizing:border-box;padding:1.5px;display:flex"><span style="width:70%;border-radius:1.5px;background:currentColor"></span></span></div>
+<div style="height:56px;padding:0 4px;display:flex;align-items:center;gap:4px">
+<span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span style="width:24px;height:24px;display:inline-flex">{{ ic.chevronLeft }}</span></span>
+<span style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;background:{{ t.s }};color:{{ t.c }}"><span style="width:18px;height:18px;display:inline-flex">{{ t.iconEl }}</span></span>
+<span style="font-size:20px;line-height:28px;font-weight:600;margin-left:4px">{{ t.ko }}</span>
+<span style="flex:1"></span>
+<span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--fg-secondary)"><span style="width:20px;height:20px;display:inline-flex">{{ ic.chevronLeft }}</span></span>
+<span style="font-size:16px;line-height:24px;font-weight:600;font-variant-numeric:tabular-nums">{{ period }}</span>
+<span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--fg-secondary)"><span style="width:20px;height:20px;display:inline-flex">{{ ic.chevronRight }}</span></span>
+</div>
+
+<div style="margin:8px 16px 0;background:var(--surface);border-radius:16px;box-shadow:var(--shadow-card);padding:16px;display:flex;flex-direction:column;gap:16px">
+
+<sc-if value="{{ isExpense }}">
+<div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:14px;line-height:20px;color:var(--fg-secondary)">10월 지출</span><span style="font-size:28px;line-height:34px;font-weight:700;letter-spacing:-0.01em;font-variant-numeric:tabular-nums">-412,300원</span></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;justify-content:space-between;font-size:14px;line-height:20px;font-variant-numeric:tabular-nums"><span>예산 600,000원</span><b style="font-weight:600">69%</b></div><div style="height:8px;border-radius:9999px;background:var(--surface-pressed);overflow:hidden"><div style="width:69%;height:100%;border-radius:9999px;background:var(--type-expense)"></div></div><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);font-variant-numeric:tabular-nums">187,700원 남았어요 · 12일 남음</span></div>
+<div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--border);padding-top:16px"><span style="font-size:14px;line-height:20px;font-weight:600">분류별</span>
+<sc-for list="{{ cats }}" as="k" hint-placeholder-count="5"><div style="display:grid;grid-template-columns:36px minmax(0,1fr) 32px 92px;gap:8px;align-items:center;font-size:14px;line-height:20px;font-variant-numeric:tabular-nums"><span>{{ k.n }}</span><div style="height:6px;border-radius:9999px;background:var(--surface-pressed);overflow:hidden"><div style="height:100%;border-radius:9999px;background:var(--type-expense);width:{{ k.w }}"></div></div><span style="font-size:12px;font-weight:500;color:var(--fg-secondary);text-align:right">{{ k.p }}</span><span style="text-align:right;font-weight:600">{{ k.v }}</span></div></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isReview }}">
+<div style="display:flex;align-items:flex-end;justify-content:space-between"><div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:14px;line-height:20px;color:var(--fg-secondary)">10월 후기</span><span style="font-size:28px;line-height:34px;font-weight:700;font-variant-numeric:tabular-nums">8건</span></div><span style="display:flex;align-items:center;gap:4px;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums"><span style="width:18px;height:18px;display:inline-flex;color:var(--type-review)">{{ ic.starFill }}</span>평균 4.1</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--fg-primary);color:var(--surface);display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600">전체 <span style="font-variant-numeric:tabular-nums">8</span></span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500">장소 <span style="color:var(--fg-secondary);font-variant-numeric:tabular-nums">5</span></span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500">제품 <span style="color:var(--fg-secondary);font-variant-numeric:tabular-nums">2</span></span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500">콘텐츠 <span style="color:var(--fg-secondary);font-variant-numeric:tabular-nums">1</span></span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:var(--fg-disabled)">경험 <span style="font-variant-numeric:tabular-nums">0</span></span>
+</div>
+</sc-if>
+
+<sc-if value="{{ isWorkout }}">
+<div style="display:flex;align-items:flex-end;justify-content:space-between"><div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:14px;line-height:20px;color:var(--fg-secondary)">최근 7일</span><span style="font-size:28px;line-height:34px;font-weight:700;font-variant-numeric:tabular-nums">186분</span></div><div style="text-align:right;display:flex;flex-direction:column;gap:4px"><span style="font-size:16px;line-height:24px;font-weight:600;font-variant-numeric:tabular-nums">4회</span><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">지난주보다 1회 더</span></div></div>
+<div style="height:140px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;align-items:end">
+<sc-for list="{{ bars }}" as="b" hint-placeholder-count="7"><div style="display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end"><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);font-variant-numeric:tabular-nums">{{ b.label }}</span><div style="width:24px;border-radius:6px;background:{{ b.bg }};height:{{ b.h }}"></div><span style="font-size:12px;line-height:16px;font-weight:{{ b.fw }}">{{ b.d }}</span></div></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isRoutine }}">
+<div style="display:flex;align-items:flex-end;justify-content:space-between"><div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:14px;line-height:20px;color:var(--fg-secondary)">오늘</span><span style="font-size:28px;line-height:34px;font-weight:700;font-variant-numeric:tabular-nums">3 / 4</span></div><div style="text-align:right"><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">이번 주 달성률</span><div style="font-size:16px;line-height:24px;font-weight:600;font-variant-numeric:tabular-nums">83%</div></div></div>
+<div style="height:8px;border-radius:9999px;background:var(--surface-pressed);overflow:hidden"><div style="width:83%;height:100%;border-radius:9999px;background:var(--type-routine)"></div></div>
+<div style="display:flex;flex-direction:column;border-top:1px solid var(--border)">
+<sc-for list="{{ checks }}" as="k" hint-placeholder-count="4"><div style="height:44px;display:flex;align-items:center;gap:12px;font-size:16px;border-bottom:{{ k.bb }}"><sc-if value="{{ k.done }}"><span style="width:22px;height:22px;border-radius:6px;background:var(--accent);color:var(--accent-foreground);display:flex;align-items:center;justify-content:center;flex:none"><span style="width:16px;height:16px;display:inline-flex">{{ ic.check }}</span></span></sc-if><sc-if value="{{ k.todo }}"><span style="width:22px;height:22px;border-radius:6px;border:1.5px solid var(--fg-secondary);box-sizing:border-box;flex:none"></span></sc-if><span style="flex:1">{{ k.n }}</span><span style="font-size:14px;color:var(--fg-secondary);font-variant-numeric:tabular-nums">{{ k.g }}</span></div></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isBody }}">
+<div style="display:flex;align-items:flex-end;justify-content:space-between"><div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:14px;line-height:20px;color:var(--fg-secondary)">최근 체중</span><span style="font-size:28px;line-height:34px;font-weight:700;font-variant-numeric:tabular-nums">68.4kg</span></div><div style="text-align:right"><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">30일 변화</span><div style="font-size:16px;line-height:24px;font-weight:600;font-variant-numeric:tabular-nums">-1.2kg</div></div></div>
+<div style="display:flex;gap:8px">
+<div style="display:flex;flex-direction:column;justify-content:space-between;height:120px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);font-variant-numeric:tabular-nums"><span>{{ yMax }}</span><span>{{ yMin }}</span></div>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+<svg viewBox="0 0 280 120" width="100%" height="120" preserveAspectRatio="none" style="display:block;overflow:visible"><line x1="0" y1="0.5" x2="280" y2="0.5" style="stroke:var(--border);stroke-width:1"></line><line x1="0" y1="119.5" x2="280" y2="119.5" style="stroke:var(--border);stroke-width:1"></line><polyline points="{{ pts }}" style="fill:none;stroke:var(--type-body);stroke-width:2;stroke-linejoin:round;stroke-linecap:round"></polyline><circle cx="{{ lastX }}" cy="{{ lastY }}" r="4" style="fill:var(--surface);stroke:var(--type-body);stroke-width:2"></circle></svg>
+<div style="display:flex;justify-content:space-between;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);font-variant-numeric:tabular-nums"><span>9.20</span><span>10.19</span></div>
+</div></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;font-size:14px;font-variant-numeric:tabular-nums"><span style="height:28px;padding:0 12px;border-radius:9999px;background:var(--surface-hover);display:inline-flex;align-items:center;gap:4px"><span style="color:var(--fg-secondary)">허리</span>78cm</span><span style="height:28px;padding:0 12px;border-radius:9999px;background:var(--surface-hover);display:inline-flex;align-items:center;gap:4px"><span style="color:var(--fg-secondary)">엉덩이</span>94cm</span><span style="height:28px;padding:0 12px;border-radius:9999px;background:var(--surface-hover);display:inline-flex;align-items:center;gap:4px"><span style="color:var(--fg-secondary)">허벅지</span>55cm</span></div>
+</sc-if>
+</div>
+
+<div style="padding:16px 16px 0;height:32px;display:flex;align-items:center;justify-content:space-between"><span style="font-size:16px;line-height:24px;font-weight:600">기록</span><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);font-variant-numeric:tabular-nums">{{ countLabel }}</span></div>
+<div style="padding:8px 16px;display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{ items }}" as="r" hint-placeholder-count="3">
+<div style="min-height:68px;padding:12px 16px;box-sizing:border-box;border-radius:16px;background:var(--surface);box-shadow:var(--shadow-card);display:flex;align-items:center;gap:12px">
+<span style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;background:{{ t.s }};color:{{ t.c }}"><span style="width:22px;height:22px;display:inline-flex">{{ t.iconEl }}</span></span>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span style="font-size:16px;line-height:24px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.title }}</span><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);font-variant-numeric:tabular-nums">{{ t.ko }} · {{ r.date }}</span></div>
+<span style="font-size:16px;line-height:24px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.val }}</span>
+</div>
+</sc-for>
+</div>
+<span style="position:absolute;right:16px;bottom:88px;width:56px;height:56px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);box-shadow:var(--shadow-float);display:flex;align-items:center;justify-content:center"><span style="width:28px;height:28px;display:inline-flex">{{ ic.plus }}</span></span>
+<div style="position:absolute;left:0;right:0;bottom:0;height:72px;padding-bottom:16px;box-sizing:border-box;background:var(--surface-raised);border-top:1px solid var(--border);display:flex">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)"><span style="width:24px;height:24px;display:inline-flex">{{ ic.home }}</span>홈</div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;line-height:16px;font-weight:600;color:var(--accent)"><span style="width:24px;height:24px;display:inline-flex">{{ ic.list }}</span>기록</div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)"><span style="width:24px;height:24px;display:inline-flex">{{ ic.sparkles }}</span><span style="position:relative">나키<span style="position:absolute;left:100%;top:-8px;margin-left:0px;height:16px;padding:0 4px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);font-size:12px;line-height:16px;font-weight:700">AI</span></span></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:375,&quot;height&quot;:812},&quot;type&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;expense&quot;,&quot;review&quot;,&quot;workout&quot;,&quot;routine&quot;,&quot;body&quot;],&quot;default&quot;:&quot;expense&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;라이트&quot;,&quot;다크&quot;],&quot;default&quot;:&quot;라이트&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const type = this.props.type ?? 'expense';
+    const dark = (this.props.theme ?? '라이트') === '다크';
+    const IC = {
+      wallet: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+      review: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M13 8H7"/><path d="M17 12H7"/>',
+      dumbbell: '<path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/>',
+      listChecks: '<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>',
+      ruler: '<path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/>',
+      home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+      list: '<path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/>',
+      sparkles: '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>',
+      plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+      check: '<path d="M20 6 9 17l-5-5"/>',
+      chevronLeft: '<path d="m15 18-6-6 6-6"/>',
+      chevronRight: '<path d="m9 18 6-6-6-6"/>',
+      starFill: '<path fill="currentColor" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>'
+    };
+    const ic = {};
+    for (const k in IC) ic[k] = React.createElement('svg', { key: k, viewBox: '0 0 24 24', width: '100%', height: '100%', fill: 'none', stroke: 'currentColor', strokeWidth: 1.75, strokeLinecap: 'round', strokeLinejoin: 'round', style: { display: 'block' }, dangerouslySetInnerHTML: { __html: IC[k] } });
+    const M = { expense: ['가계부', 'wallet'], review: ['후기', 'review'], workout: ['운동', 'dumbbell'], routine: ['루틴', 'listChecks'], body: ['체형', 'ruler'] };
+    const t = { ko: M[type][0], iconEl: ic[M[type][1]], c: 'var(--type-' + type + ')', s: 'var(--type-' + type + '-subtle)' };
+    const cats = [['식비', 38, '-156,700원'], ['쇼핑', 20, '-82,500원'], ['카페', 14, '-57,700원'], ['교통', 12, '-49,500원'], ['기타', 16, '-65,900원']].map(([n, p, v]) => ({ n, p: p + '%', w: Math.round(p / 38 * 100) + '%', v }));
+    const mins = [['화', 40], ['수', 0], ['목', 45], ['금', 30], ['토', 0], ['일', 71], ['월', 0]];
+    const bars = mins.map(([d, m], i) => ({ d, label: m ? m + '분' : '', h: m ? Math.round(m / 71 * 96) + 'px' : '4px', bg: m ? 'var(--type-workout)' : 'var(--surface-pressed)', fw: i === 6 ? '700' : '500' }));
+    const checks = [['물 마시기', '5/8잔', false], ['스트레칭', '완료', true], ['영양제', '완료', true], ['10분 명상', '완료', true]].map(([n, g, done], i, a) => ({ n, g, done, todo: !done, bb: i < a.length - 1 ? '1px solid var(--border)' : 'none' }));
+    const W = [];
+    for (let i = 0; i < 30; i++) W.push(69.6 - 1.2 * i / 29 + Math.sin(i * 1.7) * 0.25 + Math.cos(i * 0.9) * 0.12);
+    W[29] = 68.4;
+    const max = Math.ceil(Math.max(...W) * 2) / 2, min = Math.floor(Math.min(...W) * 2) / 2;
+    const xy = W.map((w, i) => [i / 29 * 280, (max - w) / (max - min) * 120]);
+    const pts = xy.map(([x, y]) => x.toFixed(1) + ',' + y.toFixed(1)).join(' ');
+    const L = {
+      expense: [['택시 · 교통', '-7,000원', '10.19 (월)'], ['점심 · 식비', '-9,800원', '10.19 (월)'], ['장보기 · 생활', '-15,000원', '10.16 (금)']],
+      review: [['동네 로스터리', '★ 4.0', '10.16 (금)'], ['무선 이어폰', '★ 3.0', '10.11 (일)'], ['전시 「빛의 정원」', '★ 5.0', '10.04 (일)']],
+      workout: [['헬스 · 하체', '71분', '10.18 (일)'], ['러닝 5km', '30분', '10.16 (금)'], ['헬스 · 상체', '45분', '10.15 (목)']],
+      routine: [['4개 중 4개 완료', '4/4', '10.18 (일)'], ['4개 중 3개 완료', '3/4', '10.17 (토)'], ['4개 중 4개 완료', '4/4', '10.16 (금)']],
+      body: [['체중 · 허리', '68.4kg', '10.19 (월)'], ['체중 · 허리', '68.9kg', '10.12 (월)'], ['체중', '69.3kg', '10.05 (월)']]
+    };
+    const counts = { expense: '24건', review: '8건', workout: '12회', routine: '19일', body: '5회' };
+    return {
+      ic, t, cats, bars, checks, pts, lastX: xy[29][0].toFixed(1), lastY: xy[29][1].toFixed(1), yMax: max.toFixed(1), yMin: min.toFixed(1),
+      items: L[type].map(([title, val, date]) => ({ title, val, date })), countLabel: '10월 · ' + counts[type],
+      period: type === 'workout' ? '이번 주' : '10월',
+      isExpense: type === 'expense', isReview: type === 'review', isWorkout: type === 'workout', isRoutine: type === 'routine', isBody: type === 'body',
+      themeCls: dark ? 'th-dark' : 'th-light'
+    };
+  }
+}
+</script>
+</body>
+</html>

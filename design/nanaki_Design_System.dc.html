@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"><style>
+body{margin:0;background:#F7F7F8;font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#2E7D4F}a:hover{color:#205B39}
+pre{margin:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{50%{opacity:.5}}
+.th-light{--bg:#F7F7F8;--surface:#FFFFFF;--surface-raised:#FFFFFF;--surface-hover:#F0F0F2;--surface-pressed:#E6E6EA;--border:#DCDCE1;--fg-primary:#121214;--fg-secondary:#5A5A63;--fg-disabled:#A6A6AF;--accent:#2E7D4F;--accent-hover:#276C44;--accent-pressed:#205B39;--accent-foreground:#FFFFFF;--success:#2E7D4F;--warning:#B4480E;--danger:#C8323C;--danger-hover:#B02A33;--danger-pressed:#98232B;--overlay:rgba(18,18,20,.48);--type-expense:#9A5C00;--type-expense-subtle:#FCF0DC;--type-review:#C2365F;--type-review-subtle:#FCE9EE;--type-workout:#2562C4;--type-workout-subtle:#E6EEFB;--type-routine:#8A3FC0;--type-routine-subtle:#F3EAFA;--type-body:#097078;--type-body-subtle:#DDF2F2;--shadow-card:0 1px 2px rgba(18,18,20,.06),0 1px 3px rgba(18,18,20,.08);--shadow-float:0 8px 24px rgba(18,18,20,.12),0 2px 6px rgba(18,18,20,.08);color:var(--fg-primary)}
+.th-dark{--bg:#121214;--surface:#1A1A1E;--surface-raised:#24242A;--surface-hover:#2A2A30;--surface-pressed:#34343B;--border:#34343B;--fg-primary:#ECECEF;--fg-secondary:#A6A6AF;--fg-disabled:#5A5A63;--accent:#6CC08F;--accent-hover:#7ECB9E;--accent-pressed:#8FD4AC;--accent-foreground:#0F1F16;--success:#6CC08F;--warning:#F09A6A;--danger:#EE7B80;--danger-hover:#F28E92;--danger-pressed:#F5A1A4;--overlay:rgba(0,0,0,.64);--type-expense:#E2AA5E;--type-expense-subtle:#3A2F1F;--type-review:#E68DA7;--type-review-subtle:#3A2530;--type-workout:#86AAEB;--type-workout-subtle:#1F2A3E;--type-routine:#D7BFF4;--type-routine-subtle:#30253C;--type-body:#62C2C2;--type-body-subtle:#173334;--shadow-card:none;--shadow-float:none;color:var(--fg-primary)}
+</style></helmet>
+<div class="th-light" style="background:var(--bg);min-height:100vh">
+<div style="max-width:1280px;margin:0 auto;padding:48px 32px 80px;display:flex;flex-direction:column;gap:64px">
+
+<header style="display:flex;flex-direction:column;gap:12px">
+<div style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">v0.1 · 2026.10 · Figma 변수 / Tailwind 1:1</div>
+<h1 style="margin:0;font-size:32px;line-height:40px;font-weight:700;letter-spacing:-0.02em">nanaki 디자인 시스템</h1>
+<p style="margin:0;font-size:16px;line-height:24px;color:var(--fg-secondary);max-width:640px;text-wrap:pretty">나는 나를 키운다 — 줄여서 나나키. 모든 화면은 이 페이지의 토큰만 씁니다. 색은 의미 이름으로만 참조하고, 원시 이름(green-600 등)은 팔레트 표에서만 씁니다.</p>
+</header>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums">00</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">먼저 확인 — 타입 색 구분</h2></div>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary);max-width:720px">회색 바탕 3단계(bg · surface · surface-raised) 위에서 캘린더 점과 타입 칩을 비교합니다. 타입은 항상 아이콘과 같이 나오므로, 아래 흑백 줄에서도 구분됩니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:16px">
+<sc-for list="{{ checkThemes }}" as="t" hint-placeholder-count="2">
+<div class="{{ t.cls }}" style="flex:1 1 480px;min-width:0;background:var(--bg);border:1px solid var(--border);border-radius:16px;overflow:hidden">
+<div style="padding:12px 20px;font-size:14px;line-height:20px;font-weight:600">{{ t.name }}</div>
+<sc-for list="{{ bgs }}" as="b" hint-placeholder-count="3">
+<div style="background:{{ b.v }};border-top:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+<div style="width:104px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);font-family:ui-monospace,Menlo,monospace">{{ b.n }}</div>
+<div style="width:48px;display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font-size:14px;line-height:20px;font-weight:600;font-variant-numeric:tabular-nums">19</span><div style="display:flex;gap:4px"><sc-for list="{{ types }}" as="ty"><span style="width:6px;height:6px;border-radius:9999px;background:{{ ty.c }}"></span></sc-for></div></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;flex:1;min-width:0"><sc-for list="{{ types }}" as="ty"><span style="display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 12px 0 8px;border-radius:9999px;background:{{ ty.s }};color:{{ ty.c }};font-size:12px;font-weight:600"><span style="width:16px;height:16px;display:inline-flex">{{ ty.iconEl }}</span>{{ ty.ko }}</span></sc-for></div>
+</div>
+</sc-for>
+<sc-if value="{{ showGray }}" hint-placeholder-val="{{ true }}">
+<div style="background:var(--surface);border-top:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;filter:grayscale(1)">
+<div style="width:104px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">흑백 (색약 가정)</div>
+<div style="width:48px;display:flex;justify-content:center;gap:4px"><sc-for list="{{ types }}" as="ty"><span style="width:12px;height:12px;display:inline-flex;color:{{ ty.c }}">{{ ty.iconEl }}</span></sc-for></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;flex:1;min-width:0"><sc-for list="{{ types }}" as="ty"><span style="display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 12px 0 8px;border-radius:9999px;background:{{ ty.s }};color:{{ ty.c }};font-size:12px;font-weight:600"><span style="width:16px;height:16px;display:inline-flex">{{ ty.iconEl }}</span>{{ ty.ko }}</span></sc-for></div>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+<p style="margin:0;font-size:12px;line-height:16px;color:var(--fg-secondary)">캘린더 셀 점은 6px로 작으므로, 셀 높이가 허락하면 점 대신 12px 아이콘을 쓰는 것을 권장합니다(흑백 줄 왼쪽).</p>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">01</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">색상</h2></div>
+<h3 style="margin:8px 0 0;font-size:20px;line-height:28px;font-weight:600">원시 팔레트</h3>
+<div style="display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ palette }}" as="g" hint-placeholder-count="9">
+<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+<div style="width:72px;padding-top:8px;font-size:14px;line-height:20px;font-weight:600">{{ g.name }}</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;flex:1;min-width:0">
+<sc-for list="{{ g.items }}" as="p"><div style="width:84px;display:flex;flex-direction:column;gap:4px"><div style="height:40px;border-radius:10px;border:1px solid rgba(18,18,20,.08);background:{{ p.v }}"></div><div style="font-size:12px;line-height:16px;font-weight:500">{{ p.n }}</div><div style="font-size:12px;line-height:16px;color:var(--fg-secondary);font-variant-numeric:tabular-nums">{{ p.v }}</div></div></sc-for>
+</div></div>
+</sc-for>
+</div>
+
+<h3 style="margin:16px 0 0;font-size:20px;line-height:28px;font-weight:600">의미 토큰</h3>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary)">대비는 실제 값에서 계산합니다. 글자 토큰은 bg · surface · surface-raised 중 가장 낮은 값을 표기합니다. 다크 값은 반전이 아니라 채도를 낮추고 밝기를 올린 단계를 씁니다.</p>
+<div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:16px">
+<div style="min-width:880px">
+<div style="display:grid;grid-template-columns:180px 150px 150px 200px minmax(0,1fr);gap:16px;padding:12px 20px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)"><span>토큰</span><span>라이트</span><span>다크</span><span>대비 (라이트 / 다크)</span><span>용도</span></div>
+<sc-for list="{{ sem }}" as="r" hint-placeholder-count="19">
+<div style="display:grid;grid-template-columns:180px 150px 150px 200px minmax(0,1fr);gap:16px;padding:12px 20px;border-top:1px solid var(--border);align-items:center">
+<span style="font-size:14px;line-height:20px;font-weight:600;font-family:ui-monospace,Menlo,monospace">{{ r.name }}</span>
+<div style="display:flex;gap:8px;align-items:center"><span style="width:28px;height:28px;border-radius:10px;border:1px solid rgba(18,18,20,.12);flex:none;background:{{ r.lv }}"></span><div><div style="font-size:12px;line-height:16px;font-weight:500">{{ r.lp }}</div><div style="font-size:12px;line-height:16px;color:var(--fg-secondary);font-variant-numeric:tabular-nums">{{ r.lv }}</div></div></div>
+<div style="display:flex;gap:8px;align-items:center"><span style="width:28px;height:28px;border-radius:10px;border:1px solid rgba(18,18,20,.12);flex:none;background:{{ r.dv }}"></span><div><div style="font-size:12px;line-height:16px;font-weight:500">{{ r.dp }}</div><div style="font-size:12px;line-height:16px;color:var(--fg-secondary);font-variant-numeric:tabular-nums">{{ r.dv }}</div></div></div>
+<div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:14px;line-height:20px;font-variant-numeric:tabular-nums">{{ r.ratio }}</span><span style="font-size:12px;line-height:16px;color:var(--fg-secondary)">{{ r.badge }}</span></div>
+<span style="font-size:14px;line-height:20px;color:var(--fg-secondary)">{{ r.use }}</span>
+</div>
+</sc-for>
+</div></div>
+
+<h3 style="margin:16px 0 0;font-size:20px;line-height:28px;font-weight:600">타입 토큰</h3>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary)">기본색은 캘린더 점 · 아이콘 · 칩 글자, subtle은 칩 · 아이콘 타일 · 카드 헤더 바탕에 씁니다.</p>
+<div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:16px">
+<div style="min-width:980px">
+<div style="display:grid;grid-template-columns:200px repeat(4,140px) minmax(0,1fr);gap:16px;padding:12px 20px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)"><span>토큰</span><span>라이트 기본</span><span>라이트 subtle</span><span>다크 기본</span><span>다크 subtle</span><span>대비 (라이트 / 다크)</span></div>
+<sc-for list="{{ types }}" as="ty" hint-placeholder-count="5">
+<div style="display:grid;grid-template-columns:200px repeat(4,140px) minmax(0,1fr);gap:16px;padding:12px 20px;border-top:1px solid var(--border);align-items:center">
+<div style="display:flex;gap:12px;align-items:center"><span style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;background:{{ ty.s }};color:{{ ty.c }}"><span style="width:20px;height:20px;display:inline-flex">{{ ty.iconEl }}</span></span><div><div style="font-size:14px;line-height:20px;font-weight:600;font-family:ui-monospace,Menlo,monospace">type-{{ ty.key }}</div><div style="font-size:12px;line-height:16px;color:var(--fg-secondary)">{{ ty.ko }} · {{ ty.iconName }}</div></div></div>
+<div style="display:flex;gap:8px;align-items:center"><span style="width:28px;height:28px;border-radius:10px;border:1px solid rgba(18,18,20,.12);flex:none;background:{{ ty.lb }}"></span><div style="font-size:12px;line-height:16px"><div style="font-weight:500">{{ ty.hue }}-700</div><div style="color:var(--fg-secondary)">{{ ty.lb }}</div></div></div>
+<div style="display:flex;gap:8px;align-items:center"><span style="width:28px;height:28px;border-radius:10px;border:1px solid rgba(18,18,20,.12);flex:none;background:{{ ty.ls }}"></span><div style="font-size:12px;line-height:16px"><div style="font-weight:500">{{ ty.hue }}-50</div><div style="color:var(--fg-secondary)">{{ ty.ls }}</div></div></div>
+<div style="display:flex;gap:8px;align-items:center"><span style="width:28px;height:28px;border-radius:10px;border:1px solid rgba(18,18,20,.12);flex:none;background:{{ ty.db }}"></span><div style="font-size:12px;line-height:16px"><div style="font-weight:500">{{ ty.hue }}-300</div><div style="color:var(--fg-secondary)">{{ ty.db }}</div></div></div>
+<div style="display:flex;gap:8px;align-items:center"><span style="width:28px;height:28px;border-radius:10px;border:1px solid rgba(18,18,20,.12);flex:none;background:{{ ty.ds }}"></span><div style="font-size:12px;line-height:16px"><div style="font-weight:500">{{ ty.hue }}-950</div><div style="color:var(--fg-secondary)">{{ ty.ds }}</div></div></div>
+<div style="display:flex;flex-direction:column;gap:4px;font-size:12px;line-height:16px;font-variant-numeric:tabular-nums"><span>글자 on subtle · {{ ty.cSub }} <span style="color:var(--fg-secondary)">AA 4.5</span></span><span>점 on 회색 3단계(최소) · {{ ty.cDot }} <span style="color:var(--fg-secondary)">그래픽 3.0</span></span></div>
+</div>
+</sc-for>
+</div></div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">02</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">타이포그래피</h2></div>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary)">Pretendard 하나로 한글 · 숫자를 모두 씁니다. 숫자가 들어가는 모든 자리는 <b>tabular-nums</b>(고정폭 숫자), number-lg는 필수입니다. 금액은 부호 + 천 단위 쉼표 + 원으로 씁니다. 가계부는 지출만 기록하므로 -32,000원 형식 하나만 씁니다. 입력칸 단위는 원 · kg · cm · 분으로 표시합니다.</p>
+<div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:16px">
+<div style="min-width:760px">
+<div style="display:grid;grid-template-columns:140px 180px 120px minmax(0,1fr);gap:16px;padding:12px 20px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)"><span>토큰</span><span>크기 / 줄높이 / 굵기</span><span>숫자</span><span>샘플</span></div>
+<div style="display:grid;grid-template-columns:140px 180px 120px minmax(0,1fr);gap:16px;padding:16px 20px;border-top:1px solid var(--border);align-items:center"><span style="font-size:14px;font-weight:600;font-family:ui-monospace,Menlo,monospace">display</span><span style="font-size:14px;color:var(--fg-secondary);font-variant-numeric:tabular-nums">32 / 40 / 700 · -2%</span><span style="font-size:14px;color:var(--fg-secondary)">—</span><span style="font-size:32px;line-height:40px;font-weight:700;letter-spacing:-0.02em">나는 나를 키운다</span></div>
+<div style="display:grid;grid-template-columns:140px 180px 120px minmax(0,1fr);gap:16px;padding:16px 20px;border-top:1px solid var(--border);align-items:center"><span style="font-size:14px;font-weight:600;font-family:ui-monospace,Menlo,monospace">title-lg</span><span style="font-size:14px;color:var(--fg-secondary);font-variant-numeric:tabular-nums">24 / 32 / 700 · -1%</span><span style="font-size:14px;color:var(--fg-secondary)">—</span><span style="font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">10월 기록 요약</span></div>
+<div style="display:grid;grid-template-columns:140px 180px 120px minmax(0,1fr);gap:16px;padding:16px 20px;border-top:1px solid var(--border);align-items:center"><span style="font-size:14px;font-weight:600;font-family:ui-monospace,Menlo,monospace">title</span><span style="font-size:14px;color:var(--fg-secondary);font-variant-numeric:tabular-nums">20 / 28 / 600</span><span style="font-size:14px;color:var(--fg-secondary)">—</span><span style="font-size:20px;line-height:28px;font-weight:600">동네 로스터리 후기</span></div>
+<div style="display:grid;grid-template-columns:140px 180px 120px minmax(0,1fr);gap:16px;padding:16px 20px;border-top:1px solid var(--border);align-items:center"><span style="font-size:14px;font-weight:600;font-family:ui-monospace,Menlo,monospace">body</span><span style="font-size:14px;color:var(--fg-secondary);font-variant-numeric:tabular-nums">16 / 24 / 400 · 강조 600</span><span style="font-size:14px;color:var(--fg-secondary)">tabular</span><span style="font-size:16px;line-height:24px">점심으로 국밥을 먹고 회사 근처를 30분 걸었다.</span></div>
+<div style="display:grid;grid-template-columns:140px 180px 120px minmax(0,1fr);gap:16px;padding:16px 20px;border-top:1px solid var(--border);align-items:center"><span style="font-size:14px;font-weight:600;font-family:ui-monospace,Menlo,monospace">body-sm</span><span style="font-size:14px;color:var(--fg-secondary);font-variant-numeric:tabular-nums">14 / 20 / 400 · 강조 600</span><span style="font-size:14px;color:var(--fg-secondary)">tabular</span><span style="font-size:14px;line-height:20px;font-variant-numeric:tabular-nums">10월 19일 (월) · 식비 · -12,500원</span></div>
+<div style="display:grid;grid-template-columns:140px 180px 120px minmax(0,1fr);gap:16px;padding:16px 20px;border-top:1px solid var(--border);align-items:center"><span style="font-size:14px;font-weight:600;font-family:ui-monospace,Menlo,monospace">caption</span><span style="font-size:14px;color:var(--fg-secondary);font-variant-numeric:tabular-nums">12 / 16 / 500</span><span style="font-size:14px;color:var(--fg-secondary)">tabular</span><span style="font-size:12px;line-height:16px;font-weight:500;font-variant-numeric:tabular-nums">지난주보다 0.3kg 줄었어요</span></div>
+<div style="display:grid;grid-template-columns:140px 180px 120px minmax(0,1fr);gap:16px;padding:16px 20px;border-top:1px solid var(--border);align-items:center"><span style="font-size:14px;font-weight:600;font-family:ui-monospace,Menlo,monospace">number-lg</span><span style="font-size:14px;color:var(--fg-secondary);font-variant-numeric:tabular-nums">28 / 34 / 700 · -1%</span><span style="font-size:14px;font-weight:600">tabular 필수</span><span style="font-size:28px;line-height:34px;font-weight:700;letter-spacing:-0.01em;font-variant-numeric:tabular-nums">-1,234,500원 · 68.4kg · 78cm</span></div>
+</div></div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">03</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">간격 · 모서리 · 그림자</h2></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px">
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px">
+<div style="font-size:14px;line-height:20px;font-weight:600">간격 · 4px 기준</div>
+<div style="display:grid;grid-template-columns:72px 40px minmax(0,1fr);gap:8px 12px;align-items:center;font-size:12px;line-height:16px;font-variant-numeric:tabular-nums">
+<span style="font-family:ui-monospace,Menlo,monospace">space-1</span><span style="color:var(--fg-secondary)">4</span><span style="height:12px;width:4px;background:var(--accent);border-radius:6px"></span>
+<span style="font-family:ui-monospace,Menlo,monospace">space-2</span><span style="color:var(--fg-secondary)">8</span><span style="height:12px;width:8px;background:var(--accent);border-radius:6px"></span>
+<span style="font-family:ui-monospace,Menlo,monospace">space-3</span><span style="color:var(--fg-secondary)">12</span><span style="height:12px;width:12px;background:var(--accent);border-radius:6px"></span>
+<span style="font-family:ui-monospace,Menlo,monospace">space-4</span><span style="color:var(--fg-secondary)">16</span><span style="height:12px;width:16px;background:var(--accent);border-radius:6px"></span>
+<span style="font-family:ui-monospace,Menlo,monospace">space-5</span><span style="color:var(--fg-secondary)">20</span><span style="height:12px;width:20px;background:var(--accent);border-radius:6px"></span>
+<span style="font-family:ui-monospace,Menlo,monospace">space-6</span><span style="color:var(--fg-secondary)">24</span><span style="height:12px;width:24px;background:var(--accent);border-radius:6px"></span>
+<span style="font-family:ui-monospace,Menlo,monospace">space-8</span><span style="color:var(--fg-secondary)">32</span><span style="height:12px;width:32px;background:var(--accent);border-radius:6px"></span>
+<span style="font-family:ui-monospace,Menlo,monospace">space-10</span><span style="color:var(--fg-secondary)">40</span><span style="height:12px;width:40px;background:var(--accent);border-radius:6px"></span>
+</div>
+<div style="font-size:12px;line-height:16px;color:var(--fg-secondary)">이름의 숫자 = Tailwind 기본 spacing 단계 (space-4 → p-4 = 16px)</div>
+</div>
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px">
+<div style="font-size:14px;line-height:20px;font-weight:600">모서리</div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+<div style="display:flex;gap:12px;align-items:center"><span style="width:44px;height:44px;border:1.5px solid var(--fg-primary);border-radius:6px;flex:none"></span><div style="font-size:12px;line-height:16px"><div style="font-weight:600;font-family:ui-monospace,Menlo,monospace">radius-sm · 6</div><div style="color:var(--fg-secondary)">체크박스, 작은 타일</div></div></div>
+<div style="display:flex;gap:12px;align-items:center"><span style="width:44px;height:44px;border:1.5px solid var(--fg-primary);border-radius:10px;flex:none"></span><div style="font-size:12px;line-height:16px"><div style="font-weight:600;font-family:ui-monospace,Menlo,monospace">radius-md · 10</div><div style="color:var(--fg-secondary)">버튼, 입력, 아이콘 타일</div></div></div>
+<div style="display:flex;gap:12px;align-items:center"><span style="width:44px;height:44px;border:1.5px solid var(--fg-primary);border-radius:16px;flex:none"></span><div style="font-size:12px;line-height:16px"><div style="font-weight:600;font-family:ui-monospace,Menlo,monospace">radius-lg · 16</div><div style="color:var(--fg-secondary)">카드, 시트, 모달</div></div></div>
+<div style="display:flex;gap:12px;align-items:center"><span style="width:44px;height:44px;border:1.5px solid var(--fg-primary);border-radius:9999px;flex:none"></span><div style="font-size:12px;line-height:16px"><div style="font-weight:600;font-family:ui-monospace,Menlo,monospace">radius-full</div><div style="color:var(--fg-secondary)">칩, 토글, 스피드 다이얼</div></div></div>
+</div>
+</div>
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px">
+<div style="font-size:14px;line-height:20px;font-weight:600">그림자 · 2단계</div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+<sc-for list="{{ checkThemes }}" as="t" hint-placeholder-count="2">
+<div class="{{ t.cls }}" style="background:var(--bg);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px">
+<div style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">{{ t.name }}</div>
+<div style="background:var(--surface);box-shadow:var(--shadow-card);border-radius:10px;padding:12px;font-size:12px;line-height:16px"><b style="font-family:ui-monospace,Menlo,monospace">shadow-card</b><div style="color:var(--fg-secondary)">{{ t.cardNote }}</div></div>
+<div style="background:var(--surface-raised);box-shadow:var(--shadow-float);border-radius:10px;padding:12px;font-size:12px;line-height:16px"><b style="font-family:ui-monospace,Menlo,monospace">shadow-float</b><div style="color:var(--fg-secondary)">{{ t.floatNote }}</div></div>
+</div>
+</sc-for>
+</div>
+<div style="font-size:12px;line-height:16px;color:var(--fg-secondary)">card: 0 1 2 / 6% + 0 1 3 / 8% · float: 0 8 24 / 12% + 0 2 6 / 8% (gray-950). 다크는 none.</div>
+</div>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">04</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">아이콘</h2></div>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary)">Lucide · 24px 기준 · 선 굵기 {{ strokeLabel }} · 둥근 끝. 크기는 24(기본) / 20(칩·리스트) / 16(작은 칩) 세 단계만 씁니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<sc-for list="{{ types }}" as="ty" hint-placeholder-count="5"><div style="width:120px;padding:16px 8px 12px;border-radius:16px;display:flex;flex-direction:column;align-items:center;gap:8px;background:{{ ty.s }}"><span style="width:24px;height:24px;display:inline-flex;color:{{ ty.c }}">{{ ty.iconEl }}</span><span style="font-size:14px;line-height:20px;font-weight:600;color:{{ ty.c }}">{{ ty.ko }}</span><span style="font-size:12px;line-height:16px;color:var(--fg-secondary)">{{ ty.iconName }}</span></div></sc-for>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<sc-for list="{{ iconList }}" as="i" hint-placeholder-count="18"><div style="width:96px;padding:16px 4px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:8px"><span style="width:24px;height:24px;display:inline-flex">{{ i.el }}</span><span style="font-size:12px;line-height:16px;color:var(--fg-secondary)">{{ i.n }}</span></div></sc-for>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">05</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">기본 컴포넌트</h2></div>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary)">같은 마크업을 라이트 · 다크 토큰으로 렌더링합니다. 모든 터치 영역은 44px 이상입니다. 포커스는 accent 2px 링입니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+<sc-for list="{{ themes }}" as="t" hint-placeholder-count="2">
+<div class="{{ t.cls }}" style="flex:1 1 560px;min-width:0;background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:36px">
+<div style="font-size:16px;line-height:24px;font-weight:600">{{ t.name }}</div>
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">버튼</div>
+<div style="display:grid;grid-template-columns:72px repeat(5,minmax(0,1fr));gap:8px;align-items:center">
+<span></span><span style="font-size:12px;line-height:16px;color:var(--fg-secondary);text-align:center">기본</span><span style="font-size:12px;line-height:16px;color:var(--fg-secondary);text-align:center">hover</span><span style="font-size:12px;line-height:16px;color:var(--fg-secondary);text-align:center">pressed</span><span style="font-size:12px;line-height:16px;color:var(--fg-secondary);text-align:center">비활성</span><span style="font-size:12px;line-height:16px;color:var(--fg-secondary);text-align:center">로딩</span>
+<span style="font-size:12px;line-height:16px;font-family:ui-monospace,Menlo,monospace">primary</span>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;background:var(--accent);color:var(--accent-foreground)">저장</div>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;background:var(--accent-hover);color:var(--accent-foreground)">저장</div>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;background:var(--accent-pressed);color:var(--accent-foreground)">저장</div>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;background:var(--surface-pressed);color:var(--fg-disabled)">저장</div>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--accent);color:var(--accent-foreground)"><span style="width:18px;height:18px;display:inline-flex;animation:spin 1s linear infinite">{{ ic.loader }}</span></div>
+<span style="font-size:12px;line-height:16px;font-family:ui-monospace,Menlo,monospace">secondary</span>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;background:var(--surface);border:1px solid var(--border);color:var(--fg-primary)">취소</div>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;background:var(--surface-hover);border:1px solid var(--border);color:var(--fg-primary)">취소</div>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;background:var(--surface-pressed);border:1px solid var(--border);color:var(--fg-primary)">취소</div>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;background:var(--surface);border:1px solid var(--border);color:var(--fg-disabled)">취소</div>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--border);color:var(--fg-secondary)"><span style="width:18px;height:18px;display:inline-flex;animation:spin 1s linear infinite">{{ ic.loader }}</span></div>
+<span style="font-size:12px;line-height:16px;font-family:ui-monospace,Menlo,monospace">ghost</span>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--fg-primary)">편집</div>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;background:var(--surface-hover);color:var(--fg-primary)">편집</div>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;background:var(--surface-pressed);color:var(--fg-primary)">편집</div>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--fg-disabled)">편집</div>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--fg-secondary)"><span style="width:18px;height:18px;display:inline-flex;animation:spin 1s linear infinite">{{ ic.loader }}</span></div>
+<span style="font-size:12px;line-height:16px;font-family:ui-monospace,Menlo,monospace">danger</span>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;background:var(--danger);color:var(--accent-foreground)">삭제</div>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;background:var(--danger-hover);color:var(--accent-foreground)">삭제</div>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;background:var(--danger-pressed);color:var(--accent-foreground)">삭제</div>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;background:var(--surface-pressed);color:var(--fg-disabled)">삭제</div>
+<div style="height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--danger);color:var(--accent-foreground)"><span style="width:18px;height:18px;display:inline-flex;animation:spin 1s linear infinite">{{ ic.loader }}</span></div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">입력</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:20px 16px">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">텍스트 · 기본</span><div style="height:48px;padding:0 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;font-size:16px;color:var(--fg-secondary)">제목을 입력하세요</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">텍스트 · 포커스</span><div style="height:48px;padding:0 16px;border:2px solid var(--accent);border-radius:10px;background:var(--surface);display:flex;align-items:center;font-size:16px">동네 로스터리<span style="width:1.5px;height:20px;background:var(--accent);margin-left:4px"></span></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">텍스트 · 오류</span><div style="height:48px;padding:0 16px;border:2px solid var(--danger);border-radius:10px;background:var(--surface);display:flex;align-items:center;font-size:16px;color:var(--fg-secondary)">제목을 입력하세요</div><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--danger)">제목을 입력해 주세요</span></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">숫자 + 단위</span><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-variant-numeric:tabular-nums">
+<div style="height:48px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:flex-end;gap:4px;font-size:16px;font-weight:600">12,500<span style="font-weight:400;color:var(--fg-secondary)">원</span></div>
+<div style="height:48px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:flex-end;gap:4px;font-size:16px;font-weight:600">68.4<span style="font-weight:400;color:var(--fg-secondary)">kg</span></div>
+<div style="height:48px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:flex-end;gap:4px;font-size:16px;font-weight:600">78<span style="font-weight:400;color:var(--fg-secondary)">cm</span></div>
+<div style="height:48px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:flex-end;gap:4px;font-size:16px;font-weight:600">32<span style="font-weight:400;color:var(--fg-secondary)">분</span></div></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">날짜</span><div style="height:48px;padding:0 12px 0 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:space-between;font-size:16px;font-variant-numeric:tabular-nums">2026. 10. 19 (월)<span style="width:20px;height:20px;display:inline-flex;color:var(--fg-secondary)">{{ ic.calendar }}</span></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">선택 · 목록 + 직접 입력</span><div style="height:48px;padding:0 12px 0 16px;border:2px solid var(--accent);border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:space-between;font-size:16px">식비<span style="width:20px;height:20px;display:inline-flex;transform:rotate(180deg);color:var(--fg-secondary)">{{ ic.chevronDown }}</span></div>
+<div style="background:var(--surface-raised);border:1px solid var(--border);box-shadow:var(--shadow-float);border-radius:10px;padding:4px;display:flex;flex-direction:column;font-size:16px">
+<div style="height:44px;padding:0 12px;border-radius:6px;background:var(--surface-hover);display:flex;align-items:center;justify-content:space-between;font-weight:600">식비<span style="width:20px;height:20px;display:inline-flex;color:var(--accent)">{{ ic.check }}</span></div>
+<div style="height:44px;padding:0 12px;display:flex;align-items:center">카페</div>
+<div style="height:44px;padding:0 12px;display:flex;align-items:center">교통</div>
+<div style="height:1px;background:var(--border);margin:4px 8px"></div>
+<div style="height:44px;padding:0 12px;display:flex;align-items:center;gap:8px;color:var(--accent);font-weight:600"><span style="width:20px;height:20px;display:inline-flex">{{ ic.plus }}</span>직접 입력</div></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">별점 1~5</span><div style="display:flex;align-items:center"><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--type-review)"><span style="width:28px;height:28px;display:inline-flex">{{ ic.starFill }}</span></span><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--type-review)"><span style="width:28px;height:28px;display:inline-flex">{{ ic.starFill }}</span></span><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--type-review)"><span style="width:28px;height:28px;display:inline-flex">{{ ic.starFill }}</span></span><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--type-review)"><span style="width:28px;height:28px;display:inline-flex">{{ ic.starFill }}</span></span><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--fg-secondary)"><span style="width:28px;height:28px;display:inline-flex">{{ ic.star }}</span></span><span style="margin-left:8px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">4 / 5</span></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">태그 입력</span><div style="min-height:48px;padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px">
+<span style="height:28px;padding:0 4px 0 12px;border-radius:9999px;background:var(--surface-pressed);display:inline-flex;align-items:center;gap:4px">#재방문<span style="width:44px;height:44px;margin:-10px;display:inline-flex;align-items:center;justify-content:center;color:var(--fg-secondary)"><span style="width:14px;height:14px;display:inline-flex">{{ ic.x }}</span></span></span>
+<span style="height:28px;padding:0 4px 0 12px;border-radius:9999px;background:var(--surface-pressed);display:inline-flex;align-items:center;gap:4px">#가성비<span style="width:44px;height:44px;margin:-10px;display:inline-flex;align-items:center;justify-content:center;color:var(--fg-secondary)"><span style="width:14px;height:14px;display:inline-flex">{{ ic.x }}</span></span></span>
+<span style="color:var(--fg-secondary)">태그 입력 후 Enter</span></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;line-height:20px;font-weight:500">메모</span><div style="height:104px;padding:12px 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;flex-direction:column;justify-content:space-between;font-size:16px;line-height:24px">창가 자리가 조용해서 좋았다. 다음엔 원두도 사볼 것.<span style="align-self:flex-end;font-size:12px;line-height:16px;color:var(--fg-secondary);font-variant-numeric:tabular-nums">27 / 500</span></div></div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">칩 · 필터 / 타입 / AI 조건</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--fg-primary);color:var(--surface);display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:600"><span style="width:16px;height:16px;display:inline-flex">{{ ic.check }}</span>전체</span>
+<span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);display:inline-flex;align-items:center;font-size:14px;font-weight:500">이번 달</span>
+<span style="height:44px;padding:0 12px 0 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:500">최신순<span style="width:16px;height:16px;display:inline-flex;color:var(--fg-secondary)">{{ ic.chevronDown }}</span></span>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ types }}" as="ty" hint-placeholder-count="5"><span style="height:28px;padding:0 12px 0 8px;border-radius:9999px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;background:{{ ty.s }};color:{{ ty.c }}"><span style="width:16px;height:16px;display:inline-flex">{{ ty.iconEl }}</span>{{ ty.ko }}</span></sc-for></div>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<span style="height:44px;padding:0 4px 0 12px;border-radius:9999px;background:var(--surface);border:1px solid var(--accent);display:inline-flex;align-items:center;gap:8px;font-size:14px"><span style="width:16px;height:16px;display:inline-flex;color:var(--accent)">{{ ic.sparkles }}</span><span style="color:var(--fg-secondary)">기간</span><b style="font-weight:600">지난달</b><span style="width:44px;height:44px;margin:-8px;display:inline-flex;align-items:center;justify-content:center;color:var(--fg-secondary)"><span style="width:14px;height:14px;display:inline-flex">{{ ic.x }}</span></span></span>
+<span style="height:44px;padding:0 4px 0 12px;border-radius:9999px;background:var(--surface);border:1px solid var(--accent);display:inline-flex;align-items:center;gap:8px;font-size:14px"><span style="width:16px;height:16px;display:inline-flex;color:var(--accent)">{{ ic.sparkles }}</span><span style="color:var(--fg-secondary)">금액</span><b style="font-weight:600;font-variant-numeric:tabular-nums">10,000원 이상</b><span style="width:44px;height:44px;margin:-8px;display:inline-flex;align-items:center;justify-content:center;color:var(--fg-secondary)"><span style="width:14px;height:14px;display:inline-flex">{{ ic.x }}</span></span></span>
+</div>
+<div style="font-size:12px;line-height:16px;color:var(--fg-secondary)">누를 수 있는 칩은 44px, 표시용 칩(타입 · AI 조건)은 28px 두 단계만 씁니다. 작은 × 버튼은 보이는 크기와 상관없이 터치 영역 44px을 둡니다.</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">토글 · 체크박스 · 세그먼트</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px 24px;align-items:center;font-size:14px">
+<span style="height:44px;display:inline-flex;align-items:center;gap:12px"><span style="width:44px;height:26px;border-radius:9999px;background:var(--accent);padding:4px;box-sizing:border-box;display:flex;justify-content:flex-end"><span style="width:20px;height:20px;border-radius:9999px;background:var(--accent-foreground)"></span></span>켜짐</span>
+<span style="height:44px;display:inline-flex;align-items:center;gap:12px"><span style="width:44px;height:26px;border-radius:9999px;background:var(--fg-disabled);padding:4px;box-sizing:border-box;display:flex"><span style="width:20px;height:20px;border-radius:9999px;background:var(--surface)"></span></span>꺼짐</span>
+<span style="height:44px;display:inline-flex;align-items:center;gap:12px;color:var(--fg-disabled)"><span style="width:44px;height:26px;border-radius:9999px;background:var(--surface-pressed);padding:4px;box-sizing:border-box;display:flex"><span style="width:20px;height:20px;border-radius:9999px;background:var(--surface)"></span></span>비활성</span>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px 24px;align-items:center;font-size:14px">
+<span style="height:44px;display:inline-flex;align-items:center;gap:12px"><span style="width:22px;height:22px;border-radius:6px;background:var(--accent);color:var(--accent-foreground);display:flex;align-items:center;justify-content:center"><span style="width:16px;height:16px;display:inline-flex">{{ ic.check }}</span></span>물 2L 마시기</span>
+<span style="height:44px;display:inline-flex;align-items:center;gap:12px"><span style="width:22px;height:22px;border-radius:6px;border:1.5px solid var(--fg-secondary);box-sizing:border-box"></span>스트레칭</span>
+<span style="height:44px;display:inline-flex;align-items:center;gap:12px;color:var(--fg-disabled)"><span style="width:22px;height:22px;border-radius:6px;border:1.5px solid var(--fg-disabled);box-sizing:border-box"></span>비활성</span>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<div style="height:44px;padding:4px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:inline-flex;font-size:14px;font-weight:600"><span style="width:64px;border-radius:6px;background:var(--fg-primary);color:var(--surface);display:flex;align-items:center;justify-content:center">월</span><span style="width:64px;display:flex;align-items:center;justify-content:center;color:var(--fg-secondary)">주</span></div>
+<div style="height:44px;padding:4px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:inline-flex;font-size:14px;font-weight:600"><span style="width:56px;display:flex;align-items:center;justify-content:center;color:var(--fg-secondary)">일</span><span style="width:56px;border-radius:6px;background:var(--fg-primary);color:var(--surface);display:flex;align-items:center;justify-content:center">주</span><span style="width:56px;display:flex;align-items:center;justify-content:center;color:var(--fg-secondary)">월</span></div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">카드 · 기록 카드 (공통 틀)</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{ types }}" as="ty" hint-placeholder-count="5">
+<div style="min-height:68px;padding:12px 16px;box-sizing:border-box;border-radius:16px;background:var(--surface);box-shadow:var(--shadow-card);display:flex;align-items:center;gap:12px">
+<span style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;background:{{ ty.s }};color:{{ ty.c }}"><span style="width:22px;height:22px;display:inline-flex">{{ ty.iconEl }}</span></span>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span style="font-size:16px;line-height:24px;font-weight:600">{{ ty.title }}</span><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);font-variant-numeric:tabular-nums">{{ ty.ko }} · {{ ty.date }}</span></div>
+<span style="font-size:16px;line-height:24px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap">{{ ty.val }}</span>
+</div>
+</sc-for>
+</div>
+<div style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);margin-top:8px">카드 · 타입 요약 카드</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:8px">
+<div style="border-radius:16px;background:var(--surface);box-shadow:var(--shadow-card);overflow:hidden"><div style="height:44px;padding:0 16px;background:var(--type-expense-subtle);color:var(--type-expense);display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600"><span style="width:20px;height:20px;display:inline-flex">{{ ic.wallet }}</span>가계부<span style="margin-left:auto;width:16px;height:16px;display:inline-flex;transform:rotate(-90deg)">{{ ic.chevronDown }}</span></div><div style="padding:12px 16px 16px;display:flex;flex-direction:column;gap:4px"><span style="font-size:28px;line-height:34px;font-weight:700;letter-spacing:-0.01em;font-variant-numeric:tabular-nums">-412,300원</span><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">이번 달 지출 · 24건</span></div></div>
+<div style="border-radius:16px;background:var(--surface);box-shadow:var(--shadow-card);overflow:hidden"><div style="height:44px;padding:0 16px;background:var(--type-body-subtle);color:var(--type-body);display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600"><span style="width:20px;height:20px;display:inline-flex">{{ ic.ruler }}</span>체형<span style="margin-left:auto;width:16px;height:16px;display:inline-flex;transform:rotate(-90deg)">{{ ic.chevronDown }}</span></div><div style="padding:12px 16px 16px;display:flex;flex-direction:column;gap:4px"><span style="font-size:28px;line-height:34px;font-weight:700;letter-spacing:-0.01em;font-variant-numeric:tabular-nums">68.4kg</span><span style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary);font-variant-numeric:tabular-nums">지난주보다 −0.3kg</span></div></div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">바텀시트 · 모달</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px">
+<div style="height:360px;border-radius:16px;overflow:hidden;position:relative;background:var(--bg);border:1px solid var(--border)">
+<div style="padding:16px;display:flex;flex-direction:column;gap:8px"><div style="height:12px;width:50%;border-radius:6px;background:var(--surface-pressed)"></div><div style="height:120px;border-radius:10px;background:var(--surface)"></div></div>
+<div style="position:absolute;inset:0;background:var(--overlay)"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;background:var(--surface-raised);border-radius:16px 16px 0 0;padding:8px 16px 12px;display:flex;flex-direction:column">
+<span style="align-self:center;width:36px;height:4px;border-radius:9999px;background:var(--border);margin-bottom:8px"></span>
+<span style="font-size:20px;line-height:28px;font-weight:600;padding-bottom:4px">새 기록</span>
+<sc-for list="{{ types }}" as="ty" hint-placeholder-count="5"><div style="height:44px;display:flex;align-items:center;gap:12px;font-size:16px"><span style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:{{ ty.s }};color:{{ ty.c }}"><span style="width:18px;height:18px;display:inline-flex">{{ ty.iconEl }}</span></span>{{ ty.ko }}</div></sc-for>
+</div></div>
+<div style="height:360px;border-radius:16px;overflow:hidden;position:relative;background:var(--bg);border:1px solid var(--border)">
+<div style="padding:16px;display:flex;flex-direction:column;gap:8px"><div style="height:12px;width:50%;border-radius:6px;background:var(--surface-pressed)"></div><div style="height:120px;border-radius:10px;background:var(--surface)"></div></div>
+<div style="position:absolute;inset:0;background:var(--overlay)"></div>
+<div style="position:absolute;left:16px;right:16px;top:50%;transform:translateY(-50%);background:var(--surface-raised);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow-float)">
+<span style="font-size:20px;line-height:28px;font-weight:600">이 기록을 삭제할까요?</span>
+<span style="font-size:14px;line-height:20px;color:var(--fg-secondary)">삭제 후 5초 안에 되돌릴 수 있어요.</span>
+<div style="display:flex;gap:8px;margin-top:12px"><div style="flex:1;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;background:var(--surface);border:1px solid var(--border)">취소</div><div style="flex:1;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;background:var(--danger);color:var(--accent-foreground)">삭제</div></div>
+</div></div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">토스트 · 오프라인 배너</div>
+<div style="display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:20px">
+<div style="min-height:48px;padding:0 16px;border-radius:10px;background:var(--fg-primary);color:var(--surface);box-shadow:var(--shadow-float);display:flex;align-items:center;gap:12px"><span style="width:20px;height:20px;display:inline-flex">{{ ic.check }}</span>저장했어요</div>
+<div style="min-height:48px;padding:0 4px 0 16px;border-radius:10px;background:var(--fg-primary);color:var(--surface);box-shadow:var(--shadow-float);display:flex;align-items:center;gap:12px"><span style="width:20px;height:20px;display:inline-flex">{{ ic.trash }}</span><span style="flex:1">기록을 삭제했어요</span><span style="height:44px;padding:0 12px;display:flex;align-items:center;gap:4px;font-weight:600;text-decoration:underline;text-underline-offset:3px"><span style="width:16px;height:16px;display:inline-flex">{{ ic.undo }}</span>되돌리기</span></div>
+<div style="min-height:48px;padding:0 4px 0 16px;border-radius:10px;background:var(--fg-primary);color:var(--surface);box-shadow:var(--shadow-float);display:flex;align-items:center;gap:12px"><span style="width:20px;height:20px;display:inline-flex">{{ ic.alert }}</span><span style="flex:1">저장하지 못했어요</span><span style="height:44px;padding:0 12px;display:flex;align-items:center;font-weight:600;text-decoration:underline;text-underline-offset:3px">다시 시도</span></div>
+<div style="min-height:44px;padding:12px 16px;box-sizing:border-box;background:var(--surface-raised);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;gap:12px;margin-top:8px"><span style="width:20px;height:20px;display:inline-flex;color:var(--warning);flex:none">{{ ic.wifiOff }}</span><span>오프라인이에요. 연결되면 자동으로 저장돼요.</span></div>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">빈 상태</div>
+<div style="border-radius:16px;background:var(--surface);padding:32px 20px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center">
+<span style="width:64px;height:64px;border-radius:9999px;background:var(--surface-hover);color:var(--fg-secondary);display:flex;align-items:center;justify-content:center;margin-bottom:4px"><span style="width:28px;height:28px;display:inline-flex">{{ ic.inbox }}</span></span>
+<span style="font-size:20px;line-height:28px;font-weight:600">기록이 없어요</span>
+<span style="font-size:14px;line-height:20px;color:var(--fg-secondary)">오늘 있었던 일 하나만 남겨볼까요?</span>
+<div style="margin-top:8px;height:44px;padding:0 16px;border-radius:10px;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;background:var(--accent);color:var(--accent-foreground)"><span style="width:18px;height:18px;display:inline-flex">{{ ic.plus }}</span>기록 추가하기</div>
+</div></div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)">스켈레톤 로딩</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="height:68px;padding:12px 16px;box-sizing:border-box;border-radius:16px;background:var(--surface);display:flex;align-items:center;gap:12px;animation:pulse 1.6s ease-in-out infinite"><span style="width:40px;height:40px;border-radius:10px;background:var(--surface-pressed);flex:none"></span><div style="flex:1;display:flex;flex-direction:column;gap:8px"><span style="height:12px;width:60%;border-radius:6px;background:var(--surface-pressed)"></span><span style="height:10px;width:35%;border-radius:6px;background:var(--surface-pressed)"></span></div><span style="height:12px;width:56px;border-radius:6px;background:var(--surface-pressed)"></span></div>
+<div style="height:68px;padding:12px 16px;box-sizing:border-box;border-radius:16px;background:var(--surface);display:flex;align-items:center;gap:12px;animation:pulse 1.6s ease-in-out infinite"><span style="width:40px;height:40px;border-radius:10px;background:var(--surface-pressed);flex:none"></span><div style="flex:1;display:flex;flex-direction:column;gap:8px"><span style="height:12px;width:45%;border-radius:6px;background:var(--surface-pressed)"></span><span style="height:10px;width:30%;border-radius:6px;background:var(--surface-pressed)"></span></div><span style="height:12px;width:40px;border-radius:6px;background:var(--surface-pressed)"></span></div>
+<div style="height:68px;padding:12px 16px;box-sizing:border-box;border-radius:16px;background:var(--surface);display:flex;align-items:center;gap:12px;animation:pulse 1.6s ease-in-out infinite"><span style="width:40px;height:40px;border-radius:10px;background:var(--surface-pressed);flex:none"></span><div style="flex:1;display:flex;flex-direction:column;gap:8px"><span style="height:12px;width:55%;border-radius:6px;background:var(--surface-pressed)"></span><span style="height:10px;width:25%;border-radius:6px;background:var(--surface-pressed)"></span></div><span style="height:12px;width:48px;border-radius:6px;background:var(--surface-pressed)"></span></div>
+</div></div>
+</div>
+
+</div>
+</sc-for>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">06</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">CSS 변수 (Tailwind · Figma 연결용)</h2></div>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary)">Tailwind에서는 colors: { bg: 'var(--bg)', 'type-expense': 'var(--type-expense)', … }로 매핑하고, 다크는 .dark 클래스 전략(darkMode: 'class')을 씁니다. Figma 변수 컬렉션은 Light / Dark 두 모드로 같은 이름을 씁니다.</p>
+<pre style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;font:12px/1.6 ui-monospace,Menlo,monospace;overflow:auto;max-height:420px;color:var(--fg-primary)">{{ cssExport }}</pre>
+</section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;componentsTheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;둘 다&quot;,&quot;라이트&quot;,&quot;다크&quot;],&quot;default&quot;:&quot;둘 다&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;미리보기&quot;},&quot;grayscaleCheck&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;미리보기&quot;},&quot;iconStroke&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:1.25,&quot;max&quot;:2.25,&quot;step&quot;:0.25,&quot;default&quot;:1.75,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;아이콘&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const sw = this.props.iconStroke ?? 1.75;
+    const mode = this.props.componentsTheme ?? '둘 다';
+    const showGray = this.props.grayscaleCheck ?? true;
+    const IC = {
+      wallet: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+      review: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M13 8H7"/><path d="M17 12H7"/>',
+      dumbbell: '<path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/>',
+      listChecks: '<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>',
+      ruler: '<path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/>',
+      home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+      list: '<path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/>',
+      sparkles: '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>',
+      plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+      search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+      calendar: '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
+      settings: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+      chevronDown: '<path d="m6 9 6 6 6-6"/>',
+      check: '<path d="M20 6 9 17l-5-5"/>',
+      x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+      star: '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>',
+      starFill: '<path fill="currentColor" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>',
+      trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+      undo: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+      alert: '<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>',
+      wifiOff: '<path d="M12 20h.01"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/><path d="M5 12.859a10 10 0 0 1 5.17-2.69"/><path d="M19 12.859a10 10 0 0 0-2.007-1.523"/><path d="M2 8.82a15 15 0 0 1 4.177-2.643"/><path d="M22 8.82a15 15 0 0 0-11.288-3.764"/><path d="m2 2 20 20"/>',
+      inbox: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+      loader: '<path d="M21 12a9 9 0 1 1-6.219-8.56"/>',
+      sprout: '<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>'
+    };
+    const ic = {};
+    for (const k in IC) ic[k] = React.createElement('svg', { key: k, viewBox: '0 0 24 24', width: '100%', height: '100%', fill: 'none', stroke: 'currentColor', strokeWidth: sw, strokeLinecap: 'round', strokeLinejoin: 'round', style: { display: 'block' }, dangerouslySetInnerHTML: { __html: IC[k] } });
+    const iconNames = { wallet: 'wallet', review: 'message-square-text', dumbbell: 'dumbbell', listChecks: 'list-checks', ruler: 'ruler' };
+    const iconList = [['home', '홈 탭'], ['list', '기록 탭'], ['sparkles', 'AI 탭'], ['plus', '새 기록'], ['search', '검색'], ['calendar', '날짜'], ['settings', '설정'], ['chevronDown', '펼치기'], ['check', '완료'], ['x', '닫기·삭제'], ['star', '별점'], ['trash', '삭제'], ['undo', '되돌리기'], ['alert', '오류'], ['wifiOff', '오프라인'], ['inbox', '빈 상태'], ['loader', '로딩'], ['sprout', '브랜드 아이콘']].map(([k, n]) => ({ el: ic[k], n }));
+
+    const P = {
+      gray: { '0': '#FFFFFF', '50': '#F7F7F8', '100': '#F0F0F2', '150': '#ECECEF', '200': '#E6E6EA', '300': '#DCDCE1', '400': '#A6A6AF', '600': '#5A5A63', '700': '#34343B', '800': '#2A2A30', '850': '#24242A', '900': '#1A1A1E', '950': '#121214' },
+      green: { '200': '#8FD4AC', '250': '#7ECB9E', '300': '#6CC08F', '600': '#2E7D4F', '700': '#276C44', '800': '#205B39', '950': '#0F1F16' },
+      red: { '200': '#F5A1A4', '250': '#F28E92', '300': '#EE7B80', '600': '#C8323C', '700': '#B02A33', '800': '#98232B' },
+      orange: { '300': '#F09A6A', '700': '#B4480E' },
+      amber: { '50': '#FCF0DC', '300': '#E2AA5E', '700': '#9A5C00', '950': '#3A2F1F' },
+      rose: { '50': '#FCE9EE', '300': '#E68DA7', '700': '#C2365F', '950': '#3A2530' },
+      blue: { '50': '#E6EEFB', '300': '#86AAEB', '700': '#2562C4', '950': '#1F2A3E' },
+      purple: { '50': '#F3EAFA', '300': '#D7BFF4', '700': '#8A3FC0', '950': '#30253C' },
+      teal: { '50': '#DDF2F2', '300': '#62C2C2', '700': '#097078', '950': '#173334' }
+    };
+    const roles = { gray: '중립', green: '포인트 · 성공', red: '오류', orange: '경고', amber: '가계부', rose: '후기', blue: '운동', purple: '루틴', teal: '체형' };
+    const hx = n => { const [h, s] = n.split('-'); return P[h][s]; };
+    const palette = Object.keys(P).map(h => ({ name: h, items: Object.keys(P[h]).sort((a, b) => a - b).map(s => ({ n: h + '-' + s, v: P[h][s] })) }));
+    palette.forEach(g => g.name = g.name + '\n' + roles[g.name]);
+    palette.forEach(g => g.name = g.name.replace('\n', ' · '));
+
+    const lum = h => { const c = [1, 3, 5].map(i => parseInt(h.substr(i, 2), 16) / 255).map(v => v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4)); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
+    const cr = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+    const f = n => n.toFixed(2);
+
+    const SEM = [
+      ['bg', 'gray-50', 'gray-950', '앱 전체 바탕', 'fg'],
+      ['surface', 'gray-0', 'gray-900', '카드 · 입력 · 목록 면', 'fg'],
+      ['surface-raised', 'gray-0', 'gray-850', '시트 · 모달 · 메뉴 · 배너. 다크에선 그림자 대신 이 색으로 띄움', 'fg'],
+      ['surface-hover', 'gray-100', 'gray-800', 'secondary · ghost hover, 선택된 목록 행', 'fg'],
+      ['surface-pressed', 'gray-200', 'gray-700', 'pressed, 비활성 버튼 면, 스켈레톤, 태그', 'fg'],
+      ['border', 'gray-300', 'gray-700', '구분선 · 입력 테두리 (장식선)', 'line'],
+      ['fg-primary', 'gray-950', 'gray-150', '제목 · 본문 · 선택 칩 바탕', 'text'],
+      ['fg-secondary', 'gray-600', 'gray-400', '날짜 · 라벨 · 보조 설명', 'text'],
+      ['fg-disabled', 'gray-400', 'gray-600', '비활성 컨트롤 전용 · placeholder와 보조 숫자는 fg-secondary', 'dis'],
+      ['accent', 'green-600', 'green-300', 'primary 버튼 · 포커스 링 · 링크 · 토글 켜짐', 'text'],
+      ['accent-hover', 'green-700', 'green-250', 'primary hover', 'onA'],
+      ['accent-pressed', 'green-800', 'green-200', 'primary pressed', 'onA'],
+      ['accent-foreground', 'gray-0', 'green-950', 'accent · danger 위 글자와 아이콘', 'fgA'],
+      ['success', 'green-600', 'green-300', '완료 · 저장 성공 (accent와 같은 값)', 'text'],
+      ['warning', 'orange-700', 'orange-300', '오프라인 · 주의', 'text'],
+      ['danger', 'red-600', 'red-300', '삭제 버튼 · 오류 문구', 'text'],
+      ['danger-hover', 'red-700', 'red-250', 'danger hover', 'onA'],
+      ['danger-pressed', 'red-800', 'red-200', 'danger pressed', 'onA'],
+      ['overlay', 'gray-950 / 48%', 'black / 64%', '시트 · 모달 뒤 dim', 'none']
+    ];
+    const ov = { L: 'rgba(18,18,20,.48)', D: 'rgba(0,0,0,.64)' };
+    const LM = {}, DM = {};
+    SEM.forEach(([n, l, d]) => { LM[n] = n === 'overlay' ? ov.L : hx(l); DM[n] = n === 'overlay' ? ov.D : hx(d); });
+    const calc = (M, n, kind) => {
+      const bgs = [M.bg, M.surface, M['surface-raised']];
+      if (kind === 'fg') return cr(M['fg-primary'], M[n]);
+      if (kind === 'line') return cr(M[n], M.surface);
+      if (kind === 'text' || kind === 'dis') return Math.min(...bgs.map(b => cr(M[n], b)));
+      if (kind === 'onA') return cr(M['accent-foreground'], M[n]);
+      if (kind === 'fgA') return Math.min(cr(M[n], M.accent), cr(M[n], M.danger));
+      return null;
+    };
+    const badges = { fg: 'fg-primary 글자 · AA 4.5', line: '장식선 · 기준 없음', text: 'bg·surface·raised 최소 · AA 4.5', dis: '비활성 · WCAG 예외', onA: 'accent-foreground 글자 · AA 4.5', fgA: 'accent·danger 위 최소 · AA 4.5', none: '—' };
+    const sem = SEM.map(([name, lp, dp, use, kind]) => {
+      const a = calc(LM, name, kind), b = calc(DM, name, kind);
+      return { name, lp, dp, lv: LM[name], dv: DM[name], use, ratio: a == null ? '—' : f(a) + ' / ' + f(b), badge: badges[kind] };
+    });
+
+    const TY = [
+      ['expense', '가계부', 'amber', 'wallet', '점심 · 식비', '-12,500원', '10.19 (월)'],
+      ['review', '후기', 'rose', 'review', '동네 로스터리', '★ 4.0', '10.19 (월)'],
+      ['workout', '운동', 'blue', 'dumbbell', '러닝 5km', '32분', '10.18 (일)'],
+      ['routine', '루틴', 'purple', 'listChecks', '아침 루틴', '4/5', '10.18 (일)'],
+      ['body', '체형', 'teal', 'ruler', '체중 · 허리', '68.4kg', '10.17 (토)']
+    ];
+    const types = TY.map(([key, ko, hue, icon, title, val, date]) => {
+      const lb = P[hue]['700'], ls = P[hue]['50'], db = P[hue]['300'], ds = P[hue]['950'];
+      const dotL = Math.min(cr(lb, LM.bg), cr(lb, LM.surface), cr(lb, LM['surface-raised']));
+      const dotD = Math.min(cr(db, DM.bg), cr(db, DM.surface), cr(db, DM['surface-raised']));
+      return { key, ko, hue, title, val, date, iconEl: ic[icon], iconName: iconNames[icon], c: 'var(--type-' + key + ')', s: 'var(--type-' + key + '-subtle)', lb, ls, db, ds, cSub: f(cr(lb, ls)) + ' / ' + f(cr(db, ds)), cDot: f(dotL) + ' / ' + f(dotD) };
+    });
+
+    const allThemes = [
+      { cls: 'th-light', name: '라이트', cardNote: '카드 · 목록', floatNote: '시트 · 토스트 · 메뉴' },
+      { cls: 'th-dark', name: '다크', cardNote: 'none · surface로 구분', floatNote: 'none · surface-raised로 구분' }
+    ];
+    const themes = mode === '라이트' ? [allThemes[0]] : mode === '다크' ? [allThemes[1]] : allThemes;
+    const bgs = [{ n: 'bg', v: 'var(--bg)' }, { n: 'surface', v: 'var(--surface)' }, { n: 'surface-raised', v: 'var(--surface-raised)' }];
+
+    const block = (M, isDark) => {
+      const out = Object.keys(M).map(k => '  --' + k + ': ' + M[k] + ';');
+      types.forEach(t => { out.push('  --type-' + t.key + ': ' + (isDark ? t.db : t.lb) + ';'); out.push('  --type-' + t.key + '-subtle: ' + (isDark ? t.ds : t.ls) + ';'); });
+      out.push('  --shadow-card: ' + (isDark ? 'none' : '0 1px 2px rgba(18,18,20,.06), 0 1px 3px rgba(18,18,20,.08)') + ';');
+      out.push('  --shadow-float: ' + (isDark ? 'none' : '0 8px 24px rgba(18,18,20,.12), 0 2px 6px rgba(18,18,20,.08)') + ';');
+      return out.join('\n');
+    };
+    const cssExport = ':root {\n' + block(LM, false) + '\n  --radius-sm: 6px;\n  --radius-md: 10px;\n  --radius-lg: 16px;\n  --radius-full: 9999px;\n}\n\n.dark {\n' + block(DM, true) + '\n}';
+
+    return { ic, iconList, palette, sem, types, themes, checkThemes: allThemes, bgs, showGray, cssExport, strokeLabel: String(sw) };
+  }
+}
+</script>
+</body>
+</html>
