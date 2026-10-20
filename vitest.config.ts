@@ -10,7 +10,5 @@ export default defineConfig({
   },
   test: {
     include: ['src/**/*.test.{ts,tsx}'],
-    // 첫 테스트를 쓰기 전에도 CI가 실패하지 않게 둔 임시 설정. 첫 테스트를 쓰면 지운다
-    passWithNoTests: true,
   },
 });
