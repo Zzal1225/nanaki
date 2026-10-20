@@ -57,7 +57,7 @@ src/
   lib/db/         Dexie 스키마와 마이그레이션 (예정)
 tokens/tokens.json   디자인 토큰의 유일한 원본. 바꾸면 src/app/globals.css를 맞춘다
 design/              시안 참고용. 앱 코드에서 import하지 않고 ESLint 대상도 아님 (README.md 참고)
-private/             개인 기록(면접 질문). .gitignore 대상
+private/             개인 기록(면접 질문, 트러블슈팅 초안). .gitignore 대상
 public/              정적 파일
 ```
 
@@ -139,8 +139,10 @@ public/              정적 파일
 작업이 끝날 때 아래에 해당하면 기록을 남길지 사용자에게 먼저 묻는다.
 기록은 사용자가 직접 쓰고, Claude는 빠진 항목만 짚는다.
 
-- **트러블슈팅**: 30분 이상 막혔거나 원인이 예상과 달랐던 문제는 `docs/troubleshooting/YYYY-MM-DD-제목.md`에
-  문제 → 원인 → 해결 → 결과(가능하면 수치)로 남기고, 관련 PR·커밋 링크를 붙인다.
+- **트러블슈팅**: 30분 이상 막혔거나 원인이 예상과 달랐던 문제는 초안을 `private/troubleshooting/YYYY-MM-DD-제목.md`에
+  문제 → 원인 → 해결 → 결과(가능하면 수치)로 남기고, 관련 PR·커밋 링크를 붙인다. Claude는 틀과 재료(오류 메시지, 원인을 찾은 방법,
+  커밋·PR 번호, 확인한 사실)만 넣는다. 프로젝트 막바지에 좋은 소재만 골라 `docs/troubleshooting/`으로 옮겨 공개하고,
+  옮길 때 실제 프로젝트 주소·키가 없는지 확인한다.
 - **전후 캡처**: 화면이나 성능을 바꾸기 전에 현재 상태를 먼저 캡처한다. `docs/assets/`에 `기능명-before.png`, `기능명-after.png`로 저장한다.
 - **측정 조건**: Lighthouse 수치에는 모바일 모드, 시크릿 창, 측정 도구를 같이 적는다. 직접 측정하지 않은 수치는 쓰지 않는다.
 - **단계 마무리**: step이 끝나면 테스트 개수, CI 통과 기록, Lighthouse 점수를 `docs/milestones.md`에 한 번 정리한다.
