@@ -2,8 +2,7 @@
 
 > **나는 나를 키운다.** 가계부·후기·운동·루틴·체형을 하나의 캘린더에 기록하고, 검색·필터와 AI 질문으로 다시 찾아보는 자기관리 PWA
 
-<!-- TODO: 배포 후 실제 주소로 교체 -->
-**[배포 주소 (준비 중)]()** · **[로그인 없이 체험하기 (준비 중)]()** · **[디자인 시스템 페이지 `/design-system` (준비 중)]()**
+**[배포 주소](https://nanaki-two.vercel.app)** · **[로그인 없이 체험하기](https://nanaki-two.vercel.app/login)** · **[디자인 시스템 페이지 `/design-system`](https://nanaki-two.vercel.app/design-system)**
 
 <!-- TODO: 실제 앱 캡처로 교체 (모바일 라이트 / 모바일 다크 / PC) -->
 | 모바일 · 라이트 | 모바일 · 다크 | PC |
@@ -183,7 +182,7 @@ flowchart LR
 | 눈바디 사진 용량 | 리사이즈 + WebP + 썸네일 | 장당 용량, 로딩 시간 | — | — |
 | 초기 로딩 | AI·차트·카메라 코드 지연 로드 | 초기 JS(KB), LCP, Lighthouse | — | — |
 
-측정 환경과 전후 상세는 [`docs/performance.md`](docs/performance.md)에 기록합니다.
+측정 환경과 전후 상세는 `docs/performance.md`에 기록할 예정입니다.
 
 ## 테스트와 CI/CD
 
@@ -200,9 +199,9 @@ flowchart LR
 
 **CI/CD 흐름 (GitHub Actions + Vercel)**
 
-1. PR을 올리면 lint, typecheck, 단위·컴포넌트 테스트, build를 병렬로 실행합니다.
-2. Vercel이 PR마다 미리보기 주소를 만듭니다.
-3. 미리보기 주소에서 E2E, 화면 비교를 실행합니다. step2부터 Lighthouse CI를 더해 기준 점수 아래면 실패 처리합니다.
+1. PR을 올리면 GitHub Actions가 서식 검사(Prettier) → lint → typecheck → 단위 테스트 → build를 차례로 실행합니다. 빠른 검사를 앞에 둬서 실패를 빨리 알리고, 하나라도 실패하면 main에 병합할 수 없습니다(브랜치 보호 규칙).
+2. Vercel이 PR마다 미리보기 주소를 만들어, 병합 전에 실제 배포 환경에서 화면을 확인합니다.
+3. _(예정)_ 미리보기 주소에서 E2E, 화면 비교를 실행합니다. step2부터 Lighthouse CI를 더해 기준 점수 아래면 실패 처리합니다.
 4. main에 병합되면 자동 배포합니다.
 
 <!-- TODO: CI 배지, PR에 테스트·Lighthouse 결과가 붙은 캡처, 테스트 개수 -->
@@ -217,35 +216,38 @@ Claude 디자인으로 시안과 의미 토큰 표(라이트·다크)를 만들�
 ```
 
 - 색은 `fg-primary`, `surface`, `type-expense` 같은 **의미 이름**으로만 씁니다. 다크모드는 변수 값만 바뀌고 컴포넌트는 그대로입니다.
-- 앱 안 [`/design-system`](#) 페이지에서 색·타이포·간격·컴포넌트를 라이트·다크로 바로 확인할 수 있습니다. _(준비 중)_
+- 앱 안 [`/design-system`](https://nanaki-two.vercel.app/design-system) 페이지에서 색·타이포·간격·컴포넌트를 라이트·다크로 바로 확인할 수 있습니다. 로그인 없이 볼 수 있습니다.
 
 ## 실행 방법
 
 ```bash
-git clone https://github.com/<username>/nanaki.git
+git clone https://github.com/Zzal1225/nanaki.git
 cd nanaki
 npm install
-cp .env.example .env.local   # Supabase URL·키 입력
+cp .env.example .env.local   # Supabase URL·publishable 키 입력
+npx supabase login
+npx supabase link --project-ref <project-ref>
+npm run db:push              # supabase/migrations의 테이블·RLS를 내 프로젝트에 적용
 npm run dev
 ```
 
 | 명령 | 설명 |
 | --- | --- |
 | `npm run dev` | 개발 서버 |
+| `npm run format` / `npm run format:check` | 서식 정리 / 검사 (Prettier) |
 | `npm run lint` / `npm run typecheck` | 정적 검사 |
-| `npm run test` | 단위·컴포넌트 테스트 |
-| `npm run test:e2e` | Playwright E2E·화면 비교 |
-
-<!-- TODO: 실제 스크립트 이름이 정해지면 맞춰 수정 -->
+| `npm run test` / `npm run test:watch` | 단위 테스트 (Vitest) |
+| `npm run db:new <이름>` / `npm run db:push` | DB 마이그레이션 만들기 / 적용 |
+| `npm run db:types` | DB 구조에서 TypeScript 타입 생성 |
 
 ## 문서
 
 | 문서 | 내용 |
 | --- | --- |
 | [`docs/decisions/`](docs/decisions/) | 설계 결정과 버린 대안 |
-| [`docs/troubleshooting/`](docs/troubleshooting/) | 문제 → 원인 → 해결 → 결과 |
-| [`docs/performance.md`](docs/performance.md) | 성능 측정 환경과 전후 수치 |
-| [`docs/milestones.md`](docs/milestones.md) | step별 테스트 개수, CI, Lighthouse 기록 |
+| `docs/troubleshooting/` _(예정)_ | 문제 → 원인 → 해결 → 결과 |
+| `docs/performance.md` _(예정)_ | 성능 측정 환경과 전후 수치 |
+| `docs/milestones.md` _(예정)_ | step별 테스트 개수, CI, Lighthouse 기록 |
 
 ---
 
