@@ -39,7 +39,9 @@ export default function Button({
   children,
   ...rest
 }: ButtonProps) {
-  const stateClass = disabled ? DISABLED_CLASS[variant] : ENABLED_CLASS[variant];
+  const stateClass = disabled
+    ? DISABLED_CLASS[variant]
+    : ENABLED_CLASS[variant];
 
   return (
     <button

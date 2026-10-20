@@ -20,7 +20,10 @@ export default function TextField({
 
   return (
     <div className='flex flex-col gap-2'>
-      <label htmlFor={inputId} className='text-body-sm font-medium text-fg-primary'>
+      <label
+        htmlFor={inputId}
+        className='text-body-sm font-medium text-fg-primary'
+      >
         {label}
       </label>
       {/* 테두리 1px + 링 1px로 시안의 2px 포커스 테두리를 만들어서 포커스 때 레이아웃이 밀리지 않는다 */}
