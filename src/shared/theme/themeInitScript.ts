@@ -1,8 +1,4 @@
-import {
-  DARK_CLASS_NAME,
-  DARK_MEDIA_QUERY,
-  THEME_STORAGE_KEY,
-} from './theme';
+import { DARK_CLASS_NAME, DARK_MEDIA_QUERY, THEME_STORAGE_KEY } from './theme';
 
 // React가 로드되기 전, 첫 화면을 그리기 전에 실행되어 깜빡임을 막는다.
 // 브라우저가 문자열로 실행하므로 theme.ts의 함수를 import해 쓸 수 없고 같은 규칙을 다시 적는다:
