@@ -14,7 +14,10 @@
     "format:check": "prettier --check .",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:new": "supabase migration new",
+    "db:push": "supabase db push",
+    "db:types": "supabase gen types typescript --linked > src/lib/supabase/database.types.ts && prettier --write src/lib/supabase/database.types.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -34,6 +37,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
     "prettier": "3.9.10",
+    "supabase": "^2.121.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^5.0.5"
