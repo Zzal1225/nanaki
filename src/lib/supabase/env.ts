@@ -4,12 +4,57 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-// 값이 없을 때 Supabase 내부의 알기 어려운 오류 대신, 무엇을 고쳐야 하는지 바로 알려 준다
-export function getSupabaseEnv() {
-  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+// 관리자 권한 키. 브라우저로 가는 NEXT_PUBLIC_ 값에 들어가면 누구나 모든 데이터를 볼 수 있다
+const SECRET_KEY_PREFIX = 'sb_secret_';
+
+type SupabaseEnv = {
+  url: string;
+  publishableKey: string;
+};
+
+export function getSupabaseEnv(): SupabaseEnv {
+  return parseSupabaseEnv(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+}
+
+// 값이 틀렸을 때 Supabase가 내는 오류는 원인과 동떨어져 있다
+// (예: 주소 뒤에 /rest/v1이 붙으면 "No API key found"). 그래서 여기서 먼저 모양을 검사하고
+// 무엇을 고쳐야 하는지 알려 준다. process.env와 떼어 놓은 이유는 테스트하기 위해서다
+export function parseSupabaseEnv(
+  rawUrl: string | undefined,
+  rawKey: string | undefined,
+): SupabaseEnv {
+  // 대시보드에서 복사할 때 앞뒤 공백이 딸려 오기 쉽다
+  const url = rawUrl?.trim();
+  const publishableKey = rawKey?.trim();
+
+  if (!url || !publishableKey) {
     throw new Error(
       'Supabase 환경변수가 없습니다. .env.example을 참고해 .env.local(로컬)과 Vercel 환경변수를 설정하세요.',
     );
   }
-  return { url: SUPABASE_URL, publishableKey: SUPABASE_PUBLISHABLE_KEY };
+
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error(
+      `NEXT_PUBLIC_SUPABASE_URL이 주소 모양이 아닙니다: "${url}". https://<project-ref>.supabase.co 형태로 넣으세요.`,
+    );
+  }
+
+  // Data API 화면에 보이는 .../rest/v1/ 주소를 복사하면 로그인 요청이 엉뚱한 곳으로 간다
+  if (parsed.pathname !== '/') {
+    throw new Error(
+      `NEXT_PUBLIC_SUPABASE_URL 뒤에 경로(${parsed.pathname})가 붙어 있습니다. https://<project-ref>.supabase.co까지만 넣으세요.`,
+    );
+  }
+
+  if (publishableKey.startsWith(SECRET_KEY_PREFIX)) {
+    throw new Error(
+      'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY에 secret 키가 들어 있습니다. 브라우저에 노출되므로 즉시 publishable 키로 바꾸고, Supabase에서 secret 키를 새로 발급하세요.',
+    );
+  }
+
+  // origin은 끝의 /를 뺀 https://<ref>.supabase.co만 남긴다
+  return { url: parsed.origin, publishableKey };
 }
