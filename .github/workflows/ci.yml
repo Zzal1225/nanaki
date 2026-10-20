@@ -31,6 +31,7 @@ jobs:
       - run: npm ci
 
       # 빠르고 싼 검사를 앞에 둬서 실패를 빨리 알린다
+      - run: npm run format:check
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test

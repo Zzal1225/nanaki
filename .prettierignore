@@ -1,0 +1,8 @@
+# 시안 원본은 손대지 않는다 (design/README.md)
+design/
+# 개인 기록, 저장소 밖 파일
+private/
+# npm이 생성하는 파일
+package-lock.json
+# 직접 쓰는 소개 문서. 빈 링크 `]()`와 예시 코드 모양을 Prettier가 바꿔 버려서 제외한다
+README.md
