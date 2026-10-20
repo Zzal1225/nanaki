@@ -58,8 +58,9 @@ src/
   shared/         공통 코드. ui/ = 공통 컴포넌트(Radix + Tailwind), theme/ = 다크·라이트 전환,
                   layout/ = 사이드바·하단 탭(메뉴 목록은 navItems.ts 한 곳)
   features/       기능 단위 모듈. auth/ = 로그인. 이후 records, search, chat ...
-  lib/supabase/   Supabase 클라이언트 (client.ts = 브라우저용, server.ts = 서버용)
+  lib/supabase/   Supabase 클라이언트 (client.ts = 브라우저용, server.ts = 서버용), database.types.ts = DB 타입(자동 생성, 직접 수정 금지)
   lib/db/         Dexie 스키마와 마이그레이션 (예정)
+supabase/migrations/ DB 구조(SQL). 새 파일은 npm run db:new, 적용은 npm run db:push, 타입은 npm run db:types
 tokens/tokens.json   디자인 토큰의 유일한 원본. 바꾸면 src/app/globals.css를 맞춘다
 design/              시안 참고용. 앱 코드에서 import하지 않고 ESLint 대상도 아님 (README.md 참고)
 private/             개인 기록(면접 질문, 트러블슈팅 초안). .gitignore 대상

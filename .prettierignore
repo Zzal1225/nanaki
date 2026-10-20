@@ -6,3 +6,5 @@ private/
 package-lock.json
 # 직접 쓰는 소개 문서. 빈 링크 `]()`와 예시 코드 모양을 Prettier가 바꿔 버려서 제외한다
 README.md
+# Supabase CLI의 프로젝트 연결 정보 (커밋되지 않음)
+supabase/.temp/
