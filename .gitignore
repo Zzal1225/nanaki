@@ -41,3 +41,5 @@ yarn-error.log*
 next-env.d.ts
 
 private/
+# 공유용 환경변수 예시는 커밋한다 (값은 비어 있음)
+!.env.example
