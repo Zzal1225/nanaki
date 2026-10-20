@@ -20,7 +20,7 @@
   --accent-pressed: #205b39;
   --accent-foreground: #ffffff;
   --success: #2e7d4f;
-  --warning: #b4480e;
+  --warning: #c2410c;
   --danger: #c8323c;
   --danger-hover: #b02a33;
   --danger-pressed: #98232b;
@@ -68,7 +68,7 @@
   --accent-pressed: #8fd4ac;
   --accent-foreground: #0f1f16;
   --success: #6cc08f;
-  --warning: #f09a6a;
+  --warning: #ec6a13;
   --danger: #ee7b80;
   --danger-hover: #f28e92;
   --danger-pressed: #f5a1a4;
@@ -105,6 +105,14 @@
   --space-6: 24px;
   --space-8: 32px;
   --space-10: 40px;
+
+  /* tokens.json layout. 브레이크포인트 768·1024는 Tailwind 기본 md·lg와 같아서 따로 정하지 않는다 */
+  --sidebar-expanded: 240px;
+  --sidebar-collapsed: 72px;
+  --detail-panel: 400px;
+  --chat-max-width: 720px;
+  /* 시안의 탭 높이 90px은 탭 56px + 아이폰 홈 바 여백 34px이다. 기기마다 여백이 달라서 고정값 대신 env()를 쓴다 */
+  --tab-bar-height: calc(56px + env(safe-area-inset-bottom));
 }
 
 /* ---------- 4. Tailwind 연결 ---------- */

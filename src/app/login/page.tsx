@@ -39,7 +39,7 @@ export default function LoginPage() {
             size={ICON_SIZE.sm}
             strokeWidth={ICON_STROKE_WIDTH}
           />
-          체험 데이터는 3일 뒤 자동으로 삭제돼요
+          체험 기록은 3일 뒤 삭제되고, 이 기기에서만 보여요
         </p>
       </section>
     </main>
