@@ -19,7 +19,7 @@
 - **화면**: 하단 탭 홈·기록·나키(AI 챗봇 이름, 글자 옆 "AI" 뱃지), 우하단 스피드 다이얼(작성 전용), 설정은 홈 ⚙. 768px 미만 모바일, 이상은 PC 레이아웃. 다크모드 지원.
 - **고정값**: 한국어, 원화, kg, cm. 날짜(`occurredAt`)는 로컬 'YYYY-MM-DD' 문자열.
 - **단계**: step1 로그인·체험, 가계부·후기, 홈 캘린더, 반응형·다크모드, CI/CD → step2 운동·루틴·체형, 검색·필터, 오프라인 동기화, Sentry (끝나면 지원 시작)
-  → step3 AI, 예산·고정지출, 푸시 → step4 눈바디 사진, 보고서, 백업, 성능 개선. 상세는 기획서를 따른다.
+  → step3 AI, 예산·고정지출, 푸시 → step4 눈바디 사진(모바일 촬영, PC는 불러오기와 맞춰 자르기), 보고서, 백업, 성능 개선. 상세는 기획서를 따른다.
 
 ## 2. 기술 스택
 
@@ -40,7 +40,8 @@
 
 - 위 목록에 없는 라이브러리를 추가하려면 먼저 사용자에게 **이유와 대안**을 제시하고 승인을 받는다.
 - AI 제공자 SDK는 어댑터 파일 밖에서 import하지 않는다. API 키는 서버(Route Handler 또는 Edge Function)에만 둔다.
-- 몸 사진은 업로드 전 압축, 만료 링크로만 보여 주고, AI·보고서에는 넣지 않는다.
+- 몸 사진은 업로드 전 압축, 만료 링크로만 보여 주고, AI·보고서에는 넣지 않는다. 압축 전에 EXIF 회전을 바로잡고(`createImageBitmap`의 `imageOrientation: 'from-image'`), 다시 인코딩해 위치 정보를 지운다.
+- 카메라 촬영 UI는 화면 너비가 아니라 기기 능력(`navigator.mediaDevices?.getUserMedia`, `(pointer: coarse)`)으로 보여 준다. PC는 웹캠 촬영 없이 불러오기만 제공한다.
 
 ## 3. 코드맵
 
@@ -49,8 +50,10 @@
 ```
 src/
   app/            라우트 (Next.js App Router). globals.css = 디자인 토큰 CSS 변수 + Tailwind 연결
+                  auth/callback/ = 구글 로그인 뒤 code를 세션으로 바꾸는 Route Handler
   shared/         공통 코드. ui/ = 공통 컴포넌트(Radix + Tailwind), theme/ = 다크·라이트 전환
   features/       기능 단위 모듈. auth/ = 로그인. 이후 records, search, chat ...
+  lib/supabase/   Supabase 클라이언트 (client.ts = 브라우저용, server.ts = 서버용)
   lib/db/         Dexie 스키마와 마이그레이션 (예정)
 tokens/tokens.json   디자인 토큰의 유일한 원본. 바꾸면 src/app/globals.css를 맞춘다
 design/              시안 참고용. 앱 코드에서 import하지 않고 ESLint 대상도 아님 (README.md 참고)
