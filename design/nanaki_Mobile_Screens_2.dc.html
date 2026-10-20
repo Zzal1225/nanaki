@@ -10,8 +10,8 @@
 <helmet><meta name="design_doc_mode" content="canvas"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"><style>
 body{margin:0;background:#E6E6EA;font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 a{color:#2E7D4F}a:hover{color:#205B39}
-.th-light{--bg:#F7F7F8;--surface:#FFFFFF;--surface-raised:#FFFFFF;--surface-hover:#F0F0F2;--surface-pressed:#E6E6EA;--border:#DCDCE1;--fg-primary:#121214;--fg-secondary:#5A5A63;--fg-disabled:#A6A6AF;--accent:#2E7D4F;--accent-hover:#276C44;--accent-pressed:#205B39;--accent-foreground:#FFFFFF;--success:#2E7D4F;--warning:#B4480E;--danger:#C8323C;--danger-hover:#B02A33;--danger-pressed:#98232B;--overlay:rgba(18,18,20,.48);--type-expense:#9A5C00;--type-expense-subtle:#FCF0DC;--type-review:#C2365F;--type-review-subtle:#FCE9EE;--type-workout:#2562C4;--type-workout-subtle:#E6EEFB;--type-routine:#8A3FC0;--type-routine-subtle:#F3EAFA;--type-body:#097078;--type-body-subtle:#DDF2F2;--shadow-card:0 1px 2px rgba(18,18,20,.06),0 1px 3px rgba(18,18,20,.08);--shadow-float:0 8px 24px rgba(18,18,20,.12),0 2px 6px rgba(18,18,20,.08);color:var(--fg-primary)}
-.th-dark{--bg:#121214;--surface:#1A1A1E;--surface-raised:#24242A;--surface-hover:#2A2A30;--surface-pressed:#34343B;--border:#34343B;--fg-primary:#ECECEF;--fg-secondary:#A6A6AF;--fg-disabled:#5A5A63;--accent:#6CC08F;--accent-hover:#7ECB9E;--accent-pressed:#8FD4AC;--accent-foreground:#0F1F16;--success:#6CC08F;--warning:#F09A6A;--danger:#EE7B80;--danger-hover:#F28E92;--danger-pressed:#F5A1A4;--overlay:rgba(0,0,0,.64);--type-expense:#E2AA5E;--type-expense-subtle:#3A2F1F;--type-review:#E68DA7;--type-review-subtle:#3A2530;--type-workout:#86AAEB;--type-workout-subtle:#1F2A3E;--type-routine:#D7BFF4;--type-routine-subtle:#30253C;--type-body:#62C2C2;--type-body-subtle:#173334;--shadow-card:none;--shadow-float:none;color:var(--fg-primary)}
+.th-light{--bg:#F7F7F8;--surface:#FFFFFF;--surface-raised:#FFFFFF;--surface-hover:#F0F0F2;--surface-pressed:#E6E6EA;--border:#DCDCE1;--fg-primary:#121214;--fg-secondary:#5A5A63;--fg-disabled:#A6A6AF;--accent:#2E7D4F;--accent-hover:#276C44;--accent-pressed:#205B39;--accent-foreground:#FFFFFF;--success:#2E7D4F;--warning:#C2410C;--danger:#C8323C;--danger-hover:#B02A33;--danger-pressed:#98232B;--overlay:rgba(18,18,20,.48);--focus-ring:#2E7D4F;--type-expense:#9A5C00;--type-expense-subtle:#FCF0DC;--type-review:#C2365F;--type-review-subtle:#FCE9EE;--type-workout:#2562C4;--type-workout-subtle:#E6EEFB;--type-routine:#8A3FC0;--type-routine-subtle:#F3EAFA;--type-body:#097078;--type-body-subtle:#DDF2F2;--shadow-card:0 1px 2px rgba(18,18,20,.06),0 1px 3px rgba(18,18,20,.08);--shadow-float:0 8px 24px rgba(18,18,20,.12),0 2px 6px rgba(18,18,20,.08);color:var(--fg-primary)}
+.th-dark{--bg:#121214;--surface:#1A1A1E;--surface-raised:#24242A;--surface-hover:#2A2A30;--surface-pressed:#34343B;--border:#34343B;--fg-primary:#ECECEF;--fg-secondary:#A6A6AF;--fg-disabled:#5A5A63;--accent:#6CC08F;--accent-hover:#7ECB9E;--accent-pressed:#8FD4AC;--accent-foreground:#0F1F16;--success:#6CC08F;--warning:#EC6A13;--danger:#EE7B80;--danger-hover:#F28E92;--danger-pressed:#F5A1A4;--overlay:rgba(0,0,0,.64);--focus-ring:#6CC08F;--type-expense:#E2AA5E;--type-expense-subtle:#3A2F1F;--type-review:#E68DA7;--type-review-subtle:#3A2530;--type-workout:#86AAEB;--type-workout-subtle:#1F2A3E;--type-routine:#D7BFF4;--type-routine-subtle:#30253C;--type-body:#62C2C2;--type-body-subtle:#173334;--shadow-card:none;--shadow-float:none;color:var(--fg-primary)}
 </style></helmet>
 <div class="th-light" style="background:var(--surface-pressed);min-height:100vh;padding:48px 48px 96px;display:flex;flex-direction:column;gap:72px">
 
@@ -52,6 +52,7 @@ a{color:#2E7D4F}a:hover{color:#205B39}
 <div style="display:flex;gap:8px"><span style="width:18px;height:18px;display:inline-flex;color:var(--accent);flex:none;margin-top:0px">{{ ic.check }}</span>오전 9:00에 "물 마시기"를 알려드려요</div>
 <div style="display:flex;gap:8px"><span style="width:18px;height:18px;display:inline-flex;color:var(--accent);flex:none;margin-top:0px">{{ ic.check }}</span>이미 체크한 날은 알림이 울리지 않아요</div>
 </div>
+<div style="display:flex;gap:8px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)"><span style="width:16px;height:16px;display:inline-flex;flex:none">{{ ic.info }}</span>다른 기기에서는 설정의 '이 기기에서 알림 받기'로 켤 수 있어요</div>
 <sc-if value="{{ p.ios }}">
 <div style="margin-top:4px;padding:16px;border-radius:10px;background:var(--surface-hover);display:flex;flex-direction:column;gap:12px">
 <span style="font-size:14px;line-height:20px;font-weight:600">아이폰은 홈 화면에 추가해야 알림을 받을 수 있어요</span>
@@ -134,14 +135,15 @@ a{color:#2E7D4F}a:hover{color:#205B39}
 <div style="height:52px;padding:0 4px;display:flex;align-items:center"><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span style="width:24px;height:24px;display:inline-flex">{{ ic.x }}</span></span><span style="flex:1;text-align:center;font-size:16px;line-height:24px;font-weight:600">눈바디</span><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span style="width:22px;height:22px;display:inline-flex">{{ ic.timer }}</span></span></div>
 <div style="margin:0 auto;width:fit-content;height:44px;padding:4px;box-sizing:border-box;border-radius:10px;background:var(--surface);display:flex;font-size:14px;font-weight:600"><sc-for list="{{ p.segs }}" as="s"><span style="width:80px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:{{ s.bg }};color:{{ s.fg }}">{{ s.n }}</span></sc-for></div>
 </div>
-<div style="position:absolute;left:0;right:0;top:604px;display:flex;justify-content:center"><span style="height:32px;padding:0 12px;border-radius:9999px;background:var(--overlay);font-size:14px;line-height:20px;display:flex;align-items:center">실루엣에 몸을 맞춰 주세요</span></div>
-<div style="position:absolute;left:0;right:0;bottom:0;height:160px;padding:0 32px 24px;box-sizing:border-box;background:var(--overlay);display:flex;flex-direction:column;justify-content:center;gap:12px">
+<div style="position:absolute;left:0;right:0;top:556px;display:flex;justify-content:center"><span style="height:32px;padding:0 12px;border-radius:9999px;background:var(--overlay);font-size:14px;line-height:20px;display:flex;align-items:center">실루엣에 몸을 맞춰 주세요</span></div>
+<div style="position:absolute;left:0;right:0;bottom:0;height:208px;padding:0 32px 24px;box-sizing:border-box;background:var(--overlay);display:flex;flex-direction:column;justify-content:center;gap:12px">
 <div style="display:flex;justify-content:center"><span style="height:44px;padding:0 12px 0 12px;border-radius:9999px;background:var(--surface);display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums"><span style="width:16px;height:16px;display:inline-flex;color:var(--accent)">{{ ic.layers }}</span>지난 사진 겹치기 · 10.12<span style="color:var(--fg-secondary);font-weight:500">35%</span></span></div>
 <div style="display:flex;align-items:center;justify-content:space-between">
 <span style="width:48px;height:48px;border-radius:10px;border:2px solid var(--fg-primary);box-sizing:border-box;background:repeating-linear-gradient(45deg,var(--surface-hover) 0 6px,var(--surface-pressed) 6px 12px)"></span>
 <span style="width:72px;height:72px;border-radius:9999px;border:4px solid var(--fg-primary);box-sizing:border-box;padding:4px;display:flex"><span style="flex:1;border-radius:9999px;background:var(--fg-primary)"></span></span>
 <span style="width:48px;height:48px;border-radius:9999px;background:var(--surface);display:flex;align-items:center;justify-content:center"><span style="width:24px;height:24px;display:inline-flex">{{ ic.flip }}</span></span>
 </div>
+<div style="display:flex;justify-content:center"><span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface);display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600"><span style="width:18px;height:18px;display:inline-flex">{{ ic.image }}</span>갤러리에서 불러오기</span></div>
 </div>
 </div>
 </div>
@@ -151,7 +153,7 @@ a{color:#2E7D4F}a:hover{color:#205B39}
 
 <section style="display:flex;flex-direction:column;gap:20px">
 <div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:14px;font-weight:600;color:var(--accent)">20</span><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.01em">눈바디 비교</h2></div>
-<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary);max-width:720px">가운데 손잡이를 좌우로 끌어 두 날짜를 비교합니다. 아래 수치는 두 날짜와 가장 가까운 체형 기록에서 가져옵니다. 체험 계정은 실제 사진 대신 실루엣 일러스트를 씁니다.</p>
+<p style="margin:0;font-size:14px;line-height:20px;color:var(--fg-secondary);max-width:720px">가운데 손잡이를 좌우로 끌거나, 아래 위치 버튼(9.20만 · 반반 · 10.19만)으로 두 날짜를 비교합니다. 아래 수치는 두 날짜와 가장 가까운 체형 기록에서 가져옵니다. 체험 계정은 실제 사진 대신 실루엣 일러스트를 씁니다.</p>
 <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
 <sc-for list="{{ compares }}" as="c" hint-placeholder-count="2">
 <div style="display:flex;flex-direction:column;gap:12px">
@@ -166,7 +168,7 @@ a{color:#2E7D4F}a:hover{color:#205B39}
 <span style="flex:1;height:44px;border-radius:10px;border:1px solid var(--border);box-sizing:border-box;background:var(--surface);display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums"><span style="width:16px;height:16px;display:inline-flex;color:var(--fg-secondary)">{{ ic.calendar }}</span>10.19 (월)</span>
 </div>
 <div style="height:44px;padding:4px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;font-size:14px;font-weight:600"><span style="flex:1;border-radius:6px;background:var(--fg-primary);color:var(--surface);display:flex;align-items:center;justify-content:center">정면</span><span style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--fg-secondary)">측면</span></div>
-<div style="height:372px;border-radius:16px;overflow:hidden;position:relative;background:var(--surface)">
+<div style="height:316px;border-radius:16px;overflow:hidden;position:relative;background:var(--surface)">
 <sc-if value="{{ c.photo }}" hint-placeholder-val="{{ true }}">
 <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,var(--surface-hover) 0 8px,var(--surface-pressed) 8px 16px)"></div>
 <div style="position:absolute;inset:0;clip-path:inset(0 50% 0 0);background:repeating-linear-gradient(-45deg,var(--surface-hover) 0 8px,var(--surface-pressed) 8px 16px)"></div>
@@ -183,6 +185,7 @@ a{color:#2E7D4F}a:hover{color:#205B39}
 <div style="position:absolute;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;background:var(--surface-raised)"></div>
 <span style="position:absolute;top:50%;left:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:9999px;background:var(--surface-raised);box-shadow:var(--shadow-float);border:1px solid var(--border);box-sizing:border-box;display:flex;align-items:center;justify-content:center"><span style="width:12px;height:16px;display:inline-flex">{{ ic.chevronLeft }}</span><span style="width:12px;height:16px;display:inline-flex">{{ ic.chevronRight }}</span></span>
 </div>
+<div style="height:44px;padding:4px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums"><span style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--fg-secondary)">9.20만</span><span style="flex:1;border-radius:6px;background:var(--fg-primary);color:var(--surface);display:flex;align-items:center;justify-content:center">반반</span><span style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--fg-secondary)">10.19만</span></div>
 <div style="background:var(--surface);border-radius:16px;box-shadow:var(--shadow-card);padding:4px 16px">
 <sc-for list="{{ diffs }}" as="d" hint-placeholder-count="4"><div style="height:40px;display:grid;grid-template-columns:56px minmax(0,1fr) 64px;gap:8px;align-items:center;font-size:14px;line-height:20px;font-variant-numeric:tabular-nums;border-top:{{ d.bt }}"><span style="color:var(--fg-secondary)">{{ d.n }}</span><span>{{ d.a }} → <b style="font-weight:600">{{ d.b }}</b></span><span style="text-align:right;font-weight:600">{{ d.d }}</span></div></sc-for>
 </div>
@@ -302,6 +305,8 @@ class Component extends DCLogic {
     const dark = themeName === '다크';
     const hideRoutine = this.props.hideRoutine ?? true;
     const IC = {
+      info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+      image: '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
       wallet: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
       review: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M13 8H7"/><path d="M17 12H7"/>',
       dumbbell: '<path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/>',

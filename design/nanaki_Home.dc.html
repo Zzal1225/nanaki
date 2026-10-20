@@ -9,15 +9,15 @@
 <x-dc>
 <helmet><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"><style>
 body{margin:0;font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-.th-light{--bg:#F7F7F8;--surface:#FFFFFF;--surface-raised:#FFFFFF;--surface-hover:#F0F0F2;--surface-pressed:#E6E6EA;--border:#DCDCE1;--fg-primary:#121214;--fg-secondary:#5A5A63;--fg-disabled:#A6A6AF;--accent:#2E7D4F;--accent-hover:#276C44;--accent-pressed:#205B39;--accent-foreground:#FFFFFF;--success:#2E7D4F;--warning:#B4480E;--danger:#C8323C;--danger-hover:#B02A33;--danger-pressed:#98232B;--overlay:rgba(18,18,20,.48);--type-expense:#9A5C00;--type-expense-subtle:#FCF0DC;--type-review:#C2365F;--type-review-subtle:#FCE9EE;--type-workout:#2562C4;--type-workout-subtle:#E6EEFB;--type-routine:#8A3FC0;--type-routine-subtle:#F3EAFA;--type-body:#097078;--type-body-subtle:#DDF2F2;--shadow-card:0 1px 2px rgba(18,18,20,.06),0 1px 3px rgba(18,18,20,.08);--shadow-float:0 8px 24px rgba(18,18,20,.12),0 2px 6px rgba(18,18,20,.08);color:var(--fg-primary)}
-.th-dark{--bg:#121214;--surface:#1A1A1E;--surface-raised:#24242A;--surface-hover:#2A2A30;--surface-pressed:#34343B;--border:#34343B;--fg-primary:#ECECEF;--fg-secondary:#A6A6AF;--fg-disabled:#5A5A63;--accent:#6CC08F;--accent-hover:#7ECB9E;--accent-pressed:#8FD4AC;--accent-foreground:#0F1F16;--success:#6CC08F;--warning:#F09A6A;--danger:#EE7B80;--danger-hover:#F28E92;--danger-pressed:#F5A1A4;--overlay:rgba(0,0,0,.64);--type-expense:#E2AA5E;--type-expense-subtle:#3A2F1F;--type-review:#E68DA7;--type-review-subtle:#3A2530;--type-workout:#86AAEB;--type-workout-subtle:#1F2A3E;--type-routine:#D7BFF4;--type-routine-subtle:#30253C;--type-body:#62C2C2;--type-body-subtle:#173334;--shadow-card:none;--shadow-float:none;color:var(--fg-primary)}
+.th-light{--bg:#F7F7F8;--surface:#FFFFFF;--surface-raised:#FFFFFF;--surface-hover:#F0F0F2;--surface-pressed:#E6E6EA;--border:#DCDCE1;--fg-primary:#121214;--fg-secondary:#5A5A63;--fg-disabled:#A6A6AF;--accent:#2E7D4F;--accent-hover:#276C44;--accent-pressed:#205B39;--accent-foreground:#FFFFFF;--success:#2E7D4F;--warning:#C2410C;--danger:#C8323C;--danger-hover:#B02A33;--danger-pressed:#98232B;--overlay:rgba(18,18,20,.48);--focus-ring:#2E7D4F;--type-expense:#9A5C00;--type-expense-subtle:#FCF0DC;--type-review:#C2365F;--type-review-subtle:#FCE9EE;--type-workout:#2562C4;--type-workout-subtle:#E6EEFB;--type-routine:#8A3FC0;--type-routine-subtle:#F3EAFA;--type-body:#097078;--type-body-subtle:#DDF2F2;--shadow-card:0 1px 2px rgba(18,18,20,.06),0 1px 3px rgba(18,18,20,.08);--shadow-float:0 8px 24px rgba(18,18,20,.12),0 2px 6px rgba(18,18,20,.08);color:var(--fg-primary)}
+.th-dark{--bg:#121214;--surface:#1A1A1E;--surface-raised:#24242A;--surface-hover:#2A2A30;--surface-pressed:#34343B;--border:#34343B;--fg-primary:#ECECEF;--fg-secondary:#A6A6AF;--fg-disabled:#5A5A63;--accent:#6CC08F;--accent-hover:#7ECB9E;--accent-pressed:#8FD4AC;--accent-foreground:#0F1F16;--success:#6CC08F;--warning:#EC6A13;--danger:#EE7B80;--danger-hover:#F28E92;--danger-pressed:#F5A1A4;--overlay:rgba(0,0,0,.64);--focus-ring:#6CC08F;--type-expense:#E2AA5E;--type-expense-subtle:#3A2F1F;--type-review:#E68DA7;--type-review-subtle:#3A2530;--type-workout:#86AAEB;--type-workout-subtle:#1F2A3E;--type-routine:#D7BFF4;--type-routine-subtle:#30253C;--type-body:#62C2C2;--type-body-subtle:#173334;--shadow-card:none;--shadow-float:none;color:var(--fg-primary)}
 </style></helmet>
 <div class="{{ themeCls }}" style="width:375px;height:812px;position:relative;overflow:hidden;border-radius:32px;background:var(--bg);color:var(--fg-primary);box-shadow:var(--shadow-float);font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif">
 <div style="height:44px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-size:14px;line-height:20px;font-weight:600"><span>9:41</span><span style="width:25px;height:12px;border-radius:6px;border:1.5px solid currentColor;box-sizing:border-box;padding:1.5px;display:flex"><span style="width:70%;border-radius:1.5px;background:currentColor"></span></span></div>
-<div style="height:56px;padding:0 4px;display:flex;align-items:center">
-<span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span style="width:24px;height:24px;display:inline-flex">{{ ic.chevronLeft }}</span></span>
-<span style="font-size:20px;line-height:28px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap">{{ title }}</span>
-<span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span style="width:24px;height:24px;display:inline-flex">{{ ic.chevronRight }}</span></span>
+<div style="height:56px;padding:0 8px;display:flex;align-items:center">
+<span style="width:44px;height:44px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;color:var(--fg-primary);display:flex;align-items:center;justify-content:center;flex:none"><span style="width:22px;height:22px;display:inline-flex">{{ ic.chevronLeft }}</span></span>
+<span style="font-size:20px;line-height:28px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;padding:0 8px">{{ title }}</span>
+<span style="width:44px;height:44px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;color:var(--fg-primary);display:flex;align-items:center;justify-content:center;flex:none"><span style="width:22px;height:22px;display:inline-flex">{{ ic.chevronRight }}</span></span>
 <span style="flex:1"></span>
 <div style="height:44px;padding:4px;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:flex;font-size:14px;font-weight:600"><span style="width:40px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:{{ segMbg }};color:{{ segMfg }}">월</span><span style="width:40px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:{{ segWbg }};color:{{ segWfg }}">주</span></div>
 <span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span style="width:24px;height:24px;display:inline-flex">{{ ic.settings }}</span></span>
@@ -49,7 +49,7 @@ body{margin:0;font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif;
 </div>
 </sc-if>
 
-<div style="position:absolute;left:0;right:0;bottom:72px;overflow:hidden;padding:0 16px;top:{{ sumTop }}">
+<div style="position:absolute;left:0;right:0;bottom:90px;overflow:hidden;padding:0 16px;top:{{ sumTop }}">
 <sc-if value="{{ empty }}">
 <div style="padding:32px 20px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center">
 <span style="width:64px;height:64px;border-radius:9999px;background:var(--surface-hover);color:var(--fg-secondary);display:flex;align-items:center;justify-content:center;margin-bottom:4px"><span style="width:28px;height:28px;display:inline-flex">{{ ic.inbox }}</span></span>
@@ -59,7 +59,7 @@ body{margin:0;font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif;
 </div>
 </sc-if>
 <sc-if value="{{ notEmpty }}" hint-placeholder-val="{{ true }}">
-<div style="height:48px;display:flex;align-items:center;gap:8px"><span style="font-size:16px;line-height:24px;font-weight:600;font-variant-numeric:tabular-nums">{{ dateLabel }}</span><sc-if value="{{ isToday }}"><span style="height:24px;padding:0 8px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);font-size:12px;font-weight:600;display:flex;align-items:center">오늘</span></sc-if></div>
+<div style="height:56px;display:flex;align-items:center;gap:4px"><span style="width:44px;height:44px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;color:var(--fg-primary);display:flex;align-items:center;justify-content:center;flex:none"><span style="width:20px;height:20px;display:inline-flex">{{ ic.chevronLeft }}</span></span><span style="padding:0 8px;font-size:16px;line-height:24px;font-weight:600;font-variant-numeric:tabular-nums">{{ dateLabel }}</span><span style="width:44px;height:44px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);box-sizing:border-box;color:var(--fg-primary);display:flex;align-items:center;justify-content:center;flex:none"><span style="width:20px;height:20px;display:inline-flex">{{ ic.chevronRight }}</span></span><sc-if value="{{ isToday }}"><span style="margin-left:4px;height:24px;padding:0 8px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);font-size:12px;font-weight:600;display:flex;align-items:center">오늘</span></sc-if></div>
 <div style="background:var(--surface);border-radius:16px;box-shadow:var(--shadow-card);overflow:hidden">
 <sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
 <div style="border-top:{{ r.bt }}">
@@ -79,27 +79,27 @@ body{margin:0;font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif;
 </sc-if>
 </div>
 
-<sc-if value="{{ fabNormal }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;right:16px;bottom:88px;width:56px;height:56px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);box-shadow:var(--shadow-float);display:flex;align-items:center;justify-content:center"><span style="width:28px;height:28px;display:inline-flex">{{ ic.plus }}</span></span></sc-if>
-<sc-if value="{{ toast }}"><span style="position:absolute;right:16px;bottom:152px;width:56px;height:56px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);box-shadow:var(--shadow-float);display:flex;align-items:center;justify-content:center"><span style="width:28px;height:28px;display:inline-flex">{{ ic.plus }}</span></span></sc-if>
+<sc-if value="{{ fabNormal }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;right:16px;bottom:106px;width:56px;height:56px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);box-shadow:var(--shadow-float);display:flex;align-items:center;justify-content:center"><span style="width:28px;height:28px;display:inline-flex">{{ ic.plus }}</span></span></sc-if>
+<sc-if value="{{ toast }}"><span style="position:absolute;right:16px;bottom:170px;width:56px;height:56px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);box-shadow:var(--shadow-float);display:flex;align-items:center;justify-content:center"><span style="width:28px;height:28px;display:inline-flex">{{ ic.plus }}</span></span></sc-if>
 
-<div style="position:absolute;left:0;right:0;bottom:0;height:72px;padding-bottom:16px;box-sizing:border-box;background:var(--surface-raised);border-top:1px solid var(--border);display:flex">
+<div style="position:absolute;left:0;right:0;bottom:0;height:90px;padding-bottom:34px;box-sizing:border-box;background:var(--surface-raised);border-top:1px solid var(--border);display:flex"><span style="position:absolute;left:50%;bottom:8px;width:134px;height:5px;margin-left:-67px;border-radius:9999px;background:var(--fg-primary)"></span>
 <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;line-height:16px;font-weight:600;color:var(--accent)"><span style="width:24px;height:24px;display:inline-flex">{{ ic.home }}</span>홈</div>
 <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)"><span style="width:24px;height:24px;display:inline-flex">{{ ic.list }}</span>기록</div>
 <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;line-height:16px;font-weight:500;color:var(--fg-secondary)"><span style="width:24px;height:24px;display:inline-flex">{{ ic.sparkles }}</span><span style="position:relative">나키<span style="position:absolute;left:100%;top:-8px;margin-left:0px;height:16px;padding:0 4px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);font-size:12px;line-height:16px;font-weight:700">AI</span></span></div>
 </div>
 
 <sc-if value="{{ toast }}">
-<div style="position:absolute;left:16px;right:16px;bottom:88px;min-height:48px;padding:0 4px 0 16px;border-radius:10px;background:var(--fg-primary);color:var(--surface);box-shadow:var(--shadow-float);display:flex;align-items:center;gap:12px;font-size:14px;line-height:20px"><span style="width:20px;height:20px;display:inline-flex">{{ ic.trash }}</span><span style="flex:1">기록을 삭제했어요</span><span style="height:44px;padding:0 12px;display:flex;align-items:center;gap:4px;font-weight:600;text-decoration:underline;text-underline-offset:3px"><span style="width:16px;height:16px;display:inline-flex">{{ ic.undo }}</span>되돌리기</span></div>
+<div style="position:absolute;left:16px;right:16px;bottom:106px;min-height:48px;padding:0 4px 0 16px;border-radius:10px;background:var(--fg-primary);color:var(--surface);box-shadow:var(--shadow-float);display:flex;align-items:center;gap:12px;font-size:14px;line-height:20px"><span style="width:20px;height:20px;display:inline-flex">{{ ic.trash }}</span><span style="flex:1">기록을 삭제했어요</span><span style="height:44px;padding:0 12px;display:flex;align-items:center;gap:4px;font-weight:600;text-decoration:underline;text-underline-offset:3px"><span style="width:16px;height:16px;display:inline-flex">{{ ic.undo }}</span>되돌리기</span></div>
 </sc-if>
 
 <sc-if value="{{ dial }}">
 <div style="position:absolute;inset:0;background:var(--overlay)"></div>
-<div style="position:absolute;right:20px;bottom:160px;display:flex;flex-direction:column;align-items:flex-end;gap:12px">
+<div style="position:absolute;right:20px;bottom:178px;display:flex;flex-direction:column;align-items:flex-end;gap:12px">
 <sc-for list="{{ dialItems }}" as="d" hint-placeholder-count="5">
 <div style="display:flex;align-items:center;gap:12px"><span style="height:44px;padding:0 16px;border-radius:9999px;background:var(--surface-raised);box-shadow:var(--shadow-float);display:flex;align-items:center;font-size:14px;font-weight:600">{{ d.label }}</span><span style="width:48px;height:48px;border-radius:9999px;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-float);background:{{ d.s }};color:{{ d.c }}"><span style="width:24px;height:24px;display:inline-flex">{{ d.iconEl }}</span></span></div>
 </sc-for>
 </div>
-<span style="position:absolute;right:16px;bottom:88px;width:56px;height:56px;border-radius:9999px;background:var(--surface-raised);color:var(--fg-primary);box-shadow:var(--shadow-float);display:flex;align-items:center;justify-content:center"><span style="width:28px;height:28px;display:inline-flex">{{ ic.x }}</span></span>
+<span style="position:absolute;right:16px;bottom:106px;width:56px;height:56px;border-radius:9999px;background:var(--surface-raised);color:var(--fg-primary);box-shadow:var(--shadow-float);display:flex;align-items:center;justify-content:center"><span style="width:28px;height:28px;display:inline-flex">{{ ic.x }}</span></span>
 </sc-if>
 </div>
 </x-dc>
@@ -132,14 +132,15 @@ class Component extends DCLogic {
     const T = { e: ['expense', '가계부', 'wallet'], r: ['review', '후기', 'review'], w: ['workout', '운동', 'dumbbell'], t: ['routine', '루틴', 'listChecks'], b: ['body', '체형', 'ruler'] };
     const ty = k => ({ c: 'var(--type-' + T[k][0] + ')', s: 'var(--type-' + T[k][0] + '-subtle)', iconEl: ic[T[k][2]], ko: T[k][1] });
     const DT = { 1: 'ew', 2: 'etb', 3: 'er', 4: 'w', 5: 'etb', 6: 'ew', 7: 'et', 8: 'ewtb', 9: 'er', 10: 'w', 11: 'et', 12: 'ewb', 13: 'et', 14: 'ewr', 15: 'etb', 16: 'ewtr', 17: 'e', 18: 'wt', 19: 'etb' };
-    const AM = { 1: '-8,400', 2: '-23,000', 3: '-41,500', 5: '-12,000', 6: '-6,800', 7: '-54,200', 8: '-9,900', 9: '-27,300', 11: '-15,600', 12: '-4,500', 13: '-38,000', 14: '-19,700', 15: '-11,200', 16: '-32,000', 17: '-62,400', 19: '-16,800' };
+    const AM = { 1: 8400, 2: 23000, 3: 41500, 5: 12000, 6: 6800, 7: 54200, 8: 9900, 9: 27300, 11: 15600, 12: 4500, 13: 1254000, 14: 19700, 15: 11200, 16: 32000, 17: 62400, 19: 16800 };
+    const fmtAmt = n => !n ? '' : n >= 100000 ? '-' + Math.floor(n / 10000) + '만' : '-' + n.toLocaleString('en-US');
     const hidden = (this.props.hideRoutine ?? true) ? ['t'] : [];
     const empty = v === 'empty', week = v === 'week', toast = v === 'toast', dial = v === 'dial';
     const sel = (empty || week) ? 19 : 16;
     const typesOf = d => { if (empty) return []; let s = DT[d] || ''; if (toast && d === 16) s = s.replace('r', ''); return 'erwtb'.split('').filter(k => s.includes(k) && !hidden.includes(k)); };
     const cell = (d, other) => {
       const isSel = !other && d === sel, today = !other && d === 19;
-      return { d, today, plain: !today, fg: other ? 'var(--fg-secondary)' : 'var(--fg-primary)', bd: isSel ? 'var(--fg-primary)' : 'transparent', bg: isSel ? 'var(--surface)' : 'transparent', dots: other ? [] : typesOf(d).map(k => ty(k).c), amt: (other || empty) ? '' : (AM[d] || '') };
+      return { d, today, plain: !today, fg: other ? 'var(--fg-secondary)' : 'var(--fg-primary)', bd: isSel ? 'var(--fg-primary)' : 'transparent', bg: isSel ? 'var(--surface)' : 'transparent', dots: other ? [] : typesOf(d).map(k => ty(k).c), amt: (other || empty) ? '' : fmtAmt(AM[d]) };
     };
     const cells = [];
     for (let i = 0; i < 35; i++) cells.push(i < 4 ? cell(27 + i, true) : cell(i - 3, false));
@@ -166,7 +167,7 @@ class Component extends DCLogic {
     return {
       ic, cells, weekCells, rows, dialItems, empty, notEmpty: !empty, toast, dial, fabNormal: !toast && !dial,
       isMonth: !week, isWeek: week, themeCls: dark ? 'th-dark' : 'th-light',
-      title: week ? '10월 18일 – 24일' : '2026년 10월',
+      title: week ? '10월 18–24일' : '2026년 10월',
       segMbg: week ? off : on, segMfg: week ? offFg : onFg, segWbg: week ? on : off, segWfg: week ? onFg : offFg,
       sumTop: week ? '172px' : '372px',
       dateLabel: sel === 19 ? '10월 19일 (월)' : '10월 16일 (금)', isToday: sel === 19
