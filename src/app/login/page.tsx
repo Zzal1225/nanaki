@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Info, Sprout } from 'lucide-react';
-import GoogleSignInButton from '@/features/auth/GoogleSignInButton';
-import Button from '@/shared/ui/Button';
+import SignInButtons from '@/features/auth/SignInButtons';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 
 export const metadata: Metadata = {
@@ -33,10 +32,7 @@ export default function LoginPage() {
       </section>
 
       <section aria-label='시작하기' className='flex flex-col gap-3'>
-        <GoogleSignInButton />
-        <Button variant='secondary' className='h-12 w-full'>
-          로그인 없이 체험하기
-        </Button>
+        <SignInButtons />
         <p className='flex items-center justify-center gap-2 text-caption text-fg-secondary'>
           <Info
             aria-hidden='true'

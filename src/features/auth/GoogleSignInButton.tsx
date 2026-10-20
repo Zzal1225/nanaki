@@ -17,7 +17,7 @@ export default function GoogleSignInButton({
   return (
     <button
       type={type}
-      className={`${roboto.variable} flex h-12 w-full items-center justify-center gap-3 rounded-full border border-google-button-border bg-google-button-bg font-google text-body-sm font-medium text-google-button-fg ${className}`}
+      className={`${roboto.variable} flex h-12 w-full items-center justify-center gap-3 rounded-full border border-google-button-border bg-google-button-bg font-google text-body-sm font-medium text-google-button-fg disabled:opacity-60 ${className}`}
       {...rest}
     >
       <GoogleLogo />
