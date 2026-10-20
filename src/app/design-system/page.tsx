@@ -11,7 +11,7 @@ import Section from './Section';
 import Swatch from './Swatch';
 
 export const metadata: Metadata = {
-  title: 'nanaki 디자인 시스템',
+  title: '디자인 시스템',
 };
 
 const COLOR_SWATCHES = [
