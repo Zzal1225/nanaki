@@ -157,7 +157,9 @@
   --radius-lg: 16px;
   --radius-full: 9999px;
 
-  --font-sans: 'Pretendard', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-sans:
+    'Pretendard Variable', Pretendard, system-ui, -apple-system, 'Segoe UI',
+    sans-serif;
 
   --text-display: 32px;
   --text-display--line-height: 40px;
