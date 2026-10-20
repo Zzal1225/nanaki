@@ -194,14 +194,18 @@
 }
 
 /* ---------- 5. 기본 스타일 ---------- */
-body {
-  background: var(--bg);
-  color: var(--fg-primary);
-  font-family: var(--font-sans);
-}
+/* @layer base 안에 두는 이유: 레이어 밖 CSS는 Tailwind 유틸리티(@layer utilities)보다 항상 이겨서,
+   컴포넌트에서 outline-none 같은 클래스로 덮어쓸 수 없게 된다 */
+@layer base {
+  body {
+    background: var(--bg);
+    color: var(--fg-primary);
+    font-family: var(--font-sans);
+  }
 
-/* 키보드 포커스에서만 링을 보여 준다. 마우스 클릭엔 안 나타남 */
-:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+  /* 키보드 포커스에서만 링을 보여 준다. 마우스 클릭엔 안 나타남 */
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
 }
