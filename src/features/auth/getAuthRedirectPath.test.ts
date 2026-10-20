@@ -1,0 +1,34 @@
+import { describe, expect, it } from 'vitest';
+import {
+  HOME_PATH,
+  LOGIN_PATH,
+  getAuthRedirectPath,
+} from './getAuthRedirectPath';
+
+describe('getAuthRedirectPath', () => {
+  it('로그인 안 한 사람은 홈 화면에 가면 로그인 화면으로 보내진다', () => {
+    expect(getAuthRedirectPath(HOME_PATH, false)).toBe(LOGIN_PATH);
+  });
+  it('로그인 안 한 사람은 로그인 화면을 그냥 볼 수 있다', () => {
+    expect(getAuthRedirectPath(LOGIN_PATH, false)).toBe(null);
+  });
+  it('로그인 안 한 사람은 callback 화면을 볼 수 있다', () => {
+    expect(getAuthRedirectPath('/auth/callback', false)).toBe(null);
+  });
+  it('로그인 안 한 사람은 디자인 시스템을 볼 수 있다', () => {
+    expect(getAuthRedirectPath('/design-system', false)).toBe(null);
+  });
+  it('로그인 한 사람은 홈 화면을 볼 수 있다', () => {
+    expect(getAuthRedirectPath(HOME_PATH, true)).toBe(null);
+  });
+  it('로그인 한 사람은 로그인 화면에 가면 홈 화면으로 보내진다', () => {
+    expect(getAuthRedirectPath(LOGIN_PATH, true)).toBe(HOME_PATH);
+  });
+  it('로그인 한 사람은 디자인 시스템을 볼 수 있다', () => {
+    expect(getAuthRedirectPath('/design-system', true)).toBe(null);
+  });
+  // 공개 목록에 등록하지 않은 새 화면도 자동으로 보호되는지 확인한다 (기본 거부)
+  it('로그인 안 한 사람은 앞으로 생길 주소에 갈 수 없다', () => {
+    expect(getAuthRedirectPath('/records/abc', false)).toBe(LOGIN_PATH);
+  });
+});
