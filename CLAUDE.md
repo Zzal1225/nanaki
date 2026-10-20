@@ -53,7 +53,10 @@
 src/
   app/            라우트 (Next.js App Router). globals.css = 디자인 토큰 CSS 변수 + Tailwind 연결
                   auth/callback/ = 구글 로그인 뒤 code를 세션으로 바꾸는 Route Handler
-  shared/         공통 코드. ui/ = 공통 컴포넌트(Radix + Tailwind), theme/ = 다크·라이트 전환
+                  (app)/ = 로그인 뒤 화면 묶음(/, /records, /naki, /settings). 주소에 안 나타나는 괄호 폴더
+  proxy.ts        모든 요청 앞의 문지기. 세션 갱신 + 로그인 안 했으면 /login으로 (공개 주소는 features/auth)
+  shared/         공통 코드. ui/ = 공통 컴포넌트(Radix + Tailwind), theme/ = 다크·라이트 전환,
+                  layout/ = 사이드바·하단 탭(메뉴 목록은 navItems.ts 한 곳)
   features/       기능 단위 모듈. auth/ = 로그인. 이후 records, search, chat ...
   lib/supabase/   Supabase 클라이언트 (client.ts = 브라우저용, server.ts = 서버용)
   lib/db/         Dexie 스키마와 마이그레이션 (예정)
