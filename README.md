@@ -2,8 +2,7 @@
 
 > **나는 나를 키운다.** 가계부·후기·운동·루틴·체형을 하나의 캘린더에 기록하고, 검색·필터와 AI 질문으로 다시 찾아보는 자기관리 PWA
 
-<!-- TODO: 배포 후 실제 주소로 교체 -->
-**[배포 주소 (준비 중)]()** · **[로그인 없이 체험하기 (준비 중)]()** · **[디자인 시스템 페이지 `/design-system` (준비 중)]()**
+**[배포 주소](https://nanaki-two.vercel.app)** · **[로그인 없이 체험하기](https://nanaki-two.vercel.app/login)** · **[디자인 시스템 페이지 `/design-system`](https://nanaki-two.vercel.app/design-system)**
 
 <!-- TODO: 실제 앱 캡처로 교체 (모바일 라이트 / 모바일 다크 / PC) -->
 | 모바일 · 라이트 | 모바일 · 다크 | PC |
@@ -39,10 +38,10 @@ nanaki는 서로 다른 생활 기록을 **하나의 공통 데이터 모델**�
 
 | step | 기능 | 상태 |
 | --- | --- | --- |
-| step1 | 구글 로그인, 로그인 없이 체험하기(익명 로그인 + 샘플 데이터), 가계부·후기 CRUD, 홈 캘린더(월/주), 기록 탭, 설정(타입 켜기/끄기, 계정 삭제), 반응형, 다크모드, CI/CD, 화면 비교 테스트 | 🚧 진행 중 |
-| step2 | 운동·루틴·체형 기록, 검색·필터, 오프라인 작성과 동기화, 에러 모니터링(Sentry) | ⏳ 예정 |
+| step1 | 구글 로그인, 로그인 없이 체험하기(익명 로그인 + 샘플 데이터), 가계부·후기 CRUD, 홈 캘린더(월/주), 기록 탭, 설정(타입 켜기/끄기, 계정 삭제), 반응형, 다크모드, CI/CD, 화면 비교 테스트, RLS 사용자 격리 테스트 | 🚧 진행 중 |
+| step2 | 운동·루틴·체형 기록, 검색·필터, 오프라인 작성과 동기화, 캘린더·초기 로딩 성능 개선, Lighthouse CI, 에러 모니터링(Sentry) | ⏳ 예정 |
 | step3 | AI 챗봇 **나키**, 가계부 카테고리별 예산·고정지출, 루틴 푸시 알림 | ⏳ 예정 |
-| step4 | 눈바디(모바일 촬영 가이드, PC 불러오기·맞춰 자르기, 비교 슬라이더), 보고서 PDF, 백업 파일 저장하기/불러오기, 성능 측정과 개선 | ⏳ 예정 |
+| step4 | 눈바디(모바일 촬영 가이드, PC 불러오기·맞춰 자르기, 비교 슬라이더), 보고서 PDF, 백업 파일 저장하기/불러오기, 기록 1만 건 성능 개선 | ⏳ 예정 |
 
 **기록 타입 5가지** (설정에서 각각 켜고 끌 수 있고, 꺼도 데이터는 지우지 않고 숨깁니다)
 
@@ -86,12 +85,14 @@ const workoutSchema = {
 
 ### 4. 오프라인 우선 동기화 (step2)
 
-- 작성은 먼저 IndexedDB(Dexie.js)에 저장하고 미전송 대기열(outbox)에 쌓은 뒤, 온라인이면 서버로 보냅니다.
-- id는 클라이언트에서 UUID로 만들어 오프라인에서도 기록을 식별합니다.
-- 충돌은 `updatedAt` 기준 마지막 수정 우선, 삭제는 소프트 삭제(`deletedAt`)로 되돌리기와 동기화를 함께 지원합니다.
+- 기준 데이터는 서버이고, IndexedDB(Dexie.js)는 기기 사본과 미전송 대기열(outbox)입니다. 작성은 먼저 IndexedDB에 저장하고 outbox에 쌓은 뒤, 온라인이면 서버로 보냅니다.
+- id는 클라이언트에서 UUID로 만들고 id 기준 upsert로 보내, 같은 요청을 다시 보내도 중복 기록이 생기지 않습니다.
+- 다른 기기의 변경은 마지막으로 받은 시각 이후 바뀐 기록만 가져오고, 삭제는 소프트 삭제(`deletedAt`)로 함께 내려옵니다.
+- 충돌은 마지막 저장 우선이고, 기기 시계가 틀릴 수 있어 `updatedAt`은 서버가 저장할 때 붙입니다.
+- step1부터 화면은 기록 저장·조회 함수 한 파일만 부르게 해, step2에서 그 안만 바꿔 오프라인을 붙입니다.
 - 동기화 상태는 평소에는 숨기고, 오프라인 배너·미전송 구름 아이콘·실패 시 "다시 시도" 토스트로만 알립니다.
 
-**알고 있는 한계**: 마지막 수정 우선은 두 기기에서 동시에 고치면 한쪽 수정이 사라질 수 있습니다. 개인 기록 앱의 사용 패턴상 이 단순함을 택했습니다.
+**알고 있는 한계**: 마지막 저장 우선은 기록 전체를 덮어씁니다. 두 기기에서 같은 기록을 고치거나, 오프라인에서 오래 고친 내용이 나중에 올라가면 다른 기기의 더 최근 수정이 사라질 수 있습니다. 개인 기록 앱의 사용 패턴상 필드 단위 병합 대신 이 단순함을 택했습니다.
 
 ### 5. 모바일과 PC를 한 코드로
 
@@ -106,10 +107,10 @@ const workoutSchema = {
 
 AI 챗봇 **나키**에게 "지난달 외식비 얼마야?"라고 물으면:
 
-1. 질문과 **켜진 타입의 필드 목록만** Route Handler를 거쳐 AI에 보냅니다. 실제 기록 데이터는 보내지 않습니다.
+1. 질문과 **켜진 타입의 필드 정의(이름·종류·기본 선택지)만** Next.js Route Handler를 거쳐 AI에 보냅니다. 기록 내용과 사용자가 직접 입력한 선택지는 보내지 않습니다.
 2. AI는 필터 조건 JSON만 돌려줍니다.
 3. Zod로 검증하고, 실패하면 재요청하거나 안내 문구를 보여 줍니다.
-4. 집계는 우리 DB가 하고, 답변마다 AI가 만든 조건을 칩으로 보여 줘 사용자가 확인할 수 있게 합니다.
+4. 허용된 필드·연산자만 통과시킨 뒤, 로그인 사용자 권한(RLS)으로 Supabase에서 조회·집계합니다. 답변마다 AI가 만든 조건을 칩으로 보여 줘 사용자가 확인할 수 있게 합니다.
 
 AI 호출은 **어댑터 파일 하나**로 감싸 제공자를 바꿀 때 그 파일만 고칩니다. 무료 등급을 쓰므로 계정당 하루 호출 횟수를 제한합니다(기본 20회, 체험 계정 10회).
 
@@ -143,7 +144,7 @@ flowchart LR
   DX <-- 동기화 --> PG
   UI --> AUTH
   UI --> ST
-  UI -- 질문 + 필드 목록 --> RH --> AI
+  UI -- 질문 + 필드 정의 --> RH --> AI
   AI -- 필터 JSON --> RH
   CRON --> EF
 ```
@@ -152,7 +153,7 @@ flowchart LR
 
 | 영역 | 선택 | 이유 | 검토한 대안 |
 | --- | --- | --- | --- |
-| 프레임워크 | Next.js (App Router) + TypeScript | Route Handler로 AI 키를 서버에 둘 수 있음 | Vite SPA: 서버 코드를 따로 둬야 함 |
+| 프레임워크 | Next.js (App Router) + TypeScript | 학습 목표·채용 수요, Route Handler로 AI 키를 같은 배포 안 서버에 둠 | Vite SPA: 오프라인 PWA는 더 단순함. 기록 화면 대부분이 클라이언트 컴포넌트라 SSR 이점은 작다는 점을 알고 선택 |
 | PWA | Serwist | Next.js용 Workbox 기반, 앱 셸 캐시·업데이트 처리 | 서비스 워커 직접 작성: 버그 위험 |
 | 백엔드 | Supabase | 로그인·DB·파일·예약 작업을 한 곳에서, 프론트엔드에 집중 | 자체 Node 서버: 운영 부담 |
 | 로컬 저장 | Dexie.js (IndexedDB) | 오프라인 작성·조회, 미전송 대기열 | localStorage: 용량·동기 API 한계 |
@@ -160,7 +161,7 @@ flowchart LR
 | UI 상태 | Zustand | 필터 등 가벼운 전역 상태 | Redux Toolkit: 규모 대비 과함 |
 | 폼·검증 | React Hook Form + Zod | 폼과 AI 응답 검증에 같은 스키마 사용 | Formik: 리렌더 많음 |
 | 스타일 | Tailwind CSS + Radix UI | 디자인 토큰(라이트·다크) 연결, 접근성은 Radix | MUI: 커스터마이징 비용 |
-| 날짜·캘린더 | date-fns, 캘린더 직접 구현 | 칸 안에 타입별 점·지출 합계를 자유롭게 표시 | 캘린더 라이브러리: 칸 커스터마이징 어려움 |
+| 날짜·캘린더 | date-fns, 캘린더 직접 구현 | 칸 안에 타입별 점과 상태(오늘·선택·다른 달)를 자유롭게 표시 | 캘린더 라이브러리: 칸 커스터마이징 어려움 |
 | 배포 | Vercel | PR마다 미리보기 주소 | |
 
 **쓰지 않기로 한 것**
@@ -170,18 +171,18 @@ flowchart LR
 
 ## 성능 개선
 
-> 개선 전 수치를 먼저 측정하고, 실제로 측정한 문제만 남깁니다. step4에서 더미 기록 1만 건으로 전후를 비교할 예정입니다.
+> 아래는 모두 측정 전 가설입니다. 개선 전 수치를 먼저 측정하고, 실제로 측정한 문제만 남깁니다. 캘린더·초기 로딩은 step2, 목록·검색은 step4에 더미 기록 1만 건으로 비교할 예정입니다.
 
 | 문제 (예상) | 해결 계획 | 측정 지표 | 전 | 후 |
 | --- | --- | --- | :---: | :---: |
-| 캘린더 칸마다 조회 | 월 범위 한 번 조회 → 날짜별 Map, 앞뒤 달 미리 가져오기 | 쿼리 횟수, 달 이동 시간 | — | — |
+| 달 이동 시 대기 | 앞뒤 달 미리 가져오기, 날짜별 Map으로 묶기 | 달 이동 시간 | — | — |
 | 달 이동 시 그리드 전체 리렌더 | 날짜 칸 메모이제이션 | 렌더 횟수 (React Profiler) | — | — |
 | 1만 건 목록 끊김 | 가상 스크롤 (TanStack Virtual) | 초기 렌더 시간, DOM 노드 수 | — | — |
 | 검색 입력 지연 | 디바운스, IndexedDB 인덱스 | 검색 응답 시간, INP | — | — |
 | 눈바디 사진 용량 | 리사이즈 + WebP + 썸네일 | 장당 용량, 로딩 시간 | — | — |
 | 초기 로딩 | AI·차트·카메라 코드 지연 로드 | 초기 JS(KB), LCP, Lighthouse | — | — |
 
-측정 환경과 전후 상세는 [`docs/performance.md`](docs/performance.md)에 기록합니다.
+측정 환경과 전후 상세는 `docs/performance.md`에 기록할 예정입니다.
 
 ## 테스트와 CI/CD
 
@@ -193,13 +194,14 @@ flowchart LR
 | 컴포넌트 | Testing Library + MSW | 기록 작성 폼, 필터 패널, 동기화 상태 표시, 채팅 입력(한글 조합 중 Enter) |
 | 접근성 | axe (Playwright 안에서) | 홈, 기록 작성, 검색, 설정 |
 | E2E | Playwright | 체험하기 → 기록 추가 → 캘린더 확인, 캘린더 키보드 조작, 오프라인 작성 후 동기화, 로그아웃 시 로컬 데이터 삭제 |
-| 화면 비교 | Playwright 스크린샷 | 375 / 768 / 1024 / 1280 / 1440px + 1280×700 + 터치 모바일 기기 × 라이트·다크(다크는 핵심 화면) |
+| 화면 비교 | Playwright 스크린샷 | step1 375 / 1024 / 1440px, step2에 768 / 1280px + 1280×700 + 터치 모바일 기기 추가 × 라이트·다크(다크는 핵심 화면) |
+| 보안 | Vitest + Supabase 로컬 | 다른 사용자 기록·사진 접근 차단(RLS), 계정 삭제 시 기록·사진 삭제, AI 경로의 사용자 격리 |
 
 **CI/CD 흐름 (GitHub Actions + Vercel)**
 
-1. PR을 올리면 lint, typecheck, 단위·컴포넌트 테스트, build를 병렬로 실행합니다.
-2. Vercel이 PR마다 미리보기 주소를 만듭니다.
-3. 미리보기 주소에서 E2E, 화면 비교, Lighthouse CI를 실행하고 기준 점수 아래면 실패 처리합니다.
+1. PR을 올리면 GitHub Actions가 서식 검사(Prettier) → lint → typecheck → 단위 테스트 → build를 차례로 실행합니다. 빠른 검사를 앞에 둬서 실패를 빨리 알리고, 하나라도 실패하면 main에 병합할 수 없습니다(브랜치 보호 규칙).
+2. Vercel이 PR마다 미리보기 주소를 만들어, 병합 전에 실제 배포 환경에서 화면을 확인합니다.
+3. _(예정)_ 미리보기 주소에서 E2E, 화면 비교를 실행합니다. step2부터 Lighthouse CI를 더해 기준 점수 아래면 실패 처리합니다.
 4. main에 병합되면 자동 배포합니다.
 
 <!-- TODO: CI 배지, PR에 테스트·Lighthouse 결과가 붙은 캡처, 테스트 개수 -->
@@ -214,35 +216,38 @@ Claude 디자인으로 시안과 의미 토큰 표(라이트·다크)를 만들�
 ```
 
 - 색은 `fg-primary`, `surface`, `type-expense` 같은 **의미 이름**으로만 씁니다. 다크모드는 변수 값만 바뀌고 컴포넌트는 그대로입니다.
-- 앱 안 [`/design-system`](#) 페이지에서 색·타이포·간격·컴포넌트를 라이트·다크로 바로 확인할 수 있습니다. _(준비 중)_
+- 앱 안 [`/design-system`](https://nanaki-two.vercel.app/design-system) 페이지에서 색·타이포·간격·컴포넌트를 라이트·다크로 바로 확인할 수 있습니다. 로그인 없이 볼 수 있습니다.
 
 ## 실행 방법
 
 ```bash
-git clone https://github.com/<username>/nanaki.git
+git clone https://github.com/Zzal1225/nanaki.git
 cd nanaki
 npm install
-cp .env.example .env.local   # Supabase URL·키 입력
+cp .env.example .env.local   # Supabase URL·publishable 키 입력
+npx supabase login
+npx supabase link --project-ref <project-ref>
+npm run db:push              # supabase/migrations의 테이블·RLS를 내 프로젝트에 적용
 npm run dev
 ```
 
 | 명령 | 설명 |
 | --- | --- |
 | `npm run dev` | 개발 서버 |
+| `npm run format` / `npm run format:check` | 서식 정리 / 검사 (Prettier) |
 | `npm run lint` / `npm run typecheck` | 정적 검사 |
-| `npm run test` | 단위·컴포넌트 테스트 |
-| `npm run test:e2e` | Playwright E2E·화면 비교 |
-
-<!-- TODO: 실제 스크립트 이름이 정해지면 맞춰 수정 -->
+| `npm run test` / `npm run test:watch` | 단위 테스트 (Vitest) |
+| `npm run db:new <이름>` / `npm run db:push` | DB 마이그레이션 만들기 / 적용 |
+| `npm run db:types` | DB 구조에서 TypeScript 타입 생성 |
 
 ## 문서
 
 | 문서 | 내용 |
 | --- | --- |
 | [`docs/decisions/`](docs/decisions/) | 설계 결정과 버린 대안 |
-| [`docs/troubleshooting/`](docs/troubleshooting/) | 문제 → 원인 → 해결 → 결과 |
-| [`docs/performance.md`](docs/performance.md) | 성능 측정 환경과 전후 수치 |
-| [`docs/milestones.md`](docs/milestones.md) | step별 테스트 개수, CI, Lighthouse 기록 |
+| `docs/troubleshooting/` _(예정)_ | 문제 → 원인 → 해결 → 결과 |
+| `docs/performance.md` _(예정)_ | 성능 측정 환경과 전후 수치 |
+| `docs/milestones.md` _(예정)_ | step별 테스트 개수, CI, Lighthouse 기록 |
 
 ---
 
