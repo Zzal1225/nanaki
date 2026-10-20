@@ -49,7 +49,7 @@
 ```
 src/
   app/            라우트 (Next.js App Router). globals.css = 디자인 토큰 CSS 변수 + Tailwind 연결
-  shared/         공통 컴포넌트, 훅, 유틸 (예정)
+  shared/         공통 코드. ui/ = 공통 컴포넌트(Radix + Tailwind), theme/ = 다크·라이트 전환
   features/       기능 단위 모듈: records, search, chat ... (예정)
   lib/db/         Dexie 스키마와 마이그레이션 (예정)
 tokens/tokens.json   디자인 토큰의 유일한 원본. 바꾸면 src/app/globals.css를 맞춘다
