@@ -150,6 +150,13 @@
   --color-google-button-fg: var(--google-button-fg);
 }
 
+/* 구글 버튼 전용 글꼴(브랜드 가이드: Roboto Medium). --font-roboto는 next/font가 버튼 요소에 붙여 주므로
+   :root에서 미리 계산되지 않도록 inline으로 둔다. 한글은 Roboto에 없어서 Pretendard로 이어진다 */
+@theme inline {
+  --font-google:
+    var(--font-roboto), 'Pretendard Variable', Pretendard, sans-serif;
+}
+
 /* 테마와 무관한 값은 inline 없이 그대로 선언 */
 @theme {
   --radius-sm: 6px;
