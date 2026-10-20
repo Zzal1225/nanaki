@@ -4,7 +4,7 @@ import SignInButtons from '@/features/auth/SignInButtons';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 
 export const metadata: Metadata = {
-  title: '로그인 · nanaki',
+  title: '로그인',
 };
 
 // 로고 타일(112px) 안의 새싹 아이콘 크기. 일반 아이콘 규격(16·20·24)과 별개인 로고 전용 값
