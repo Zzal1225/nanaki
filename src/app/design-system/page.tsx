@@ -2,6 +2,10 @@ import type { Metadata } from 'next';
 import ThemeToggle from '@/shared/theme/ThemeToggle';
 import Button from '@/shared/ui/Button';
 import Card from '@/shared/ui/Card';
+import Checkbox from '@/shared/ui/Checkbox';
+import FilterChip from '@/shared/ui/FilterChip';
+import SegmentedControl from '@/shared/ui/SegmentedControl';
+import Switch from '@/shared/ui/Switch';
 import TextField from '@/shared/ui/TextField';
 import Section from './Section';
 import Swatch from './Swatch';
@@ -97,6 +101,17 @@ const RADIUS_STEPS = [
   { name: 'radius-lg (16)', className: 'rounded-lg' },
   { name: 'radius-full (9999)', className: 'rounded-full' },
 ];
+
+const CALENDAR_VIEW_OPTIONS = [
+  { value: 'month', label: '월' },
+  { value: 'week', label: '주' },
+] as const;
+
+const PERIOD_OPTIONS = [
+  { value: 'day', label: '일' },
+  { value: 'week', label: '주' },
+  { value: 'month', label: '월' },
+] as const;
 
 const BUTTON_VARIANTS = [
   { variant: 'primary', label: '저장' },
@@ -238,6 +253,46 @@ export default function DesignSystemPage() {
         </div>
         <p className='text-body-sm text-fg-secondary'>
           포커스 모양은 입력창을 눌러서 확인한다.
+        </p>
+      </Section>
+
+      <Section title='토글 · 체크박스 · 세그먼트'>
+        <div className='flex flex-wrap gap-x-6'>
+          <Switch label='켜짐' defaultChecked />
+          <Switch label='꺼짐' />
+          <Switch label='비활성' disabled />
+        </div>
+        <div className='flex flex-wrap gap-x-6'>
+          <Checkbox label='물 2L 마시기' defaultChecked />
+          <Checkbox label='스트레칭' />
+          <Checkbox label='비활성' disabled />
+        </div>
+        <div className='flex flex-wrap gap-3'>
+          <SegmentedControl
+            aria-label='캘린더 보기'
+            options={CALENDAR_VIEW_OPTIONS}
+            defaultValue='month'
+          />
+          <SegmentedControl
+            aria-label='기간 단위'
+            options={PERIOD_OPTIONS}
+            defaultValue='week'
+          />
+        </div>
+        <p className='text-body-sm text-fg-secondary'>
+          눌러서 바뀌는지, Tab과 Space·화살표 키로도 조작되는지 확인한다.
+        </p>
+      </Section>
+
+      <Section title='칩'>
+        <div className='flex flex-wrap gap-2'>
+          <FilterChip isSelected>전체</FilterChip>
+          <FilterChip isSelected={false}>이번 달</FilterChip>
+          <FilterChip isSelected={false}>지난달</FilterChip>
+        </div>
+        <p className='text-body-sm text-fg-secondary'>
+          누를 수 있는 칩은 44px. 선택 상태 전환은 쓰는 쪽(필터 화면)에서
+          관리한다.
         </p>
       </Section>
 

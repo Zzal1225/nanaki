@@ -17,8 +17,10 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "lucide-react": "^1.59.0",
     "next": "16.4.2",
     "pretendard": "^1.3.9",
+    "radix-ui": "^1.8.1",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
