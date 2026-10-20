@@ -16,32 +16,34 @@
 - **핵심 원칙**: 기록은 "일어난 일"만 담는다. 반복 규칙(루틴, 고정지출, 체형 측정 주기)은 공통 `Schedule` 구조로 따로 두고, 수행 결과만 기록이다.
 - **타입 설정**: 첫 실행 시 5개 모두 켜짐. 설정에서 끄면 숨기기만 하고 데이터는 지우지 않는다.
 - **계정**: 로그인 필수, 구글 로그인만. "체험하기"는 Supabase 익명 로그인 + 샘플 데이터, 3일 뒤 자동 삭제.
-- **화면**: 하단 탭 홈·기록·나키(AI 챗봇 이름, 글자 옆 "AI" 뱃지), 우하단 스피드 다이얼(작성 전용), 설정은 홈 ⚙. 768px 미만 모바일, 이상은 PC 레이아웃. 다크모드 지원.
+- **화면**: 하단 탭 홈·기록·나키(AI 챗봇 이름, 글자 옆 "AI" 뱃지), 우하단 스피드 다이얼(작성 전용), 설정은 홈 ⚙. 768px 미만 모바일, 768~1023px 태블릿(접힌 사이드바 + 한 줄 배치), 1024px 이상 PC(펼친 사이드바 + 좌우 배치). PC는 사이드바에 설정·새 기록. 다크모드 지원.
 - **고정값**: 한국어, 원화, kg, cm. 날짜(`occurredAt`)는 로컬 'YYYY-MM-DD' 문자열.
 - **단계**: step1 로그인·체험, 가계부·후기, 홈 캘린더, 반응형·다크모드, CI/CD → step2 운동·루틴·체형, 검색·필터, 오프라인 동기화, Sentry (끝나면 지원 시작)
   → step3 AI, 예산·고정지출, 푸시 → step4 눈바디 사진(모바일 촬영, PC는 불러오기와 맞춰 자르기), 보고서, 백업, 성능 개선. 상세는 기획서를 따른다.
 
 ## 2. 기술 스택
 
-| 영역               | 선택                                                                                                    |
-| ------------------ | ------------------------------------------------------------------------------------------------------- |
-| 프레임워크         | Next.js (App Router) + TypeScript (strict)                                                              |
-| PWA                | Serwist                                                                                                 |
-| 로컬 저장·오프라인 | Dexie.js (IndexedDB) + outbox 동기화, 충돌은 updatedAt 기준 마지막 저장 우선                            |
-| 서버 상태          | TanStack Query                                                                                          |
-| UI 상태            | Zustand                                                                                                 |
-| 폼·검증            | React Hook Form + Zod                                                                                   |
-| 스타일·컴포넌트    | Tailwind CSS + Radix UI, 캘린더는 date-fns로 직접 구현                                                  |
-| 백엔드             | Supabase (Postgres + RLS, Auth, Storage 비공개 버킷, Edge Function, pg_cron)                            |
-| AI                 | 무료 티어 모델, 호출은 어댑터 파일 하나로 감싼다. 질문과 필드 목록만 보내고 필터 JSON을 받아 Zod로 검증 |
-| 알림               | pg_cron + Edge Function + Web Push                                                                      |
-| 테스트             | Vitest, Testing Library, MSW, Playwright (E2E + 375/768/1280/1440 화면 비교)                            |
-| CI/CD·운영         | GitHub Actions, Lighthouse CI, Vercel (기본 도메인), Sentry (step2)                                     |
+| 영역               | 선택                                                                                                            |
+| ------------------ | --------------------------------------------------------------------------------------------------------------- |
+| 프레임워크         | Next.js (App Router) + TypeScript (strict)                                                                      |
+| PWA                | Serwist                                                                                                         |
+| 로컬 저장·오프라인 | Dexie.js (IndexedDB) + outbox 동기화, 충돌은 updatedAt 기준 마지막 저장 우선                                    |
+| 서버 상태          | TanStack Query                                                                                                  |
+| UI 상태            | Zustand                                                                                                         |
+| 폼·검증            | React Hook Form + Zod                                                                                           |
+| 스타일·컴포넌트    | Tailwind CSS + Radix UI, 캘린더는 date-fns로 직접 구현                                                          |
+| 백엔드             | Supabase (Postgres + RLS, Auth, Storage 비공개 버킷, Edge Function, pg_cron)                                    |
+| AI                 | 무료 티어 모델, 호출은 어댑터 파일 하나로 감싼다. 질문과 필드 목록만 보내고 필터 JSON을 받아 Zod로 검증         |
+| 알림               | pg_cron + Edge Function + Web Push                                                                              |
+| 테스트             | Vitest, Testing Library, MSW, Playwright (E2E + 375/768/1024/1280/1440 + 1280×700 + 터치 기기 프리셋 화면 비교) |
+| CI/CD·운영         | GitHub Actions, Lighthouse CI, Vercel (기본 도메인), Sentry (step2)                                             |
 
 - 위 목록에 없는 라이브러리를 추가하려면 먼저 사용자에게 **이유와 대안**을 제시하고 승인을 받는다.
 - AI 제공자 SDK는 어댑터 파일 밖에서 import하지 않는다. API 키는 서버(Route Handler 또는 Edge Function)에만 둔다.
 - 몸 사진은 업로드 전 압축, 만료 링크로만 보여 주고, AI·보고서에는 넣지 않는다. 압축 전에 EXIF 회전을 바로잡고(`createImageBitmap`의 `imageOrientation: 'from-image'`), 다시 인코딩해 위치 정보를 지운다.
-- 카메라 촬영 UI는 화면 너비가 아니라 기기 능력(`navigator.mediaDevices?.getUserMedia`, `(pointer: coarse)`)으로 보여 준다. PC는 웹캠 촬영 없이 불러오기만 제공한다.
+- 카메라 촬영 UI는 화면 너비가 아니라 기기 능력(`navigator.mediaDevices?.getUserMedia`, `(pointer: coarse)`)으로 보여 준다. PC는 웹캠 촬영 없이 불러오기(끌어다 놓기 포함)만 제공한다. 사진은 JPG·PNG·WebP만 받고 HEIC는 안내 문구를 보여 준다. HEIC 변환 라이브러리는 용량 때문에 별도 승인.
+- 푸시 구독은 기기 단위다. `push_subscriptions`에 기기마다 저장하고, 발송은 사용자의 모든 구독으로, 410 응답 구독은 삭제한다.
+- 로그아웃 시 IndexedDB와 서비스 워커 캐시를 지운다(미전송 기록은 먼저 확인). 몸 사진 응답은 서비스 워커가 캐시하지 않는다.
 
 ## 3. 코드맵
 
@@ -83,6 +85,18 @@ public/              정적 파일
 - props는 필요한 것만 받는다. 기록 객체 전체를 넘기기보다 필요한 값만 넘기는 걸 우선 고려한다.
 - 공통 컴포넌트는 `shared/`에 둔다.
 - 타입별 분기(`if type === 'expense'`)를 컴포넌트에 흩뿌리지 않는다. 타입별 차이는 스키마 정의에 둔다.
+
+### 모바일·PC 분기
+
+- 레이아웃 차이(하단 탭/사이드바, 좌우 배치)는 Tailwind 반응형 클래스(CSS)로만 처리한다. `useMediaQuery`로 다른 컴포넌트를 렌더하지 않는다 (하이드레이션 불일치).
+- 기기 능력 분기(카메라 촬영, 스와이프)는 마운트 후 훅에서 판단하고, 판단 전에는 해당 UI를 숨긴 상태로 시작한다.
+- 스와이프는 지름길일 뿐이다. 모든 조작은 버튼과 키보드로도 가능해야 한다 (캘린더: 방향키·PageUp/PageDown, roving tabindex, `role="grid"`).
+- hover에만 기대는 UI 금지. 터치 영역 44px은 모든 구간에 적용한다.
+- 공유·새로고침·뒤로 가기에 살아남아야 하는 상태는 URL에 둔다 (`?date=`, `/records/[id]`, 검색어·필터). 화면 안에서만 쓰는 상태는 Zustand.
+- 기록 상세는 `/records/[id]` 경로 하나. 모바일은 전체 화면, PC는 목록 옆 패널 (layout으로 처리). 작성 폼도 모바일 전체 화면, PC 오른쪽 패널.
+- 시트는 컴포넌트 하나(Radix Dialog 기반)에 모바일 바텀시트 / PC 오른쪽 패널 변형.
+- Enter 처리(채팅·검색)는 `e.nativeEvent.isComposing`이면 무시한다 (한글 조합 중복 전송).
+- 모바일: `100dvh`, 하단 고정 요소에 `env(safe-area-inset-bottom)`, 입력 중 하단 탭·스피드 다이얼 숨김, 숫자 입력은 `inputMode="numeric"`.
 
 ### 코드 스타일
 
