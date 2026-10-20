@@ -13,8 +13,8 @@ a{color:#2E7D4F}a:hover{color:#205B39}
 pre{margin:0}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pulse{50%{opacity:.5}}
-.th-light{--bg:#F7F7F8;--surface:#FFFFFF;--surface-raised:#FFFFFF;--surface-hover:#F0F0F2;--surface-pressed:#E6E6EA;--border:#DCDCE1;--fg-primary:#121214;--fg-secondary:#5A5A63;--fg-disabled:#A6A6AF;--accent:#2E7D4F;--accent-hover:#276C44;--accent-pressed:#205B39;--accent-foreground:#FFFFFF;--success:#2E7D4F;--warning:#B4480E;--danger:#C8323C;--danger-hover:#B02A33;--danger-pressed:#98232B;--overlay:rgba(18,18,20,.48);--type-expense:#9A5C00;--type-expense-subtle:#FCF0DC;--type-review:#C2365F;--type-review-subtle:#FCE9EE;--type-workout:#2562C4;--type-workout-subtle:#E6EEFB;--type-routine:#8A3FC0;--type-routine-subtle:#F3EAFA;--type-body:#097078;--type-body-subtle:#DDF2F2;--shadow-card:0 1px 2px rgba(18,18,20,.06),0 1px 3px rgba(18,18,20,.08);--shadow-float:0 8px 24px rgba(18,18,20,.12),0 2px 6px rgba(18,18,20,.08);color:var(--fg-primary)}
-.th-dark{--bg:#121214;--surface:#1A1A1E;--surface-raised:#24242A;--surface-hover:#2A2A30;--surface-pressed:#34343B;--border:#34343B;--fg-primary:#ECECEF;--fg-secondary:#A6A6AF;--fg-disabled:#5A5A63;--accent:#6CC08F;--accent-hover:#7ECB9E;--accent-pressed:#8FD4AC;--accent-foreground:#0F1F16;--success:#6CC08F;--warning:#F09A6A;--danger:#EE7B80;--danger-hover:#F28E92;--danger-pressed:#F5A1A4;--overlay:rgba(0,0,0,.64);--type-expense:#E2AA5E;--type-expense-subtle:#3A2F1F;--type-review:#E68DA7;--type-review-subtle:#3A2530;--type-workout:#86AAEB;--type-workout-subtle:#1F2A3E;--type-routine:#D7BFF4;--type-routine-subtle:#30253C;--type-body:#62C2C2;--type-body-subtle:#173334;--shadow-card:none;--shadow-float:none;color:var(--fg-primary)}
+.th-light{--bg:#F7F7F8;--surface:#FFFFFF;--surface-raised:#FFFFFF;--surface-hover:#F0F0F2;--surface-pressed:#E6E6EA;--border:#DCDCE1;--fg-primary:#121214;--fg-secondary:#5A5A63;--fg-disabled:#A6A6AF;--accent:#2E7D4F;--accent-hover:#276C44;--accent-pressed:#205B39;--accent-foreground:#FFFFFF;--success:#2E7D4F;--warning:#C2410C;--danger:#C8323C;--danger-hover:#B02A33;--danger-pressed:#98232B;--overlay:rgba(18,18,20,.48);--focus-ring:#2E7D4F;--type-expense:#9A5C00;--type-expense-subtle:#FCF0DC;--type-review:#C2365F;--type-review-subtle:#FCE9EE;--type-workout:#2562C4;--type-workout-subtle:#E6EEFB;--type-routine:#8A3FC0;--type-routine-subtle:#F3EAFA;--type-body:#097078;--type-body-subtle:#DDF2F2;--shadow-card:0 1px 2px rgba(18,18,20,.06),0 1px 3px rgba(18,18,20,.08);--shadow-float:0 8px 24px rgba(18,18,20,.12),0 2px 6px rgba(18,18,20,.08);color:var(--fg-primary)}
+.th-dark{--bg:#121214;--surface:#1A1A1E;--surface-raised:#24242A;--surface-hover:#2A2A30;--surface-pressed:#34343B;--border:#34343B;--fg-primary:#ECECEF;--fg-secondary:#A6A6AF;--fg-disabled:#5A5A63;--accent:#6CC08F;--accent-hover:#7ECB9E;--accent-pressed:#8FD4AC;--accent-foreground:#0F1F16;--success:#6CC08F;--warning:#EC6A13;--danger:#EE7B80;--danger-hover:#F28E92;--danger-pressed:#F5A1A4;--overlay:rgba(0,0,0,.64);--focus-ring:#6CC08F;--type-expense:#E2AA5E;--type-expense-subtle:#3A2F1F;--type-review:#E68DA7;--type-review-subtle:#3A2530;--type-workout:#86AAEB;--type-workout-subtle:#1F2A3E;--type-routine:#D7BFF4;--type-routine-subtle:#30253C;--type-body:#62C2C2;--type-body-subtle:#173334;--shadow-card:none;--shadow-float:none;color:var(--fg-primary)}
 </style></helmet>
 <div class="th-light" style="background:var(--bg);min-height:100vh">
 <div style="max-width:1280px;margin:0 auto;padding:48px 32px 80px;display:flex;flex-direction:column;gap:64px">
@@ -391,7 +391,7 @@ class Component extends DCLogic {
       gray: { '0': '#FFFFFF', '50': '#F7F7F8', '100': '#F0F0F2', '150': '#ECECEF', '200': '#E6E6EA', '300': '#DCDCE1', '400': '#A6A6AF', '600': '#5A5A63', '700': '#34343B', '800': '#2A2A30', '850': '#24242A', '900': '#1A1A1E', '950': '#121214' },
       green: { '200': '#8FD4AC', '250': '#7ECB9E', '300': '#6CC08F', '600': '#2E7D4F', '700': '#276C44', '800': '#205B39', '950': '#0F1F16' },
       red: { '200': '#F5A1A4', '250': '#F28E92', '300': '#EE7B80', '600': '#C8323C', '700': '#B02A33', '800': '#98232B' },
-      orange: { '300': '#F09A6A', '700': '#B4480E' },
+      orange: { '300': '#EC6A13', '700': '#C2410C' },
       amber: { '50': '#FCF0DC', '300': '#E2AA5E', '700': '#9A5C00', '950': '#3A2F1F' },
       rose: { '50': '#FCE9EE', '300': '#E68DA7', '700': '#C2365F', '950': '#3A2530' },
       blue: { '50': '#E6EEFB', '300': '#86AAEB', '700': '#2562C4', '950': '#1F2A3E' },
@@ -427,7 +427,8 @@ class Component extends DCLogic {
       ['danger', 'red-600', 'red-300', '삭제 버튼 · 오류 문구', 'text'],
       ['danger-hover', 'red-700', 'red-250', 'danger hover', 'onA'],
       ['danger-pressed', 'red-800', 'red-200', 'danger pressed', 'onA'],
-      ['overlay', 'gray-950 / 48%', 'black / 64%', '시트 · 모달 뒤 dim', 'none']
+      ['overlay', 'gray-950 / 48%', 'black / 64%', '시트 · 모달 뒤 dim', 'none'],
+      ['focus-ring', 'green-600', 'green-300', '키보드 포커스 링 · 바탕 2px 간격 + 링 2px', 'none']
     ];
     const ov = { L: 'rgba(18,18,20,.48)', D: 'rgba(0,0,0,.64)' };
     const LM = {}, DM = {};
