@@ -1,8 +1,7 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
+import { RATING_MAX, RATING_MIN } from './fieldKinds';
 import {
   MAX_PLACE_LENGTH,
-  RATING_MAX,
-  RATING_MIN,
   reviewFieldsSchema,
   type ReviewFields,
 } from './review';
