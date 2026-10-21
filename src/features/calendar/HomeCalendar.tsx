@@ -83,6 +83,8 @@ export default function HomeCalendar() {
             date={date}
             today={today}
             dotTypesByDate={dotTypesByDate}
+            // isPending: 이 달 캐시가 아직 없을 때만. 다시 온 달은 캐시를 바로 그리고 뒤에서 새로 받으므로 바쁘지 않다
+            isBusy={records.isPending}
             onSelectDate={calendar.selectDate}
             labelledBy={titleId}
           />

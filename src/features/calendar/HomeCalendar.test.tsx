@@ -197,4 +197,27 @@ describe('HomeCalendar', () => {
       screen.queryByRole('button', { name: /주 보기|월 보기/ }),
     ).toBeNull();
   });
+
+  // 성능 측정 스크립트(scripts/calendar-perf.mts)가 이 표시로 "기록이 다 그려진 때"를 안다
+  it('기록을 불러오는 동안 캘린더에 aria-busy, 처음 가는 달로 넘기면 다시 켜진다', async () => {
+    renderCalendar();
+    const grid = screen.getByRole('grid');
+    expect(grid.getAttribute('aria-busy')).toBe('true');
+    await screen.findByText('가계부 1건');
+    expect(grid.getAttribute('aria-busy')).toBe('false');
+
+    let resolveNextMonth: (entries: RecordEntry[]) => void = () => {};
+    vi.mocked(listRecords).mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveNextMonth = resolve;
+      }),
+    );
+    fireEvent.click(screen.getByRole('button', { name: '2026년 11월로' }));
+    expect(screen.getByRole('grid').getAttribute('aria-busy')).toBe('true');
+
+    resolveNextMonth([]);
+    await vi.waitFor(() =>
+      expect(screen.getByRole('grid').getAttribute('aria-busy')).toBe('false'),
+    );
+  });
 });

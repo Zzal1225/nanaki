@@ -20,7 +20,8 @@
     "db:types": "supabase gen types typescript --linked > src/lib/supabase/database.types.ts && prettier --write src/lib/supabase/database.types.ts",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:e2e": "playwright test",
-    "lighthouse": "node scripts/lighthouse.mts && lhci assert"
+    "lighthouse": "node scripts/lighthouse.mts && lhci assert",
+    "perf:calendar": "node scripts/calendar-perf.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.2",

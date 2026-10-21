@@ -109,6 +109,20 @@ jobs:
           for i in $(seq 1 30); do curl -sf -o /dev/null http://localhost:3000/login && break; sleep 1; done
           npm run lighthouse
 
+      # 기록이 많은 달(한 달 300개)의 홈 첫 표시·달 넘김·JS 전송량 (scripts/calendar-perf.mts).
+      # 수치만 남기고 실패 조건은 두지 않는다: 매 PR의 추이를 보고, 개선 작업 때 전후를 비교하려는 것.
+      # 앞 단계에서 띄운 서버가 살아 있으면 그대로 쓴다. 서버를 둘 띄우면 측정 중에 CPU를 나눠 써 수치가 흔들린다
+      - name: 캘린더 성능 측정 (기록 300개)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ env.SUPABASE_TEST_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ env.SUPABASE_TEST_ANON_KEY }}
+        run: |
+          if ! curl -sf -o /dev/null http://localhost:3000/login; then
+            npm run start -- --port 3000 &
+            for i in $(seq 1 30); do curl -sf -o /dev/null http://localhost:3000/login && break; sleep 1; done
+          fi
+          npm run perf:calendar
+
       # 점수는 통과해도 남긴다: docs/performance.md의 기준 수치를 여기서 옮겨 적는다
       - uses: actions/upload-artifact@v4
         if: always()
@@ -117,6 +131,7 @@ jobs:
           path: |
             lighthouse-report/
             .lighthouseci/
+            perf-report/
           # .lighthouseci는 점(.)으로 시작하는 숨김 폴더라 기본값이면 빠진다
           include-hidden-files: true
           retention-days: 7
