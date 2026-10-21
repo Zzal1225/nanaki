@@ -43,3 +43,9 @@ next-env.d.ts
 private/
 # 공유용 환경변수 예시는 커밋한다 (값은 비어 있음)
 !.env.example
+
+# Playwright 결과물 (실행할 때마다 새로 만들어진다)
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
