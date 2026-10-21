@@ -85,6 +85,17 @@ jobs:
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ env.SUPABASE_TEST_ANON_KEY }}
         run: npm run test:e2e
 
+      # Playwright는 기준 이미지가 없으면 새로 써 놓고 통과시킨다. 그대로 두면 CI는 매번 새로 쓰고 비교 없이 넘어간다.
+      # 새로 써진 이미지가 있으면 실패시키고(아래 단계가 아티팩트로 올림), 사람이 확인해 커밋해야 기준이 된다
+      - name: 확인 안 된 새 기준 이미지가 없는지
+        run: |
+          NEW_SNAPSHOTS=$(git status --porcelain -- tests/e2e/visual.spec.ts-snapshots)
+          if [ -n "$NEW_SNAPSHOTS" ]; then
+            echo "::error::기준 이미지가 없는 화면이 있습니다. visual-snapshots 아티팩트를 내려받아 확인한 뒤 커밋하세요."
+            echo "$NEW_SNAPSHOTS"
+            exit 1
+          fi
+
       # 실패하면 화면·네트워크 기록(trace)이 담긴 보고서를 내려받아 볼 수 있게 남긴다
       - uses: actions/upload-artifact@v4
         if: failure()

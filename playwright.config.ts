@@ -27,8 +27,9 @@ export default defineConfig({
   // 네트워크·첫 빌드 지연으로 가끔 흔들리는 실패를 한 번만 다시 시도한다. 두 번 다 실패하면 진짜 실패
   retries: IS_CI ? 1 : 0,
   reporter: IS_CI ? [['github'], ['html', { open: 'never' }]] : 'list',
-  // 기준 이미지가 없으면 새로 써 두고 그 실행은 실패로 끝난다 (Playwright 기본값). 써 둔 이미지는 CI 아티팩트로 내려받아
-  // 사람이 보고 커밋한다. 이미 있는 기준 이미지는 절대 덮어쓰지 않는다 (덮어쓰기는 --update-snapshots를 직접 줄 때만)
+  // 기준 이미지가 없으면 새로 써 둔다 (이미 있는 것은 덮어쓰지 않는다). 주의: Playwright는 이때 테스트를 통과시킨다.
+  // 그래서 CI는 E2E 뒤에 "새로 써진 기준 이미지가 있으면 실패" 단계를 두고 그 이미지를 아티팩트로 올린다 (ci.yml).
+  // 사람이 내려받아 확인한 뒤 커밋해야 기준이 된다
   updateSnapshots: 'missing',
   use: {
     baseURL: BASE_URL,
@@ -48,7 +49,7 @@ export default defineConfig({
       testMatch: 'guest-record-flow.spec.ts',
       use: { ...devices['Desktop Chrome'] },
     },
-    // 화면 비교는 다시 시도하지 않는다: 재시도는 첫 시도가 방금 써 둔 기준 이미지와 비교해 통과해 버린다.
+    // 화면 비교는 다시 시도하지 않는다: 시계·데이터를 고정해 늘 같아야 하는 화면이라, 재시도는 흔들림을 숨기기만 한다.
     // 화면 비교: CLAUDE.md의 크기들. 모바일 375 / 태블릿 768 / PC 경계 1024 / 1280 / 1440 / 낮은 노트북 1280×700 / 터치 기기
     ...VISUAL_VIEWPORTS.map(({ name, width, height }) => ({
       name,
