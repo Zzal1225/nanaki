@@ -223,4 +223,12 @@
     outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
   }
+
+  /* Tailwind v4는 버튼 커서를 브라우저 기본값(default 화살표)으로 바꿨다. 링크(<a>)는 손가락이라
+     비슷하게 생긴 버튼과 링크가 섞이면 어색하다. 버튼마다 cursor-pointer를 붙이면 빠지는 곳이 생겨서 여기 한 곳에서 건다.
+     누를 수 없는 버튼(비활성·로딩 중)은 제외. 터치 화면에는 커서가 없어서, 대신 각 버튼의 active: 눌림 색이 반응을 맡는다 */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
 }

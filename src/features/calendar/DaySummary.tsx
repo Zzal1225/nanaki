@@ -30,7 +30,7 @@ type DaySummaryProps = {
 };
 
 const DAY_NAV_BUTTON_CLASS =
-  'inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-fg-primary hover:bg-surface-hover';
+  'inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-fg-primary hover:bg-surface-hover active:bg-surface-pressed';
 
 // 고른 날의 요약 (시안: 캘린더 아래, PC는 오른쪽 400px).
 // 부모가 key={date}로 그려서 날짜가 바뀌면 이 컴포넌트가 새로 만들어지고 펼친 줄도 모두 접힌다.
@@ -103,7 +103,7 @@ export default function DaySummary({
           <button
             type='button'
             onClick={onGoToday}
-            className='ml-1 inline-flex min-h-11 items-center rounded-full px-3 text-body-sm font-medium text-accent hover:bg-surface-hover md:hidden'
+            className='ml-1 inline-flex min-h-11 items-center rounded-full px-3 text-body-sm font-medium text-accent hover:bg-surface-hover active:bg-surface-pressed md:hidden'
           >
             오늘로
           </button>

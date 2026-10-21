@@ -35,7 +35,7 @@ export default function RecentRecordItem({
       // 화면 읽기 프로그램에 "지금 열린 기록"임을 알린다
       aria-current={isSelected ? 'page' : undefined}
       // 테두리 대신 안쪽 링: 선택해도 칸 크기가 변하지 않아 목록이 흔들리지 않는다
-      className={`flex min-h-17 items-center gap-3 rounded-lg bg-surface px-4 py-3 shadow-card hover:bg-surface-hover ${
+      className={`flex min-h-17 items-center gap-3 rounded-lg bg-surface px-4 py-3 shadow-card hover:bg-surface-hover active:bg-surface-pressed ${
         isSelected ? 'ring-2 ring-fg-primary ring-inset' : ''
       }`}
     >

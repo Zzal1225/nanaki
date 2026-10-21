@@ -50,7 +50,7 @@ export default function TypeDetail({
           href='/records'
           aria-label='기록 탭으로 돌아가기'
           // PC는 목록이 옆에 있어서 뒤로 버튼이 필요 없다
-          className='inline-flex size-11 items-center justify-center rounded-md text-fg-primary hover:bg-surface-hover lg:hidden'
+          className='inline-flex size-11 items-center justify-center rounded-md text-fg-primary hover:bg-surface-hover active:bg-surface-pressed lg:hidden'
         >
           <ChevronLeft
             aria-hidden='true'

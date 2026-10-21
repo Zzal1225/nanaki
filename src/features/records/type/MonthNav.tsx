@@ -32,7 +32,7 @@ export default function MonthNav({
         // 같은 화면 안에서 달만 바꾸므로 방문 기록을 쌓지 않는다. 뒤로 가기는 기록 탭으로
         replace
         aria-label={`${formatMonthLabel(previous, currentMonth)}로`}
-        className={`${NAV_BUTTON_CLASS} hover:bg-surface-hover`}
+        className={`${NAV_BUTTON_CLASS} hover:bg-surface-hover active:bg-surface-pressed`}
       >
         <ChevronLeft
           aria-hidden='true'
@@ -51,7 +51,7 @@ export default function MonthNav({
           href={hrefOf(next)}
           replace
           aria-label={`${formatMonthLabel(next, currentMonth)}로`}
-          className={`${NAV_BUTTON_CLASS} hover:bg-surface-hover`}
+          className={`${NAV_BUTTON_CLASS} hover:bg-surface-hover active:bg-surface-pressed`}
         >
           <ChevronRight
             aria-hidden='true'

@@ -17,7 +17,7 @@ type CalendarHeaderProps = {
 const NAV_ICON_SIZE = 22;
 
 const ROUND_BUTTON_CLASS =
-  'inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-fg-primary hover:bg-surface-hover';
+  'inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-fg-primary hover:bg-surface-hover active:bg-surface-pressed';
 
 // ‹ 2026년 10월 › [오늘] … ⚙ (시안 홈 위쪽).
 // 달 이동은 링크가 아니라 버튼이다: 주소는 useCalendar가 history로 바꾼다 (서버 요청 없이)
@@ -70,7 +70,7 @@ export default function CalendarHeader({
       <button
         type='button'
         onClick={onToday}
-        className='ml-2 hidden min-h-11 items-center rounded-full border border-border bg-surface px-4 text-body-sm font-medium text-fg-primary hover:bg-surface-hover md:inline-flex'
+        className='ml-2 hidden min-h-11 items-center rounded-full border border-border bg-surface px-4 text-body-sm font-medium text-fg-primary hover:bg-surface-hover active:bg-surface-pressed md:inline-flex'
       >
         오늘
       </button>
@@ -79,7 +79,7 @@ export default function CalendarHeader({
       <Link
         href={SETTINGS_ITEM.href}
         aria-label={SETTINGS_ITEM.label}
-        className='inline-flex size-11 items-center justify-center rounded-md text-fg-primary hover:bg-surface-hover md:hidden'
+        className='inline-flex size-11 items-center justify-center rounded-md text-fg-primary hover:bg-surface-hover active:bg-surface-pressed md:hidden'
       >
         <SettingsIcon
           aria-hidden='true'

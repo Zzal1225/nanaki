@@ -30,7 +30,7 @@ export default function MonthSummaryCard({
   return (
     <Link
       href={href}
-      className={`flex flex-col gap-2 rounded-lg bg-surface px-4 py-3 shadow-card hover:bg-surface-hover ${isWide ? 'col-span-2' : ''}`}
+      className={`flex flex-col gap-2 rounded-lg bg-surface px-4 py-3 shadow-card hover:bg-surface-hover active:bg-surface-pressed ${isWide ? 'col-span-2' : ''}`}
     >
       <div className='flex items-center gap-2'>
         <span
