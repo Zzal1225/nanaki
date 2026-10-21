@@ -2,11 +2,15 @@
 
 // 'use client' 이유: 입력 상태(React Hook Form), 저장 요청, 화면 이동이 모두 브라우저에서 일어난다
 import { zodResolver } from '@hookform/resolvers/zod';
+import { X } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
 import { toLocalDateString } from '@/shared/date/toLocalDateString';
 import Button from '@/shared/ui/Button';
+import DateField from '@/shared/ui/DateField';
+import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import TagInput from '@/shared/ui/TagInput';
 import TextArea from '@/shared/ui/TextArea';
 import TextField from '@/shared/ui/TextField';
@@ -65,15 +69,41 @@ export default function RecordForm({ type }: RecordFormProps) {
       onSubmit={form.handleSubmit(onSubmit)}
       // 브라우저 기본 검사 말풍선 대신 Zod 오류 문구를 칸 아래에 보여 준다
       noValidate
-      className='mx-auto flex w-full max-w-xl flex-col gap-6 px-4 pt-6 pb-4 md:px-6'
+      className='mx-auto flex w-full max-w-xl flex-col gap-6 px-4 pb-4 md:px-6'
     >
-      <h1 className='text-title text-fg-primary'>{config.label} 기록</h1>
+      {/* 시안: 왼쪽 닫기(×), 가운데 제목. 오른쪽 빈칸은 제목을 정확히 가운데 두기 위한 자리 */}
+      <div className='-mx-4 flex h-14 items-center px-1 md:-mx-6 md:px-3'>
+        <Link
+          href='/'
+          // 닫으면 작성 화면을 방문 기록에서 지운다. 뒤로 가기로 쓰다 만 폼에 돌아오지 않게
+          replace
+          aria-label='닫기'
+          className='inline-flex size-11 items-center justify-center rounded-md text-fg-primary hover:bg-surface-hover'
+        >
+          <X
+            aria-hidden='true'
+            size={ICON_SIZE.lg}
+            strokeWidth={ICON_STROKE_WIDTH}
+          />
+        </Link>
+        <h1 className='flex-1 text-center text-body font-semibold text-fg-primary'>
+          {config.label} 쓰기
+        </h1>
+        <span aria-hidden='true' className='size-11' />
+      </div>
 
-      <TextField
-        label='날짜'
-        type='date'
-        error={form.formState.errors.occurredAt?.message}
-        {...form.register('occurredAt')}
+      <Controller
+        control={form.control}
+        name='occurredAt'
+        render={({ field: input, fieldState }) => (
+          <DateField
+            label='날짜'
+            value={input.value}
+            onChange={input.onChange}
+            onBlur={input.onBlur}
+            error={fieldState.error?.message}
+          />
+        )}
       />
 
       {/* 타입별 필드: 정의 배열 순서대로 그린다 (시안: 날짜와 구분선 사이에만 들어간다) */}

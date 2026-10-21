@@ -4,6 +4,7 @@
 import { X } from 'lucide-react';
 import { useId, useState, type KeyboardEvent } from 'react';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from './icon';
+import FieldError from './FieldError';
 
 type TagInputProps = {
   label: string;
@@ -95,11 +96,7 @@ export default function TagInput({
             : 'border-border focus:border-accent focus:ring-1 focus:ring-accent'
         }`}
       />
-      {hasError && (
-        <span id={errorId} className='text-caption text-danger'>
-          {error}
-        </span>
-      )}
+      <FieldError id={errorId} message={error} />
     </div>
   );
 }

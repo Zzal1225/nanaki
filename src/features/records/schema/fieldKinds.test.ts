@@ -111,3 +111,41 @@ describe('toFieldsSchema', () => {
     }>();
   });
 });
+
+// 화면에 그대로 보이는 문구라서 고정해 둔다. 기본 문구("예상 타입은 number…")로 돌아가면 여기서 잡힌다
+describe('사용자에게 보이는 오류 문구', () => {
+  function firstMessage(schema: z.ZodType, value: unknown) {
+    return schema.safeParse(value).error?.issues[0].message;
+  }
+
+  it('숫자 칸을 비우면 "○○을 입력해 주세요", 상한을 넘으면 단위까지', () => {
+    const { schema } = numberField({
+      name: 'a',
+      label: '금액',
+      unit: '원',
+      max: 10000,
+    });
+    expect(firstMessage(schema, undefined)).toBe('금액을 입력해 주세요');
+    expect(firstMessage(schema, 10001)).toBe('10,000원까지 입력할 수 있어요');
+  });
+  it('선택 칸을 안 고르거나 직접 입력을 비우면 "○○를 골라 주세요"', () => {
+    const custom = customSelectField({
+      name: 'c',
+      label: '분류',
+      options: [],
+      maxLength: 5,
+    });
+    expect(firstMessage(custom.schema, undefined)).toBe('분류를 골라 주세요');
+    expect(firstMessage(custom.schema, '  ')).toBe('분류를 골라 주세요');
+    const fixed = selectField({ name: 'k', label: '대상', options: ['장소'] });
+    expect(firstMessage(fixed.schema, undefined)).toBe('대상을 골라 주세요');
+  });
+  it('별점을 안 고르면 "별점을 골라 주세요"', () => {
+    const { schema } = ratingField({ name: 'r', label: '별점' });
+    expect(firstMessage(schema, undefined)).toBe('별점을 골라 주세요');
+  });
+  it('글자 수를 넘으면 "○자까지 쓸 수 있어요"', () => {
+    const { schema } = textField({ name: 't', label: '장소', maxLength: 3 });
+    expect(firstMessage(schema, '가나다라')).toBe('3자까지 쓸 수 있어요');
+  });
+});

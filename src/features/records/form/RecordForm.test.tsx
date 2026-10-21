@@ -62,6 +62,16 @@ describe('RecordForm (가계부)', () => {
     expect(createRecord).not.toHaveBeenCalled();
   });
 
+  it('오류는 사용자가 읽을 수 있는 문구로 보인다 (개발자용 기본 문구 아님)', async () => {
+    renderForm();
+    fireEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    expect(await screen.findByText('금액을 입력해 주세요')).toBeTruthy();
+    expect(screen.getByText('분류를 골라 주세요')).toBeTruthy();
+    expect(screen.getByText('제목을 입력해 주세요')).toBeTruthy();
+    expect(screen.queryByText(/예상 타입/)).toBeNull();
+  });
+
   it('채워서 저장하면 변환된 값으로 저장하고 홈으로 replace', async () => {
     vi.mocked(createRecord).mockImplementation(async (input) => ({
       ...input,

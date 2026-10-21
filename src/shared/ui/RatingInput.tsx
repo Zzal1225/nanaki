@@ -2,6 +2,7 @@ import { RadioGroup } from 'radix-ui';
 import { Star } from 'lucide-react';
 import { useId } from 'react';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from './icon';
+import FieldError from './FieldError';
 
 type RatingInputProps = {
   label: string;
@@ -61,11 +62,7 @@ export default function RatingInput({
           );
         })}
       </RadioGroup.Root>
-      {hasError && (
-        <span id={errorId} className='text-caption text-danger'>
-          {error}
-        </span>
-      )}
+      <FieldError id={errorId} message={error} />
     </div>
   );
 }

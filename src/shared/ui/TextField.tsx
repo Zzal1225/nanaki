@@ -1,4 +1,5 @@
 import { useId, type ComponentProps } from 'react';
+import FieldError from './FieldError';
 
 type TextFieldProps = ComponentProps<'input'> & {
   label: string;
@@ -46,11 +47,7 @@ export default function TextField({
         />
         {unit && <span className='text-body text-fg-secondary'>{unit}</span>}
       </div>
-      {hasError && (
-        <span id={errorId} className='text-caption text-danger'>
-          {error}
-        </span>
-      )}
+      <FieldError id={errorId} message={error} />
     </div>
   );
 }

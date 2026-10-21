@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { expenseFieldsSchema } from './expense';
+import { maxLengthMessage, requiredInputMessage } from './fieldKinds';
 import { reviewFieldsSchema } from './review';
 
 // 메모·제목 상한은 DB check와 같은 값이어야 한다 (supabase/migrations).
@@ -13,11 +14,30 @@ export const MAX_TAGS = 5;
 export const baseRecordSchema = z.object({
   id: z.uuid(),
   // Date로 바꾸지 않고 로컬 'YYYY-MM-DD' 문자열 그대로. 시간대 변환으로 자정 무렵 기록이 전날로 밀리지 않게
-  occurredAt: z.iso.date({ error: '날짜 형식이 아니에요' }),
-  title: z.string().trim().min(1).max(MAX_TITLE_LENGTH),
+  // 날짜 칸을 비우면 ''가 온다. 그때는 형식 오류 대신 "골라 주세요"
+  occurredAt: z.iso.date({
+    error: (issue) =>
+      issue.input === '' ? '날짜를 골라 주세요' : '날짜 형식이 아니에요',
+  }),
+  title: z
+    .string()
+    .trim()
+    .min(1, { error: requiredInputMessage('제목') })
+    .max(MAX_TITLE_LENGTH, { error: maxLengthMessage(MAX_TITLE_LENGTH) }),
   // DB에서 메모 없는 기록은 null로 온다
-  memo: z.string().max(MAX_MEMO_LENGTH).nullable(),
-  tags: z.array(z.string().trim().min(1).max(MAX_TAG_LENGTH)).max(MAX_TAGS),
+  memo: z
+    .string()
+    .max(MAX_MEMO_LENGTH, { error: maxLengthMessage(MAX_MEMO_LENGTH) })
+    .nullable(),
+  tags: z
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1)
+        .max(MAX_TAG_LENGTH, { error: maxLengthMessage(MAX_TAG_LENGTH) }),
+    )
+    .max(MAX_TAGS, { error: `태그는 ${MAX_TAGS}개까지 달 수 있어요` }),
 });
 
 export const expenseRecordSchema = baseRecordSchema.extend({

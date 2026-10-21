@@ -1,4 +1,5 @@
 import { useId, type ComponentProps } from 'react';
+import FieldError from './FieldError';
 
 type TextAreaProps = Omit<ComponentProps<'textarea'>, 'maxLength'> & {
   label: string;
@@ -42,11 +43,10 @@ export default function TextArea({
         } ${className}`}
         {...rest}
       />
-      <div className='flex justify-between gap-2 text-caption'>
-        <span id={errorId} className='text-danger'>
-          {error}
-        </span>
-        <span id={counterId} className='text-fg-secondary tabular-nums'>
+      {/* 오류가 없을 때도 글자 수는 오른쪽에 붙어 있게 한다 */}
+      <div className='flex items-start justify-between gap-2 text-caption'>
+        <FieldError id={errorId} message={error} />
+        <span id={counterId} className='ml-auto text-fg-secondary tabular-nums'>
           {length}/{maxLength}
         </span>
       </div>

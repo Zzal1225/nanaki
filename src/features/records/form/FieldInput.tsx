@@ -32,6 +32,7 @@ export type FieldView =
       name: string;
       label: string;
       maxLength: number;
+      placeholder?: string;
       isOptional?: boolean;
     };
 
@@ -92,6 +93,7 @@ export default function FieldInput({
         <TextField
           label={label}
           maxLength={field.maxLength}
+          placeholder={field.placeholder}
           value={typeof value === 'string' ? value : ''}
           onChange={(e) => onChange(emptyToUndefined(e.target.value))}
           error={error}

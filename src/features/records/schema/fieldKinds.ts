@@ -1,7 +1,20 @@
 import { z } from 'zod';
+import { withObjectParticle } from '@/shared/text/withObjectParticle';
 
-// 검증 오류 문구를 한국어로. 모든 기록 스키마가 이 파일을 거쳐서 여기서 한 번만 설정한다
+// 아래에서 문구를 정하지 않은 경우의 대비책. Zod 기본 한국어 문구는 개발자용이라("예상 타입은 number…")
+// 사용자에게 보이는 규칙에는 모두 직접 문구를 붙인다
 z.config(z.locales.ko());
+
+// 사용자에게 보이는 검증 문구. 필드 이름으로 만들어서 새 필드가 생겨도 문구를 따로 쓰지 않는다
+export function requiredInputMessage(label: string): string {
+  return `${withObjectParticle(label)} 입력해 주세요`;
+}
+export function requiredChoiceMessage(label: string): string {
+  return `${withObjectParticle(label)} 골라 주세요`;
+}
+export function maxLengthMessage(maxLength: number): string {
+  return `${maxLength}자까지 쓸 수 있어요`;
+}
 
 // 별점은 어느 타입이든 같은 범위라서 타입별 파일이 아니라 빌더 쪽에 둔다
 export const RATING_MIN = 1;
@@ -36,7 +49,14 @@ export function numberField<const N extends string>(options: {
   return {
     ...options,
     kind: 'number' as const,
-    schema: z.number().int().positive().max(options.max),
+    // 비어 있으면(undefined) 타입 오류로 오므로 그때 "입력해 주세요"를 보여 준다
+    schema: z
+      .number({ error: requiredInputMessage(options.label) })
+      .int({ error: '정수로 입력해 주세요' })
+      .positive({ error: '0보다 큰 값을 입력해 주세요' })
+      .max(options.max, {
+        error: `${options.max.toLocaleString('ko-KR')}${options.unit ?? ''}까지 입력할 수 있어요`,
+      }),
   };
 }
 
@@ -51,8 +71,13 @@ export function customSelectField<const N extends string>(options: {
   return {
     ...options,
     kind: 'select' as const,
-    // trim이 min(1)보다 앞이어야 공백만 입력한 값이 막힌다
-    schema: z.string().trim().min(1).max(options.maxLength),
+    // trim이 min(1)보다 앞이어야 공백만 입력한 값이 막힌다.
+    // 안 골랐으면 undefined(타입 오류), 직접 입력칸을 비웠으면 ''(min 오류) — 둘 다 "골라 주세요"
+    schema: z
+      .string({ error: requiredChoiceMessage(options.label) })
+      .trim()
+      .min(1, { error: requiredChoiceMessage(options.label) })
+      .max(options.maxLength, { error: maxLengthMessage(options.maxLength) }),
     allowCustom: true as const,
   };
 }
@@ -66,7 +91,9 @@ export function selectField<
   return {
     ...options,
     kind: 'select' as const,
-    schema: z.enum(options.options),
+    schema: z.enum(options.options, {
+      error: requiredChoiceMessage(options.label),
+    }),
     allowCustom: false as const,
   };
 }
@@ -79,7 +106,10 @@ export function ratingField<const N extends string>(options: {
   return {
     ...options,
     kind: 'rating' as const,
-    schema: z.int().min(RATING_MIN).max(RATING_MAX),
+    schema: z
+      .int({ error: requiredChoiceMessage(options.label) })
+      .min(RATING_MIN, { error: requiredChoiceMessage(options.label) })
+      .max(RATING_MAX, { error: `${RATING_MAX}점까지 고를 수 있어요` }),
   };
 }
 
@@ -87,11 +117,17 @@ export function textField<const N extends string>(options: {
   name: N;
   label: string;
   maxLength: number;
+  // 무엇을 쓰는 칸인지 이름만으로 헷갈릴 때 예시를 보여 준다 (장소 = 주소가 아니라 장소 이름)
+  placeholder?: string;
 }) {
   return {
     ...options,
     kind: 'text' as const,
-    schema: z.string().trim().min(1).max(options.maxLength),
+    schema: z
+      .string({ error: requiredInputMessage(options.label) })
+      .trim()
+      .min(1, { error: requiredInputMessage(options.label) })
+      .max(options.maxLength, { error: maxLengthMessage(options.maxLength) }),
   };
 }
 

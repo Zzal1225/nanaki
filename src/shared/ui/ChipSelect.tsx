@@ -5,6 +5,7 @@ import { ToggleGroup } from 'radix-ui';
 import { Check } from 'lucide-react';
 import { useId, useRef, useState } from 'react';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from './icon';
+import FieldError from './FieldError';
 
 type ChipSelectProps = {
   label: string;
@@ -92,7 +93,8 @@ export default function ChipSelect({
           aria-label={`${label} 직접 입력`}
           aria-invalid={hasError}
           aria-describedby={hasError ? errorId : undefined}
-          placeholder={`${label}을 입력하세요`}
+          // 라벨에 '(선택)'이 붙을 수 있어서 이름을 넣지 않는다 (이름은 위 칩 묶음 제목이 이미 보여 준다)
+          placeholder='직접 입력하세요'
           className={`h-12 rounded-md border bg-surface px-4 text-body text-fg-primary outline-none placeholder:text-fg-secondary ${
             hasError
               ? 'border-danger ring-1 ring-danger'
@@ -100,11 +102,7 @@ export default function ChipSelect({
           }`}
         />
       )}
-      {hasError && (
-        <span id={errorId} className='text-caption text-danger'>
-          {error}
-        </span>
-      )}
+      <FieldError id={errorId} message={error} />
     </div>
   );
 }
