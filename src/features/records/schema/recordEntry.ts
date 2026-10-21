@@ -56,3 +56,9 @@ export const recordEntrySchema = z.discriminatedUnion('type', [
   reviewRecordSchema,
 ]);
 export type RecordEntry = z.infer<typeof recordEntrySchema>;
+
+// 타입 하나의 기록만: RecordEntryOf<'expense'> = 가계부 기록 (판별 유니온에서 그 타입만 꺼낸다)
+export type RecordEntryOf<T extends RecordEntry['type']> = Extract<
+  RecordEntry,
+  { type: T }
+>;
