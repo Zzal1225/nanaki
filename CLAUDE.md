@@ -84,6 +84,8 @@ src/
   lib/db/         Dexie 스키마와 마이그레이션 (예정)
 tests/integration/  진짜 Supabase에 붙는 통합 테스트(RLS 격리 등). npm run test:integration, CI가 로컬 Supabase(Docker)를 띄워 돌린다
 tests/e2e/          Playwright E2E (npm run test:e2e). CI가 같은 로컬 Supabase에 붙인 빌드로 실제 브라우저 흐름을 돌린다
+                    visual.spec.ts = 화면 비교, 기준 이미지는 visual.spec.ts-snapshots/ (CI 리눅스에서만 만든다:
+                    화면을 바꾸면 CI가 실패하며 visual-snapshots 아티팩트를 올린다 → 내려받아 확인 → 바뀐 이미지만 커밋)
 supabase/migrations/ DB 구조(SQL). 새 파일은 npm run db:new, 적용은 npm run db:push, 타입은 npm run db:types
 tokens/tokens.json   디자인 토큰의 유일한 원본. 바꾸면 src/app/globals.css를 맞춘다
 design/              시안 참고용. 앱 코드에서 import하지 않고 ESLint 대상도 아님 (README.md 참고)
