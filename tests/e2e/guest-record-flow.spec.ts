@@ -23,9 +23,10 @@ test('체험하기 → 가계부 쓰기 → 홈 캘린더의 오늘 요약에 �
 
   // 날짜는 기본값(오늘) 그대로
   await page.getByLabel('금액').fill('5000');
+  // 분류 칩은 하나만 고르는 Radix ToggleGroup이라 radiogroup > radio로 읽힌다 (화면 읽기 프로그램이 듣는 그대로)
   await page
-    .getByRole('group', { name: '분류' })
-    .getByText('식비', { exact: true })
+    .getByRole('radiogroup', { name: '분류' })
+    .getByRole('radio', { name: '식비' })
     .click();
   await page.getByLabel('제목').fill('편의점');
   await page.getByRole('button', { name: '저장' }).click();
