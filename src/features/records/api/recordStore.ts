@@ -22,7 +22,9 @@ export type DistributiveOmit<T, K extends PropertyKey> = T extends unknown
   : never;
 export type NewRecordInput = DistributiveOmit<RecordEntry, 'id'>;
 
-// 모든 조회에 deleted_at is null: 소프트 삭제라 지운 기록도 테이블에 남아 있다
+// 모든 조회에 deleted_at is null: 소프트 삭제라 지운 기록도 테이블에 남아 있다.
+// 정렬 끝에는 늘 id를 둔다: 날짜·만든 시각까지 같으면 DB는 순서를 보장하지 않아, 불러올 때마다 목록이 뒤바뀔 수 있다.
+// id는 겹치지 않으므로 마지막 기준으로 두면 같은 데이터는 언제나 같은 순서로 나온다
 
 export async function listRecords(
   from: string,
@@ -38,7 +40,8 @@ export async function listRecords(
     .is('deleted_at', null)
     // 같은 날짜끼리는 만든 순서로. 기준이 없으면 새로고침할 때마다 순서가 바뀔 수 있다
     .order('occurred_at', { ascending: true })
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true })
+    .order('id', { ascending: true });
 
   if (error) {
     throw error;
@@ -60,6 +63,7 @@ export async function listRecentRecords(limit: number): Promise<RecordEntry[]> {
     .is('deleted_at', null)
     .order('occurred_at', { ascending: false })
     .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
     .limit(limit);
 
   if (error) {
@@ -203,7 +207,8 @@ export async function listRecordsOfType(
     .lte('occurred_at', to)
     .is('deleted_at', null)
     .order('occurred_at', { ascending: false })
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false });
 
   if (error) {
     throw error;
