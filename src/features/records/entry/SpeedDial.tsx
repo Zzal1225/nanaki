@@ -9,15 +9,12 @@ import { Suspense, useState } from 'react';
 import { useToastStore } from '@/shared/toast/toastStore';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import { RECORD_TYPE_STYLE } from '../ui/recordTypeStyle';
-import { NEW_RECORD_MENU_ITEMS } from './newRecordMenu';
+import { useNewRecordMenuItems } from './useNewRecordMenuItems';
 
 const NEW_RECORD_PATH = '/records/new';
 const EDIT_PATH_SUFFIX = '/edit';
 // 시안 규격: + 버튼 56px 안의 아이콘 28px
 const FAB_ICON_SIZE = 28;
-
-// 아래에서 위로 쌓으므로 목록을 뒤집어 그린다. 첫 항목(가계부)이 + 버튼 바로 위, 엄지에 가장 가깝다
-const DIAL_ITEMS = [...NEW_RECORD_MENU_ITEMS].reverse();
 
 // 모바일 전용 작성 버튼. 메뉴라서 Radix DropdownMenu를 쓴다:
 // 화살표 키로 항목 이동, Esc로 닫기, 닫으면 + 버튼으로 포커스가 돌아오는 동작이 따라온다
@@ -35,6 +32,8 @@ function SpeedDialWithPathname() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const hasToast = useToastStore((state) => state.toast !== null);
+  // 아래에서 위로 쌓으므로 목록을 뒤집어 그린다. 첫 항목(가계부)이 + 버튼 바로 위, 엄지에 가장 가깝다
+  const dialItems = [...useNewRecordMenuItems()].reverse();
 
   // 작성·수정 중에는 숨긴다 (CLAUDE.md: 입력 중 스피드 다이얼 숨김)
   if (
@@ -88,7 +87,7 @@ function SpeedDialWithPathname() {
           sideOffset={12}
           className='z-40 flex flex-col items-end gap-3 outline-none md:hidden'
         >
-          {DIAL_ITEMS.map((item) => {
+          {dialItems.map((item) => {
             const style = RECORD_TYPE_STYLE[item.type];
             const Icon = style.icon;
             return (

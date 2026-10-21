@@ -23,3 +23,11 @@ export async function signInAsGuest(): Promise<AuthError | null> {
 
   return error;
 }
+
+// 로그아웃. 세션 쿠키를 지운다. 화면 이동과 메모리 정리는 부르는 쪽(LogoutButton)이 맡는다
+export async function signOut(): Promise<AuthError | null> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.auth.signOut();
+
+  return error;
+}

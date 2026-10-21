@@ -1,14 +1,19 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { listRecentRecords, listRecords } from '../api/recordStore';
 import type { RecordEntry } from '../schema/recordEntry';
+import { getUserSettings } from '@/features/settings/api/settingsStore';
 import RecordsOverview from './RecordsOverview';
 
 // 실제 Supabase 대신 가짜. 이 테스트는 "받은 기록을 어떻게 보여 주는지"만 본다
 // 테스트에는 Next 라우터가 없어서 지금 주소를 가짜로 준다 (PC 선택 표시용)
 vi.mock('next/navigation', () => ({ usePathname: () => '/records' }));
+vi.mock('@/features/settings/api/settingsStore', () => ({
+  getUserSettings: vi.fn(),
+  updateHiddenTypes: vi.fn(),
+}));
 vi.mock('../api/recordStore', () => ({
   listRecords: vi.fn(),
   listRecentRecords: vi.fn(),
@@ -48,6 +53,7 @@ describe('RecordsOverview', () => {
   beforeEach(() => {
     vi.mocked(listRecords).mockReset();
     vi.mocked(listRecentRecords).mockReset();
+    vi.mocked(getUserSettings).mockResolvedValue({ hiddenTypes: [] });
   });
   afterEach(() => cleanup());
 
@@ -93,6 +99,20 @@ describe('RecordsOverview', () => {
     expect(screen.getByText('0원')).toBeTruthy();
     expect(screen.getByText('0건')).toBeTruthy();
     expect(screen.getByRole('button', { name: '기록 추가하기' })).toBeTruthy();
+  });
+
+  it('설정에서 끈 타입은 카드와 최근 기록에서 빠진다', async () => {
+    vi.mocked(getUserSettings).mockResolvedValue({ hiddenTypes: ['review'] });
+    vi.mocked(listRecords).mockResolvedValue([LUNCH, CAFE]);
+    vi.mocked(listRecentRecords).mockResolvedValue([LUNCH, CAFE]);
+    renderOverview();
+
+    // 기록이 그려진 뒤(점심이 보인 뒤)에 확인한다. 그 전에는 후기도 원래 안 보여서 검사가 의미 없다
+    expect(await screen.findByText('점심 · 식비')).toBeTruthy();
+    // 설정을 불러오기 전에는 모두 켜진 것으로 그리므로, 후기가 사라질 때까지 기다린다
+    await waitFor(() => expect(screen.queryByText('동네 로스터리')).toBeNull());
+    expect(screen.queryByText('이번 달 작성')).toBeNull();
+    expect(screen.getByText('이번 달 지출')).toBeTruthy();
   });
 
   it('불러오지 못하면 안내와 다시 시도 버튼', async () => {

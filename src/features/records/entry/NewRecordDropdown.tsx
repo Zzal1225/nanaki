@@ -6,7 +6,7 @@ import Link from 'next/link';
 import type { ReactElement } from 'react';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import { RECORD_TYPE_STYLE } from '../ui/recordTypeStyle';
-import { NEW_RECORD_MENU_ITEMS, newRecordHref } from './newRecordMenu';
+import { useNewRecordMenuItems } from './useNewRecordMenuItems';
 
 type NewRecordDropdownProps = {
   // 누르면 메뉴가 열리는 버튼. 모양은 쓰는 곳(사이드바, 빈 상태)마다 달라서 밖에서 받는다
@@ -17,12 +17,14 @@ type NewRecordDropdownProps = {
 };
 
 // "어떤 기록을 쓸지" 고르는 메뉴. 사이드바와 기록 탭 빈 상태가 같은 메뉴를 쓴다.
-// 모바일 스피드 다이얼은 모양(덮개 + 아래에서 위로)이 달라 따로 그리지만 목록(NEW_RECORD_MENU_ITEMS)은 같다
+// 모바일 스피드 다이얼은 모양(덮개 + 아래에서 위로)이 달라 따로 그리지만 목록(useNewRecordMenuItems = 켜진 타입)은 같다
 export default function NewRecordDropdown({
   trigger,
   align = 'start',
   date,
 }: NewRecordDropdownProps) {
+  const items = useNewRecordMenuItems(date);
+
   return (
     <DropdownMenu.Root>
       {/* asChild: 받은 버튼을 그대로 쓰고 Radix는 열기·키보드 동작만 붙인다 */}
@@ -34,13 +36,13 @@ export default function NewRecordDropdown({
           sideOffset={8}
           className='z-40 min-w-48 rounded-md border border-border bg-surface-raised p-1 shadow-float'
         >
-          {NEW_RECORD_MENU_ITEMS.map((item) => {
+          {items.map((item) => {
             const style = RECORD_TYPE_STYLE[item.type];
             const Icon = style.icon;
             return (
               <DropdownMenu.Item key={item.type} asChild>
                 <Link
-                  href={date ? newRecordHref(item.type, date) : item.href}
+                  href={item.href}
                   className='flex min-h-11 items-center gap-3 rounded-sm px-3 text-body-sm font-medium text-fg-primary outline-none data-highlighted:bg-surface-hover'
                 >
                   <Icon

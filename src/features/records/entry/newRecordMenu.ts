@@ -18,10 +18,15 @@ export function newRecordHref(type: RecordType, date?: string): string {
   return `/records/new?${params.toString()}`;
 }
 
-// 설정의 타입 켜기/끄기(step1 설정 화면)가 생기면 여기서 꺼진 타입을 거른다
-export const NEW_RECORD_MENU_ITEMS: readonly NewRecordMenuItem[] =
-  RECORD_TYPE_ORDER.map((type) => ({
+// 작성 메뉴 항목. 켜진 타입만 받는다: 설정에서 끈 타입은 메뉴에서 빠진다 (useNewRecordMenuItems).
+// 상수가 아니라 함수인 이유: 켜진 타입은 사용자 설정(DB)이라 화면이 뜬 뒤에야 안다
+export function getNewRecordMenuItems(
+  types: readonly RecordType[],
+  date?: string,
+): NewRecordMenuItem[] {
+  return types.map((type) => ({
     type,
     label: `${RECORD_TYPE_CONFIG[type].label} 쓰기`,
-    href: newRecordHref(type),
+    href: newRecordHref(type, date),
   }));
+}
