@@ -6,12 +6,14 @@ import Link from 'next/link';
 import type { ReactElement } from 'react';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import { RECORD_TYPE_STYLE } from '../ui/recordTypeStyle';
-import { NEW_RECORD_MENU_ITEMS } from './newRecordMenu';
+import { NEW_RECORD_MENU_ITEMS, newRecordHref } from './newRecordMenu';
 
 type NewRecordDropdownProps = {
   // 누르면 메뉴가 열리는 버튼. 모양은 쓰는 곳(사이드바, 빈 상태)마다 달라서 밖에서 받는다
   trigger: ReactElement;
   align?: 'start' | 'center' | 'end';
+  // 홈에서 고른 날짜. 주면 작성 폼이 그 날짜로 시작한다
+  date?: string;
 };
 
 // "어떤 기록을 쓸지" 고르는 메뉴. 사이드바와 기록 탭 빈 상태가 같은 메뉴를 쓴다.
@@ -19,6 +21,7 @@ type NewRecordDropdownProps = {
 export default function NewRecordDropdown({
   trigger,
   align = 'start',
+  date,
 }: NewRecordDropdownProps) {
   return (
     <DropdownMenu.Root>
@@ -37,7 +40,7 @@ export default function NewRecordDropdown({
             return (
               <DropdownMenu.Item key={item.type} asChild>
                 <Link
-                  href={item.href}
+                  href={date ? newRecordHref(item.type, date) : item.href}
                   className='flex min-h-11 items-center gap-3 rounded-sm px-3 text-body-sm font-medium text-fg-primary outline-none data-highlighted:bg-surface-hover'
                 >
                   <Icon

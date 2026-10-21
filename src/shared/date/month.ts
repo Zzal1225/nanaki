@@ -43,3 +43,9 @@ export function formatMonthLabel(month: string, currentMonth: string): string {
     ? `${monthNumber}월`
     : `${year}년 ${monthNumber}월`;
 }
+
+// '2026-10' → '2026년 10월' (홈 캘린더 제목). 홈은 해가 바뀌어도 헷갈리지 않게 연도를 늘 붙인다 (시안)
+export function formatYearMonthLabel(month: string): string {
+  const [year, monthNumber] = month.split('-').map(Number);
+  return `${year}년 ${monthNumber}월`;
+}

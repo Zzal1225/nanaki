@@ -10,9 +10,12 @@ export type NewRecordMenuItem = {
   href: string;
 };
 
-// 작성 화면 주소는 이 함수 한 곳에서만 만든다. 주소 모양이 바뀌어도 메뉴·버튼을 하나씩 고치지 않게
-export function newRecordHref(type: RecordType): string {
-  return `/records/new?type=${type}`;
+// 작성 화면 주소는 이 함수 한 곳에서만 만든다. 주소 모양이 바뀌어도 메뉴·버튼을 하나씩 고치지 않게.
+// date: 홈에서 고른 날에 쓰기 시작하면 그 날짜를 미리 채운다 (없으면 폼이 오늘로)
+export function newRecordHref(type: RecordType, date?: string): string {
+  const params = new URLSearchParams({ type });
+  if (date) params.set('date', date);
+  return `/records/new?${params.toString()}`;
 }
 
 // 설정의 타입 켜기/끄기(step1 설정 화면)가 생기면 여기서 꺼진 타입을 거른다

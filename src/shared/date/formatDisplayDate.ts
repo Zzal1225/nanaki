@@ -27,3 +27,10 @@ export function formatShortDate(dateString: string): string {
   if (!parts) return '';
   return `${parts.month}.${parts.day} (${parts.weekday})`;
 }
+
+// 'YYYY-MM-DD' → '10월 16일 (금)' (홈 하루 요약 머리). 앞자리 0은 뺀다: 말로 읽는 모양이라 '10월 06일'은 어색하다
+export function formatMonthDayLabel(dateString: string): string {
+  const parts = parseDateString(dateString);
+  if (!parts) return '';
+  return `${Number(parts.month)}월 ${Number(parts.day)}일 (${parts.weekday})`;
+}

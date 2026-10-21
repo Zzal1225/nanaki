@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { formatDisplayDate, formatShortDate } from './formatDisplayDate';
+import {
+  formatDisplayDate,
+  formatMonthDayLabel,
+  formatShortDate,
+} from './formatDisplayDate';
 
 describe('formatDisplayDate', () => {
   it('시안 모양 YYYY. MM. DD (요일)', () => {
@@ -21,5 +25,15 @@ describe('formatShortDate', () => {
   });
   it('형식이 틀리면 빈 글자', () => {
     expect(formatShortDate('')).toBe('');
+  });
+});
+
+describe('formatMonthDayLabel', () => {
+  it('시안 모양 M월 D일 (요일), 앞자리 0 없음', () => {
+    expect(formatMonthDayLabel('2026-10-16')).toBe('10월 16일 (금)');
+    expect(formatMonthDayLabel('2026-03-05')).toBe('3월 5일 (목)');
+  });
+  it('형식이 틀리면 빈 글자', () => {
+    expect(formatMonthDayLabel('')).toBe('');
   });
 });

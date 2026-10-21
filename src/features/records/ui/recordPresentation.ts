@@ -16,6 +16,9 @@ type RecordPresentation<T extends RecordType> = {
   detailKicker: (entry: EntryOf<T>) => string;
   // 상세에서 제목 아래 크게 보여 줄 필드. 아래 표에서는 빼서 같은 값이 두 번 나오지 않게 한다
   headlineField: keyof EntryOf<T>['fields'];
+  // 홈 하루 요약 한 줄: 이름과 값 (시안: "가계부 3건 · -32,000원", "후기 1건 · 동네 로스터리 ★4")
+  dayLabel: (entries: EntryOf<T>[]) => string;
+  dayValue: (entries: EntryOf<T>[]) => string;
 };
 
 // 타입마다 어떻게 보여 줄지는 여기 한 곳에만 둔다. 목록·카드 컴포넌트는 이 함수만 불러서
@@ -29,6 +32,9 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
       formatExpenseAmount(entries.reduce((sum, e) => sum + e.fields.amount, 0)),
     detailKicker: (entry) => entry.fields.category,
     headlineField: 'amount',
+    dayLabel: (entries) => `가계부 ${entries.length}건`,
+    dayValue: (entries) =>
+      formatExpenseAmount(entries.reduce((sum, e) => sum + e.fields.amount, 0)),
   },
   review: {
     listTitle: (entry) => entry.title,
@@ -37,6 +43,12 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
     monthValue: (entries) => `${entries.length}건`,
     detailKicker: (entry) => entry.fields.targetKind,
     headlineField: 'rating',
+    dayLabel: (entries) => `후기 ${entries.length}건`,
+    // 후기는 더할 값이 없어서 첫 대상의 이름을 보여 주고, 여러 개면 나머지 개수만 붙인다
+    dayValue: ([first, ...rest]) =>
+      rest.length === 0
+        ? `${first.title} ${formatRating(first.fields.rating)}`
+        : `${first.title} 외 ${rest.length}건`,
   },
 };
 
@@ -83,4 +95,13 @@ export function getDetailKicker(entry: RecordEntry): string {
 
 export function getHeadlineField(type: RecordType): string {
   return String(RECORD_PRESENTATION[type].headlineField);
+}
+
+// 홈 하루 요약: 같은 타입의 그날 기록을 받는다. 빈 배열은 넘기지 않는다 (그 타입 줄을 아예 그리지 않으므로)
+export function getDayLabel(type: RecordType, entries: RecordEntry[]): string {
+  return presentationOf(type).dayLabel(entries as never);
+}
+
+export function getDayValue(type: RecordType, entries: RecordEntry[]): string {
+  return presentationOf(type).dayValue(entries as never);
 }

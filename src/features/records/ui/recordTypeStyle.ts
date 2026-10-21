@@ -7,6 +7,8 @@ type RecordTypeStyle = {
   textClass: string;
   // 아이콘을 담는 원의 옅은 배경
   subtleBgClass: string;
+  // 캘린더 날짜 칸의 점 (타입 색으로 채운 원)
+  dotClass: string;
 };
 
 // 화면 모양(아이콘·색)은 스키마 설정(recordTypes)과 나눠 둔다. 스키마 쪽은 서버·테스트에서도 쓰여서 UI 라이브러리를 몰라야 한다.
@@ -16,10 +18,12 @@ export const RECORD_TYPE_STYLE: Record<RecordType, RecordTypeStyle> = {
     icon: Wallet,
     textClass: 'text-type-expense',
     subtleBgClass: 'bg-type-expense-subtle',
+    dotClass: 'bg-type-expense',
   },
   review: {
     icon: MessageSquareText,
     textClass: 'text-type-review',
     subtleBgClass: 'bg-type-review-subtle',
+    dotClass: 'bg-type-review',
   },
 };
