@@ -18,8 +18,10 @@ async function waitForFonts(page: Page) {
 
 async function capture(page: Page, name: string) {
   await waitForFonts(page);
-  // fullPage: 모바일에서 아래로 스크롤해야 보이는 부분까지
-  await expect(page).toHaveScreenshot(`${name}.png`, { fullPage: true });
+  // fullPage: 모바일에서 아래로 스크롤해야 보이는 부분까지.
+  // soft: 한 화면이 달라도 멈추지 않고 나머지 화면까지 찍어 비교한다. 첫 장에서 멈추면
+  // 어느 화면들이 깨졌는지 한 번에 알 수 없고, 새 기준 이미지도 한 장씩만 생긴다
+  await expect.soft(page).toHaveScreenshot(`${name}.png`, { fullPage: true });
 }
 
 // 로그인한 뒤의 세 화면. 각 화면은 데이터가 다 그려진 뒤에 찍는다 (불러오는 중의 회색 자리를 찍지 않게)
