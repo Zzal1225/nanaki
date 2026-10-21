@@ -66,7 +66,7 @@ src/
 supabase/migrations/ DB 구조(SQL). 새 파일은 npm run db:new, 적용은 npm run db:push, 타입은 npm run db:types
 tokens/tokens.json   디자인 토큰의 유일한 원본. 바꾸면 src/app/globals.css를 맞춘다
 design/              시안 참고용. 앱 코드에서 import하지 않고 ESLint 대상도 아님 (README.md 참고)
-private/             개인 기록(면접 질문, 트러블슈팅 초안). .gitignore 대상
+private/             개인 기록(면접 질문, 트러블슈팅·설계 결정 초안). .gitignore 대상
 public/              정적 파일
 ```
 
@@ -153,7 +153,7 @@ public/              정적 파일
    UI는 핵심 흐름만 컴포넌트 테스트·E2E로 검증하고, 화면이 바뀌면 화면 비교 스냅샷을 확인한다.
 4. **검증**: 커밋 전에 `lint`, `typecheck`, `test`가 모두 통과해야 한다.
    성능 관련 작업은 **변경 전 수치를 먼저 측정**하고, 전후 수치를 `docs/performance.md`에 기록한다.
-5. **기록**: 설계 결정(대안과 버린 이유)은 `docs/decisions/`에 짧게 남긴다. 면접 답변의 근거가 된다.
+5. **기록**: 설계 결정(대안과 버린 이유)은 초안을 `private/decisions/YYYY-MM-DD-제목.md`에 짧게 남긴다. 면접 답변의 근거가 된다. 트러블슈팅처럼 막바지에 좋은 것만 골라 `docs/decisions/`로 옮겨 공개한다.
 
 ### 5-3. 포트폴리오 기록
 
