@@ -12,7 +12,7 @@ export type DayRecordItem = {
 
 type DayTypeRowProps = {
   type: RecordType;
-  // "가계부 3건" · "-32,000원"
+  // "가계부 3건": "-32,000원"
   label: string;
   value: string;
   items: DayRecordItem[];
@@ -58,7 +58,8 @@ export default function DayTypeRow({
         </span>
         <span className='min-w-0 flex-1 truncate text-body text-fg-primary'>
           <b className='font-semibold'>{label}</b>
-          <span className='text-fg-secondary'> · </span>
+          {/* 가운뎃점(·)은 "가계부 3건 · 점심 · 식비"처럼 나열로 읽혀서, 이름과 값 사이는 콜론으로 (가계부 1건: -12,500원) */}
+          <span className='text-fg-secondary'>: </span>
           <span className='tabular-nums'>{value}</span>
         </span>
         <span className='flex size-11 items-center justify-center text-fg-secondary'>

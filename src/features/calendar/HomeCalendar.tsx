@@ -4,7 +4,6 @@
 import { useId, useMemo } from 'react';
 import { useRecords } from '@/features/records/hooks/useRecords';
 import type { RecordType } from '@/features/records/schema/recordTypes';
-import { addDaysTo } from '@/shared/date/calendar';
 import CalendarGrid from './CalendarGrid';
 import CalendarHeader from './CalendarHeader';
 import { formatPeriodTitle, getVisibleRange } from './calendarPeriod';
@@ -12,12 +11,14 @@ import { shiftPeriod } from './calendarState';
 import DaySummary from './DaySummary';
 import { groupByDate, groupByType } from './dayRecords';
 import { useCalendar } from './useCalendar';
+import ViewToggle from './ViewToggle';
 
 // 홈 = 캘린더 + 고른 날 요약. 모바일·태블릿은 위아래, PC(lg)는 좌우 (시안 P1: 오른쪽 400px).
 // 차이는 CSS로만 낸다: 화면 폭을 JS로 읽어 다른 컴포넌트를 그리면 서버 HTML과 어긋난다 (CLAUDE.md)
 export default function HomeCalendar() {
   const calendar = useCalendar();
   const titleId = useId();
+  const gridId = useId();
 
   // 보이는 기간(그 달 또는 그 주) 안에서 날짜를 옮기면 쿼리 키가 그대로 → 다시 불러오지 않는다
   const records = useRecords(calendar ? getVisibleRange(calendar.state) : null);
@@ -65,9 +66,8 @@ export default function HomeCalendar() {
           nextLabel={`${formatPeriodTitle(shiftPeriod(state, 1))}로`}
           onPrevious={() => calendar.shiftPeriod(-1)}
           onNext={() => calendar.shiftPeriod(1)}
+          today={today}
           onToday={calendar.goToday}
-          view={state.view}
-          onViewChange={calendar.setView}
         />
         {/* PC 월 보기는 카드가 남은 높이를 채운다. 주 보기는 한 줄이라 칸 높이만큼만 */}
         <div
@@ -76,11 +76,19 @@ export default function HomeCalendar() {
           }`}
         >
           <CalendarGrid
+            id={gridId}
             state={state}
             today={today}
             dotTypesByDate={dotTypesByDate}
             onSelectDate={calendar.selectDate}
             labelledBy={titleId}
+          />
+        </div>
+        <div className='flex justify-center pt-1'>
+          <ViewToggle
+            view={state.view}
+            onViewChange={calendar.setView}
+            controls={gridId}
           />
         </div>
       </section>
@@ -93,10 +101,6 @@ export default function HomeCalendar() {
           groups={records.isPending ? null : groupByType(dayEntries)}
           isError={records.isError}
           onRetry={() => void records.refetch()}
-          onShiftDay={(delta) =>
-            calendar.selectDate(addDaysTo(state.date, delta))
-          }
-          onGoToday={calendar.goToday}
         />
       </div>
     </div>

@@ -13,6 +13,8 @@ const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'] as cons
 const DAY_OF_MONTH_START = 'YYYY-MM-'.length;
 
 type CalendarGridProps = {
+  // 아래 월·주 손잡이(ViewToggle)가 aria-controls로 가리킨다
+  id: string;
   state: CalendarState;
   today: string;
   // 날짜 → 그날 기록이 있는 타입 (점). 기록을 불러오는 중이면 비어 있다
@@ -36,6 +38,7 @@ function toCellLabel(date: string, types: RecordType[]): string {
 //   42칸이 모두 Tab 순서에 있으면 키보드 사용자가 캘린더를 벗어나려고 42번 눌러야 한다
 // - 고른 날짜는 주소(?date=)가 기억한다. 칸은 받은 값을 그리기만 하고, 바꿀 때는 onSelectDate를 부른다
 export default function CalendarGrid({
+  id,
   state,
   today,
   dotTypesByDate,
@@ -71,6 +74,7 @@ export default function CalendarGrid({
 
   return (
     <div
+      id={id}
       ref={gridRef}
       role='grid'
       aria-labelledby={labelledBy}

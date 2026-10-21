@@ -104,7 +104,7 @@ describe('HomeCalendar', () => {
 
     expect(window.location.search).toBe('?date=2026-10-16');
     expect(
-      screen.getByRole('heading', { name: '10월 16일 (금)' }),
+      screen.getByRole('heading', { name: '10월 16일 금요일' }),
     ).toBeDefined();
     expect(screen.getByText('기록이 없어요')).toBeDefined();
   });
@@ -130,6 +130,25 @@ describe('HomeCalendar', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '2026년 11월로' }));
     expect(window.location.search).toBe('?date=2026-11-30');
+  });
+
+  it('오늘 아이콘에 오늘 날짜가 적혀 있고, 누르면 오늘로 돌아온다', () => {
+    renderCalendar('?date=2026-08-03');
+    const todayButton = screen.getByRole('button', {
+      name: '오늘(10월 21일 (수))로',
+    });
+    expect(todayButton.textContent).toBe('21');
+
+    fireEvent.click(todayButton);
+
+    expect(window.location.search).toBe('?date=2026-10-21');
+    expect(screen.getByRole('heading', { name: '2026년 10월' })).toBeDefined();
+  });
+
+  it('하루 요약에는 날짜를 옮기는 버튼이 없다 (날짜는 칸을 눌러 고른다)', () => {
+    renderCalendar();
+    expect(screen.queryByRole('button', { name: '전날' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '다음 날' })).toBeNull();
   });
 
   it('타입 줄을 누르면 그날 기록이 펼쳐진다', async () => {
@@ -160,7 +179,7 @@ describe('HomeCalendar 주 보기', () => {
   it('주로 바꾸면 고른 날은 그대로, 그 주 7칸과 그 주 기록만', async () => {
     renderCalendar('?date=2026-10-21');
 
-    fireEvent.click(screen.getByRole('radio', { name: '주' }));
+    fireEvent.click(screen.getByRole('button', { name: '주 보기' }));
 
     expect(window.location.search).toBe('?view=week&date=2026-10-21');
     expect(screen.getByRole('heading', { name: '10월 18–24일' })).toBeDefined();
@@ -197,7 +216,7 @@ describe('HomeCalendar 주 보기', () => {
   it('월로 돌아가면 view가 주소에서 빠지고 고른 날의 달이 열린다', () => {
     renderCalendar('?view=week&date=2026-11-04');
 
-    fireEvent.click(screen.getByRole('radio', { name: '월' }));
+    fireEvent.click(screen.getByRole('button', { name: '월 보기' }));
 
     expect(window.location.search).toBe('?date=2026-11-04');
     expect(screen.getByRole('heading', { name: '2026년 11월' })).toBeDefined();
