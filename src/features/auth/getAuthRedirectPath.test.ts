@@ -27,6 +27,14 @@ describe('getAuthRedirectPath', () => {
   it('로그인 한 사람은 디자인 시스템을 볼 수 있다', () => {
     expect(getAuthRedirectPath('/design-system', true)).toBe(null);
   });
+  // API는 로그인 화면으로 보내지 않는다. 대신 각 API가 401을 준다
+  it('API는 로그인 여부와 상관없이 보내지 않는다', () => {
+    expect(getAuthRedirectPath('/api/account', false)).toBe(null);
+    expect(getAuthRedirectPath('/api/account', true)).toBe(null);
+  });
+  it('/api로 시작하는 화면 이름은 그대로 보호된다', () => {
+    expect(getAuthRedirectPath('/apiary', false)).toBe(LOGIN_PATH);
+  });
   // 공개 목록에 등록하지 않은 새 화면도 자동으로 보호되는지 확인한다 (기본 거부)
   it('로그인 안 한 사람은 앞으로 생길 주소에 갈 수 없다', () => {
     expect(getAuthRedirectPath('/records/abc', false)).toBe(LOGIN_PATH);

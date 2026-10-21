@@ -58,3 +58,24 @@ export function parseSupabaseEnv(
   // origin은 끝의 /를 뺀 https://<ref>.supabase.co만 남긴다
   return { url: parsed.origin, publishableKey };
 }
+
+// 관리자(secret) 키. 서버(Route Handler)에서만 읽는다. NEXT_PUBLIC_이 아니라서 브라우저 코드에는 아예 들어가지 않는다.
+// 없으면 null: 키를 넣지 않은 환경(일부 미리보기)에서도 앱은 뜨고, 계정 삭제만 "지금은 할 수 없어요"로 안내한다
+export function getSupabaseSecretKey(): string | null {
+  return parseSupabaseSecretKey(process.env.SUPABASE_SECRET_KEY);
+}
+
+export function parseSupabaseSecretKey(
+  rawKey: string | undefined,
+): string | null {
+  const key = rawKey?.trim();
+  if (!key) return null;
+
+  // publishable 키를 잘못 넣으면 관리자 요청이 권한 오류로 실패하는데, 오류 문구만으로는 원인을 알기 어렵다
+  if (!key.startsWith(SECRET_KEY_PREFIX)) {
+    throw new Error(
+      'SUPABASE_SECRET_KEY가 secret 키(sb_secret_...) 모양이 아닙니다. Supabase → Project Settings → API Keys의 Secret keys에서 복사하세요.',
+    );
+  }
+  return key;
+}

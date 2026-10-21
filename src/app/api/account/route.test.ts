@@ -1,0 +1,86 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import { getSupabaseSecretKey } from '@/lib/supabase/env';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { DELETE } from './route';
+
+// 실제 Supabase 대신 가짜. "누구를, 어떤 조건에서 지우는지"만 본다
+vi.mock('@/lib/supabase/env', () => ({ getSupabaseSecretKey: vi.fn() }));
+vi.mock('@/lib/supabase/server', () => ({
+  createSupabaseServerClient: vi.fn(),
+}));
+vi.mock('@/lib/supabase/admin', () => ({
+  createSupabaseAdminClient: vi.fn(),
+}));
+
+const APP_ORIGIN = 'https://nanaki.example';
+const deleteUser = vi.fn();
+const getUser = vi.fn();
+const signOut = vi.fn();
+
+function deleteRequest(origin: string | null = APP_ORIGIN) {
+  const headers = new Headers();
+  if (origin) headers.set('origin', origin);
+  return new Request(`${APP_ORIGIN}/api/account`, {
+    method: 'DELETE',
+    headers,
+  });
+}
+
+describe('DELETE /api/account', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getSupabaseSecretKey).mockReturnValue('sb_secret_test');
+    // 테스트에 필요한 메서드만 가진 가짜라서 실제 클라이언트 타입으로 넓혀 넘긴다
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({
+      auth: { getUser, signOut },
+    } as never);
+    vi.mocked(createSupabaseAdminClient).mockReturnValue({
+      auth: { admin: { deleteUser } },
+    } as never);
+    getUser.mockResolvedValue({
+      data: { user: { id: 'user-1' } },
+      error: null,
+    });
+    deleteUser.mockResolvedValue({ error: null });
+    signOut.mockResolvedValue({ error: null });
+  });
+
+  it('로그인한 본인 계정을 지우고 204', async () => {
+    const response = await DELETE(deleteRequest());
+
+    expect(response.status).toBe(204);
+    expect(deleteUser).toHaveBeenCalledWith('user-1');
+    expect(signOut).toHaveBeenCalled();
+  });
+
+  it('다른 사이트에서 온 요청이나 Origin이 없는 요청은 403, 아무것도 지우지 않는다', async () => {
+    expect((await DELETE(deleteRequest('https://evil.example'))).status).toBe(
+      403,
+    );
+    expect((await DELETE(deleteRequest(null))).status).toBe(403);
+    expect(deleteUser).not.toHaveBeenCalled();
+  });
+
+  it('secret 키가 없는 환경이면 503', async () => {
+    vi.mocked(getSupabaseSecretKey).mockReturnValue(null);
+
+    expect((await DELETE(deleteRequest())).status).toBe(503);
+    expect(deleteUser).not.toHaveBeenCalled();
+  });
+
+  it('로그인하지 않았으면 401', async () => {
+    getUser.mockResolvedValue({ data: { user: null }, error: null });
+
+    expect((await DELETE(deleteRequest())).status).toBe(401);
+    expect(deleteUser).not.toHaveBeenCalled();
+  });
+
+  it('삭제에 실패하면 500, 로그아웃하지 않는다', async () => {
+    deleteUser.mockResolvedValue({ error: { message: '실패' } });
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    expect((await DELETE(deleteRequest())).status).toBe(500);
+    expect(signOut).not.toHaveBeenCalled();
+  });
+});
