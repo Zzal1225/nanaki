@@ -60,14 +60,15 @@ src/
   proxy.ts        모든 요청 앞의 문지기. 세션 갱신 + 로그인 안 했으면 /login으로 (공개 주소는 features/auth)
   shared/         공통 코드. ui/ = 공통 컴포넌트(Radix + Tailwind), theme/ = 다크·라이트 전환,
                   layout/ = 사이드바·하단 탭(메뉴 목록은 navItems.ts 한 곳), query/ = TanStack Query Provider,
-                  date/ = 날짜 도우미(로컬 YYYY-MM-DD)
+                  date/ = 날짜 도우미(로컬 YYYY-MM-DD, 이번 달 범위, 브라우저에서만 읽는 오늘 useToday)
   features/       기능 단위 모듈. auth/ = 로그인. 이후 search, chat ...
                   records/schema/ = 필드 빌더(fieldKinds)와 타입별 스키마, RecordEntry 판별 유니온
                   records/api/ = 기록 저장·조회의 유일한 입구(recordStore)와 DB 줄 변환(recordMapper)
                   records/hooks/ = TanStack Query 훅과 쿼리 키(recordKeys)
                   records/form/ = 작성 폼(RecordForm), 필드 종류별 입력칸(FieldInput), 입력값 변환
                   records/entry/ = 새 기록 진입점(모바일 스피드 다이얼, 사이드바 "새 기록" 메뉴, 메뉴 목록)
-                  records/ui/ = 타입별 아이콘·색(recordTypeStyle)
+                  records/ui/ = 타입별 아이콘·색(recordTypeStyle), 목록·카드 표시 규칙(recordPresentation)
+                  records/overview/ = 기록 탭 첫 화면(이번 달 카드, 최근 기록)
   lib/supabase/   Supabase 클라이언트 (client.ts = 브라우저용, server.ts = 서버용), database.types.ts = DB 타입(자동 생성, 직접 수정 금지)
   lib/db/         Dexie 스키마와 마이그레이션 (예정)
 supabase/migrations/ DB 구조(SQL). 새 파일은 npm run db:new, 적용은 npm run db:push, 타입은 npm run db:types

@@ -5,4 +5,5 @@ export const recordKeys = {
   // 기간마다 키가 달라서 10월 목록과 11월 목록이 따로 캐시된다
   list: (from: string, to: string) =>
     [...recordKeys.all, 'list', from, to] as const,
+  recent: (limit: number) => [...recordKeys.all, 'recent', limit] as const,
 };

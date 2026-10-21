@@ -1,14 +1,29 @@
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
 const DATE_STRING_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 
-// 'YYYY-MM-DD' → '2026. 10. 16 (금)' (시안의 날짜 칸 표시)
+type DateParts = { year: string; month: string; day: string; weekday: string };
+
 // new Date('2026-10-16')으로 읽지 않는 이유: 그 형식은 UTC 자정으로 읽혀서
 // 미국 등 UTC보다 늦은 시간대에서는 하루 전 요일이 나온다. 숫자를 꺼내 로컬 날짜로 만든다
-export function formatDisplayDate(dateString: string): string {
+function parseDateString(dateString: string): DateParts | null {
   const match = DATE_STRING_PATTERN.exec(dateString);
-  if (!match) return '';
+  if (!match) return null;
 
   const [, year, month, day] = match;
   const date = new Date(Number(year), Number(month) - 1, Number(day));
-  return `${year}. ${month}. ${day} (${WEEKDAYS[date.getDay()]})`;
+  return { year, month, day, weekday: WEEKDAYS[date.getDay()] };
+}
+
+// 'YYYY-MM-DD' → '2026. 10. 16 (금)' (작성 폼·상세의 날짜 칸)
+export function formatDisplayDate(dateString: string): string {
+  const parts = parseDateString(dateString);
+  if (!parts) return '';
+  return `${parts.year}. ${parts.month}. ${parts.day} (${parts.weekday})`;
+}
+
+// 'YYYY-MM-DD' → '10.16 (금)' (목록처럼 좁은 자리. 시안 기록 탭)
+export function formatShortDate(dateString: string): string {
+  const parts = parseDateString(dateString);
+  if (!parts) return '';
+  return `${parts.month}.${parts.day} (${parts.weekday})`;
 }

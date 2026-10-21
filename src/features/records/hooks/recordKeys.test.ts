@@ -21,3 +21,14 @@ describe('recordKeys', () => {
     ]);
   });
 });
+
+describe('recordKeys.recent', () => {
+  it("최근 기록 키도 'records'로 시작한다 (저장 후 무효화에 포함)", () => {
+    expect(recordKeys.recent(20).slice(0, 1)).toEqual(recordKeys.all);
+  });
+  it('기간 목록 키와 겹치지 않는다', () => {
+    expect(recordKeys.recent(20)[1]).not.toBe(
+      recordKeys.list('2026-10-01', '2026-10-31')[1],
+    );
+  });
+});
