@@ -30,13 +30,17 @@ const SIGNED_IN_PAGES: Measurement[] = [
 
 let reportIndex = 0;
 
-async function measure(page: Measurement) {
+async function measure(page: Measurement, clearCache: () => Promise<void>) {
   for (let run = 1; run <= RUNS_PER_PAGE; run += 1) {
+    // 쿠키(로그인)는 두고 캐시만 비운다: 처음 방문하는 사용자처럼 JS·CSS를 매번 새로 내려받게.
+    // 비우지 않으면 앞 실행이 받아 둔 파일을 캐시에서 꺼내 "재방문" 점수가 된다 (첫 측정에서 전송량 0KiB로 발견)
+    await clearCache();
     const result = await lighthouse(`${BASE_URL}${page.path}`, {
       port: DEBUG_PORT,
       output: ['json', 'html'],
       logLevel: 'error',
-      // 기본값은 재기 전에 쿠키·저장소를 지운다. 그러면 로그인이 풀린 화면(로그인 화면으로 이동)을 재게 된다
+      // 기본값은 재기 전에 쿠키·저장소·캐시를 한꺼번에 지운다. 그러면 로그인이 풀린 화면(로그인 화면으로 이동)을 재게 된다.
+      // 그래서 끄고, 캐시만 위의 clearCache로 따로 비운다
       disableStorageReset: true,
     });
     if (!result) throw new Error(`Lighthouse 결과 없음: ${page.path}`);
@@ -78,10 +82,17 @@ async function main() {
     args: [`--remote-debugging-port=${DEBUG_PORT}`],
   });
 
+  // 크롬 개발자 도구 프로토콜(CDP)로 브라우저 캐시를 비운다. 캐시는 브라우저 전체가 같이 쓰므로 아무 탭에서 비워도 된다
+  const cdpPage = await context.newPage();
+  const cdp = await context.newCDPSession(cdpPage);
+  const clearCache = async () => {
+    await cdp.send('Network.clearBrowserCache');
+  };
+
   try {
-    for (const page of SIGNED_OUT_PAGES) await measure(page);
+    for (const page of SIGNED_OUT_PAGES) await measure(page, clearCache);
     await signInAsGuest(context);
-    for (const page of SIGNED_IN_PAGES) await measure(page);
+    for (const page of SIGNED_IN_PAGES) await measure(page, clearCache);
   } finally {
     await context.close();
     await rm(profileDir, { recursive: true, force: true });
