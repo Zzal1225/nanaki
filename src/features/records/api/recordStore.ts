@@ -17,7 +17,7 @@ function toRecordEntryOrWarn(row: RecordRow): RecordEntry | null {
 // 새 기록 입력값: RecordEntry에서 id만 뺀 것 (id는 createRecord가 만든다)
 // Omit<RecordEntry, 'id'>로 쓰면 유니온이 하나로 뭉개져 type과 fields의 짝이 사라진다.
 // T extends unknown ? ... 모양은 유니온의 각 타입(가계부, 후기)마다 따로 Omit을 적용한다 (분배 조건부 타입)
-type DistributiveOmit<T, K extends PropertyKey> = T extends unknown
+export type DistributiveOmit<T, K extends PropertyKey> = T extends unknown
   ? Omit<T, K>
   : never;
 export type NewRecordInput = DistributiveOmit<RecordEntry, 'id'>;
@@ -112,6 +112,22 @@ export async function createRecord(
   const saved = toRecordEntryOrWarn(data);
   if (!saved) throw new Error(`저장된 기록을 읽을 수 없음: ${data.id}`);
   return saved;
+}
+
+// 여러 기록을 한 번에 (체험하기 예시 기록). createRecord를 여러 번 부르면 요청이 기록 수만큼 가고,
+// 중간에 실패하면 일부만 들어간다. 배열 insert는 요청 하나라 전부 들어가거나 전부 안 들어간다.
+// 저장한 기록을 돌려받지 않는다: 부르는 쪽은 목록 캐시를 무효화해 다시 불러온다
+export async function createRecords(inputs: NewRecordInput[]): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+
+  const rows = inputs.map((input) =>
+    toRecordInsert(
+      recordEntrySchema.parse({ ...input, id: crypto.randomUUID() }),
+    ),
+  );
+
+  const { error } = await supabase.from('records').insert(rows);
+  if (error) throw error;
 }
 
 // updated_at은 보내지 않는다. DB 트리거가 붙인다 (동기화 충돌의 기준이라 서버 시각이어야 한다)
