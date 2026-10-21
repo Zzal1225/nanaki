@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { RecordEntryOf } from '../schema/recordEntry';
-import { summarizeExpenses, summarizeReviews } from './typeSummary';
+import {
+  summarizeExpenses,
+  summarizeReviews,
+  summarizeWorkouts,
+} from './typeSummary';
 
 const BASE = { occurredAt: '2026-10-19', memo: null, tags: [], title: 't' };
 
@@ -63,5 +67,50 @@ describe('summarizeReviews', () => {
   });
   it('후기가 없으면 평균은 null (0점처럼 보이지 않게)', () => {
     expect(summarizeReviews([]).average).toBeNull();
+  });
+});
+
+function workout(
+  id: string,
+  occurredAt: string,
+  minutes: number,
+): RecordEntryOf<'workout'> {
+  return {
+    ...BASE,
+    id,
+    occurredAt,
+    type: 'workout',
+    fields: { activity: '러닝', minutes },
+  };
+}
+
+describe('summarizeWorkouts', () => {
+  it('횟수·총 시간, 주별 시간은 캘린더 줄(일요일 시작)과 같은 주로 묶는다', () => {
+    // 2026년 10월 1일은 목요일 → 1주 = 1~3일, 2주 = 4~10일 … 5주 = 25~31일
+    const summary = summarizeWorkouts(
+      [
+        workout('1', '2026-10-03', 30),
+        workout('2', '2026-10-04', 45),
+        workout('3', '2026-10-04', 15),
+        workout('4', '2026-10-31', 60),
+      ],
+      '2026-10',
+    );
+    expect(summary.count).toBe(4);
+    expect(summary.totalMinutes).toBe(150);
+    expect(summary.weeks).toEqual([
+      { firstDay: 1, lastDay: 3, minutes: 30 },
+      { firstDay: 4, lastDay: 10, minutes: 60 },
+      { firstDay: 11, lastDay: 17, minutes: 0 },
+      { firstDay: 18, lastDay: 24, minutes: 0 },
+      { firstDay: 25, lastDay: 31, minutes: 60 },
+    ]);
+  });
+  it('운동이 없는 달도 주는 모두 0분으로 나온다 (빈 막대)', () => {
+    // 2026년 2월: 1일이 일요일, 28일이 토요일 → 딱 4주
+    const summary = summarizeWorkouts([], '2026-02');
+    expect(summary.count).toBe(0);
+    expect(summary.weeks).toHaveLength(4);
+    expect(summary.weeks.every((week) => week.minutes === 0)).toBe(true);
   });
 });

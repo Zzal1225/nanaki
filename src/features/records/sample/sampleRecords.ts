@@ -65,6 +65,27 @@ const SAMPLE_TEMPLATES: readonly SampleTemplate[] = [
       fields: { amount: 32400, category: '생활', paymentMethod: '카드' },
     },
   },
+  // 운동: 제목을 비워 종목 이름이 제목이 된 경우(러닝), 제목을 따로 쓴 경우(하체 데이), 거리 없이 시간만(요가)을 섞는다
+  {
+    daysAgo: 3,
+    record: {
+      type: 'workout',
+      title: '러닝',
+      memo: null,
+      tags: [],
+      fields: { activity: '러닝', minutes: 30, distance: 5.2 },
+    },
+  },
+  {
+    daysAgo: 4,
+    record: {
+      type: 'workout',
+      title: '하체 데이',
+      memo: '스쿼트 무게를 조금 올렸다',
+      tags: [],
+      fields: { activity: '헬스', minutes: 60 },
+    },
+  },
   {
     daysAgo: 4,
     record: {
@@ -83,6 +104,16 @@ const SAMPLE_TEMPLATES: readonly SampleTemplate[] = [
       memo: null,
       tags: ['친구'],
       fields: { amount: 28000, category: '식비', paymentMethod: '계좌이체' },
+    },
+  },
+  {
+    daysAgo: 7,
+    record: {
+      type: 'workout',
+      title: '요가',
+      memo: null,
+      tags: [],
+      fields: { activity: '요가', minutes: 40 },
     },
   },
   {

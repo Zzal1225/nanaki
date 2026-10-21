@@ -23,3 +23,26 @@ export function emptyToUndefined(text: string): string | undefined {
 export function emptyToNull(text: string): string | null {
   return text === '' ? null : text;
 }
+
+// 소수 칸(거리 5.5km): 입력 중인 글자와 폼 값을 함께 돌려준다.
+// 정수 칸처럼 값만 들고 다시 그리면 "5."를 치는 순간 5로 바뀌어 점이 사라져서, 다음 숫자를 칠 수 없다.
+// 그래서 글자는 입력칸이 따로 들고(DecimalInput), 여기서는 정리한 글자와 숫자 값을 함께 만든다.
+// - 숫자와 첫 번째 점만 남긴다 (쉼표·단위·두 번째 점은 버림)
+// - 소수 자리가 넘치면 잘라 낸다 (decimals = 1이면 5.55 → 5.5). 반올림하지 않는 이유: 치는 중에 앞자리가 바뀌면 헷갈린다
+export function parseDecimalInput(
+  text: string,
+  decimals: number,
+): { text: string; value: number | undefined } {
+  const [whole = '', ...rest] = text.replace(/[^\d.]/g, '').split('.');
+  const hasPoint = rest.length > 0;
+  const fraction = rest.join('').slice(0, decimals);
+  const cleaned = hasPoint ? `${whole}.${fraction}` : whole;
+  // 숫자가 하나도 없으면(빈 칸, '.'만) 값 없음. Number('.')는 NaN이다
+  const value = /\d/.test(cleaned) ? Number(cleaned) : undefined;
+  return { text: cleaned, value };
+}
+
+// 소수 칸 처음 표시: 5.5 → '5.5'. 쉼표는 붙이지 않는다 (거리·무게는 천 단위까지 갈 일이 없고, 입력 중 글자와 모양을 맞춘다)
+export function formatDecimalInput(value: unknown): string {
+  return typeof value === 'number' ? String(value) : '';
+}

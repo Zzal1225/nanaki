@@ -79,7 +79,9 @@ describe('RecordEntry 타입', () => {
     if (entry.type === 'expense') {
       expectTypeOf(entry.fields.amount).toEqualTypeOf<number>();
     }
-    expectTypeOf<RecordEntry['type']>().toEqualTypeOf<'expense' | 'review'>();
+    expectTypeOf<RecordEntry['type']>().toEqualTypeOf<
+      'expense' | 'review' | 'workout'
+    >();
   });
 });
 

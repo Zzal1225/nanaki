@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { toLocalDateString } from '@/shared/date/toLocalDateString';
 import { createRecord, updateRecord } from '../api/recordStore';
 import type { RecordEntry } from '../schema/recordEntry';
+import type { RecordType } from '../schema/recordTypes';
 import RecordForm from './RecordForm';
 
 // 실제 Supabase·라우터 대신 가짜. 이 테스트는 "폼이 무엇을 검사하고 무엇을 넘기는지"만 본다
@@ -21,13 +22,13 @@ vi.mock('../api/recordStore', () => ({
 const replace = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace }) }));
 
-function renderForm() {
+function renderForm(type: RecordType = 'expense') {
   const queryClient = new QueryClient({
     defaultOptions: { mutations: { retry: false } },
   });
   render(
     <QueryClientProvider client={queryClient}>
-      <RecordForm mode='create' type='expense' />
+      <RecordForm mode='create' type={type} />
     </QueryClientProvider>,
   );
 }
@@ -165,6 +166,57 @@ describe('RecordForm (수정)', () => {
     expect(vi.mocked(updateRecord).mock.calls[0][0]).toEqual({
       ...SAVED,
       title: '점심 회식',
+    });
+  });
+});
+
+describe('RecordForm (운동)', () => {
+  beforeEach(() => {
+    vi.mocked(createRecord).mockReset();
+    vi.mocked(createRecord).mockImplementation(async (input) => ({
+      ...input,
+      id: 'new-id',
+    }));
+    replace.mockReset();
+  });
+  afterEach(() => cleanup());
+
+  it('제목을 비우면 종목 이름으로, 거리는 소수 한 자리로 저장한다', async () => {
+    renderForm('workout');
+    expect(screen.getByLabelText('제목 (선택)')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('radio', { name: '러닝' }));
+    fireEvent.change(screen.getByLabelText('시간'), {
+      target: { value: '30' },
+    });
+    // 점을 치는 중에도 글자가 남아야 다음 숫자를 칠 수 있다
+    const distance = screen.getByLabelText('거리 (선택)') as HTMLInputElement;
+    fireEvent.change(distance, { target: { value: '5.' } });
+    expect(distance.value).toBe('5.');
+    fireEvent.change(distance, { target: { value: '5.25' } });
+    expect(distance.value).toBe('5.2');
+
+    fireEvent.click(screen.getByRole('button', { name: '저장' }));
+    await waitFor(() => expect(createRecord).toHaveBeenCalled());
+    expect(vi.mocked(createRecord).mock.calls[0][0]).toMatchObject({
+      type: 'workout',
+      title: '러닝',
+      fields: { activity: '러닝', minutes: 30, distance: 5.2 },
+    });
+  });
+
+  it('종목과 시간만으로 저장할 수 있다 (거리 없음)', async () => {
+    renderForm('workout');
+    fireEvent.click(screen.getByRole('radio', { name: '요가' }));
+    fireEvent.change(screen.getByLabelText('시간'), {
+      target: { value: '40' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    await waitFor(() => expect(createRecord).toHaveBeenCalled());
+    expect(vi.mocked(createRecord).mock.calls[0][0].fields).toEqual({
+      activity: '요가',
+      minutes: 40,
     });
   });
 });

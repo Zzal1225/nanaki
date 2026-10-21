@@ -1,4 +1,9 @@
-import { MessageSquareText, Wallet, type LucideIcon } from 'lucide-react';
+import {
+  Dumbbell,
+  MessageSquareText,
+  Wallet,
+  type LucideIcon,
+} from 'lucide-react';
 import type { RecordType } from '../schema/recordTypes';
 
 type RecordTypeStyle = {
@@ -25,5 +30,12 @@ export const RECORD_TYPE_STYLE: Record<RecordType, RecordTypeStyle> = {
     textClass: 'text-type-review',
     subtleBgClass: 'bg-type-review-subtle',
     dotClass: 'bg-type-review',
+  },
+  // 시안 아이콘: dumbbell
+  workout: {
+    icon: Dumbbell,
+    textClass: 'text-type-workout',
+    subtleBgClass: 'bg-type-workout-subtle',
+    dotClass: 'bg-type-workout',
   },
 };

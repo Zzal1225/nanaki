@@ -50,7 +50,39 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
         ? `${first.title} ${formatRating(first.fields.rating)}`
         : `${first.title} 외 ${rest.length}건`,
   },
+  workout: {
+    // 시안: "헬스 · 하체", "러닝 5km". 제목을 비워 종목 이름이 제목이 된 기록은 "러닝 · 러닝"이 되지 않게 한 번만
+    listTitle: (entry) => {
+      const { activity, distance } = entry.fields;
+      const name =
+        entry.title === activity ? activity : `${activity} · ${entry.title}`;
+      return distance === undefined
+        ? name
+        : `${name} ${formatDistance(distance)}`;
+    },
+    listValue: (entry) => formatMinutes(entry.fields.minutes),
+    monthMetric: '이번 달 운동',
+    // 시안: "12회". 운동은 "몇 번 했나"가 먼저라 시간 합계 대신 횟수
+    monthValue: (entries) => `${entries.length}회`,
+    detailKicker: (entry) => entry.fields.activity,
+    headlineField: 'minutes',
+    dayLabel: (entries) => `운동 ${entries.length}회`,
+    // 하나면 "러닝 30분"(시안), 여럿이면 종목 대신 그날 총 시간
+    dayValue: (entries) =>
+      entries.length === 1
+        ? `${entries[0].fields.activity} ${formatMinutes(entries[0].fields.minutes)}`
+        : `총 ${formatMinutes(entries.reduce((sum, e) => sum + e.fields.minutes, 0))}`,
+  },
 };
+
+export function formatMinutes(minutes: number): string {
+  return `${minutes.toLocaleString('ko-KR')}분`;
+}
+
+// 5 → '5km', 5.5 → '5.5km'. 소수 자리는 저장된 값 그대로 (입력이 한 자리까지라 늘어나지 않는다)
+export function formatDistance(km: number): string {
+  return `${km.toLocaleString('ko-KR')}km`;
+}
 
 // 지출만 기록하므로 화면에서만 마이너스를 붙인다 (저장은 양수). 0원에는 붙이지 않는다
 export function formatExpenseAmount(amount: number): string {

@@ -8,11 +8,15 @@ import {
 
 describe('getVisibleTypes', () => {
   it('숨긴 것만 빼고 정해진 순서대로', () => {
-    expect(getVisibleTypes([])).toEqual(['expense', 'review']);
-    expect(getVisibleTypes(['expense'])).toEqual(['review']);
+    expect(getVisibleTypes([])).toEqual(['expense', 'review', 'workout']);
+    expect(getVisibleTypes(['expense'])).toEqual(['review', 'workout']);
   });
   it('앱에 아직 없는 타입 이름은 영향이 없다', () => {
-    expect(getVisibleTypes(['workout'])).toEqual(['expense', 'review']);
+    expect(getVisibleTypes(['routine'])).toEqual([
+      'expense',
+      'review',
+      'workout',
+    ]);
   });
 });
 
@@ -21,7 +25,7 @@ describe('canHideType', () => {
     expect(canHideType([], 'expense')).toBe(true);
   });
   it('마지막 하나는 끌 수 없다', () => {
-    expect(canHideType(['expense'], 'review')).toBe(false);
+    expect(canHideType(['expense', 'workout'], 'review')).toBe(false);
   });
   it('이미 숨긴 타입은 (다시 켜는 것이라) 늘 가능', () => {
     expect(canHideType(['expense'], 'expense')).toBe(true);
@@ -37,8 +41,8 @@ describe('setTypeHidden', () => {
     expect(setTypeHidden(['review'], 'review', true)).toEqual(['review']);
   });
   it('앱이 모르는 타입 이름은 지우지 않고 남긴다 (다른 기기·새 버전의 설정)', () => {
-    expect(setTypeHidden(['workout'], 'expense', true)).toEqual([
-      'workout',
+    expect(setTypeHidden(['routine'], 'expense', true)).toEqual([
+      'routine',
       'expense',
     ]);
   });

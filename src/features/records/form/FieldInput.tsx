@@ -3,6 +3,7 @@ import RatingInput from '@/shared/ui/RatingInput';
 import TextField from '@/shared/ui/TextField';
 import { RATING_MAX } from '../schema/fieldKinds';
 import type { FieldView } from '../ui/fieldView';
+import DecimalInput from './DecimalInput';
 import {
   emptyToUndefined,
   formatNumberInput,
@@ -30,6 +31,18 @@ export default function FieldInput({
   // switch로 kind를 확인하면 TypeScript가 field를 그 모양으로 좁혀서 unit·options 같은 칸을 쓸 수 있다
   switch (field.kind) {
     case 'number':
+      if (field.decimals) {
+        return (
+          <DecimalInput
+            label={label}
+            unit={field.unit}
+            decimals={field.decimals}
+            value={value}
+            onChange={onChange}
+            error={error}
+          />
+        );
+      }
       return (
         <TextField
           label={label}

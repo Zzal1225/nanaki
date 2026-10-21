@@ -8,6 +8,8 @@ export type FieldView =
       name: string;
       label: string;
       unit?: string;
+      // 소수 자리 수. 있으면 폼이 소수 입력칸을 그린다 (거리 5.5km)
+      decimals?: number;
       isOptional?: boolean;
     }
   | {
