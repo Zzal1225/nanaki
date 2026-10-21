@@ -49,6 +49,28 @@ export async function listRecords(
     .filter((e): e is RecordEntry => e !== null);
 }
 
+// 날짜와 상관없이 최근 기록 limit개 (기록 탭의 "최근 기록").
+// 일어난 날짜가 최근인 순서, 같은 날은 나중에 만든 것이 먼저
+export async function listRecentRecords(limit: number): Promise<RecordEntry[]> {
+  const supabase = createSupabaseBrowserClient();
+
+  const { data, error } = await supabase
+    .from('records')
+    .select('*')
+    .is('deleted_at', null)
+    .order('occurred_at', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw error;
+  }
+
+  return data
+    .map(toRecordEntryOrWarn)
+    .filter((e): e is RecordEntry => e !== null);
+}
+
 export async function getRecord(id: string): Promise<RecordEntry | null> {
   const supabase = createSupabaseBrowserClient();
 

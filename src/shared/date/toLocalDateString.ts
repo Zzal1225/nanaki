@@ -10,3 +10,9 @@ export function toLocalDateString(date: Date): string {
   const day = String(date.getDate()).padStart(DATE_PART_LENGTH, '0');
   return `${year}-${month}-${day}`;
 }
+
+// 'YYYY-MM-DD' → 그 날짜의 로컬 자정 Date. new Date('YYYY-MM-DD')는 UTC 자정으로 읽혀서 쓰지 않는다
+export function fromLocalDateString(dateString: string): Date {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}

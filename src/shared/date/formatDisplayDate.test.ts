@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatDisplayDate } from './formatDisplayDate';
+import { formatDisplayDate, formatShortDate } from './formatDisplayDate';
 
 describe('formatDisplayDate', () => {
   it('시안 모양 YYYY. MM. DD (요일)', () => {
@@ -12,5 +12,14 @@ describe('formatDisplayDate', () => {
   it('빈 값·형식이 틀린 값은 빈 글자', () => {
     expect(formatDisplayDate('')).toBe('');
     expect(formatDisplayDate('2026/10/16')).toBe('');
+  });
+});
+
+describe('formatShortDate', () => {
+  it('시안 모양 MM.DD (요일)', () => {
+    expect(formatShortDate('2026-10-19')).toBe('10.19 (월)');
+  });
+  it('형식이 틀리면 빈 글자', () => {
+    expect(formatShortDate('')).toBe('');
   });
 });
