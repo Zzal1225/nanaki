@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/shared/ui/Button';
 import GoogleSignInButton from './GoogleSignInButton';
-import { signInAsGuest, signInWithGoogle } from './signIn';
+import { signInAsGuest, signInWithGoogle } from './authActions';
 
 type SignInMethod = 'google' | 'guest';
 

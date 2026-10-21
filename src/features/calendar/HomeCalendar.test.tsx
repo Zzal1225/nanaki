@@ -10,6 +10,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { listRecords } from '@/features/records/api/recordStore';
 import type { RecordEntry } from '@/features/records/schema/recordEntry';
+import { getUserSettings } from '@/features/settings/api/settingsStore';
 import HomeCalendar from './HomeCalendar';
 
 // 진짜 Next.js처럼 history.replaceState로 주소가 바뀌면 useSearchParams가 새 값을 주게 흉내 낸다.
@@ -36,6 +37,11 @@ vi.mock('next/navigation', async () => {
 // 오늘을 고정한다. 진짜 오늘을 쓰면 날짜마다 테스트 결과가 달라진다
 vi.mock('@/shared/date/useToday', () => ({ useToday: () => '2026-10-21' }));
 vi.mock('@/features/records/api/recordStore', () => ({ listRecords: vi.fn() }));
+// 설정(숨긴 타입)도 가짜. 기본은 아무것도 숨기지 않음
+vi.mock('@/features/settings/api/settingsStore', () => ({
+  getUserSettings: vi.fn(),
+  updateHiddenTypes: vi.fn(),
+}));
 
 const BASE = { memo: null, tags: [] };
 const LUNCH: RecordEntry = {
@@ -75,6 +81,20 @@ describe('HomeCalendar', () => {
   beforeEach(() => {
     vi.mocked(listRecords).mockReset();
     vi.mocked(listRecords).mockResolvedValue([LUNCH, CAFE]);
+    vi.mocked(getUserSettings).mockResolvedValue({ hiddenTypes: [] });
+  });
+
+  it('설정에서 끈 타입은 칸의 점·하루 요약에서 빠진다', async () => {
+    vi.mocked(getUserSettings).mockResolvedValue({ hiddenTypes: ['review'] });
+    renderCalendar();
+
+    expect(
+      await screen.findByRole('button', {
+        name: '10월 21일 (수), 가계부 기록',
+      }),
+    ).toBeDefined();
+    expect(screen.getByText('가계부 1건')).toBeDefined();
+    expect(screen.queryByText('후기 1건')).toBeNull();
   });
   afterEach(() => cleanup());
 

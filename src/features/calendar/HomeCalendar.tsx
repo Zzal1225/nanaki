@@ -4,6 +4,8 @@
 import { useId, useMemo } from 'react';
 import { useRecords } from '@/features/records/hooks/useRecords';
 import type { RecordType } from '@/features/records/schema/recordTypes';
+import { useVisibleTypes } from '@/features/settings/hooks/useUserSettings';
+import { filterVisibleEntries } from '@/features/settings/typeVisibility';
 import {
   formatYearMonthLabel,
   getMonthRangeOf,
@@ -27,10 +29,12 @@ export default function HomeCalendar() {
   // 달 안에서 날짜를 옮기면 같은 기간이라 쿼리 키가 그대로 → 다시 불러오지 않는다
   const records = useRecords(month ? getMonthRangeOf(month) : null);
 
-  // 날짜별 묶음은 기록이 바뀔 때만 다시 만든다. 방향키로 날짜만 옮길 때는 그대로 쓴다
+  // 설정에서 끈 타입의 기록은 점·요약에서 뺀다 (데이터는 그대로).
+  // 날짜별 묶음은 기록이나 켜진 타입이 바뀔 때만 다시 만든다. 방향키로 날짜만 옮길 때는 그대로 쓴다
+  const visibleTypes = useVisibleTypes();
   const recordsByDate = useMemo(
-    () => groupByDate(records.data ?? []),
-    [records.data],
+    () => groupByDate(filterVisibleEntries(records.data ?? [], visibleTypes)),
+    [records.data, visibleTypes],
   );
   const dotTypesByDate = useMemo(() => {
     const byDate = new Map<string, RecordType[]>();

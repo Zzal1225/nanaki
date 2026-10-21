@@ -59,11 +59,13 @@ src/
                   (app)/ = 로그인 뒤 화면 묶음(/, /records, /records/new, /records/[id](/edit), /records/type/[type], /settings).
                   records/layout.tsx = PC에서 목록(왼쪽) + 상세·폼(오른쪽) 패널. 주소에 안 나타나는 괄호 폴더
   proxy.ts        모든 요청 앞의 문지기. 세션 갱신 + 로그인 안 했으면 /login으로 (공개 주소는 features/auth)
-  shared/         공통 코드. ui/ = 공통 컴포넌트(Radix + Tailwind), theme/ = 다크·라이트 전환,
+  shared/         공통 코드. ui/ = 공통 컴포넌트(Radix + Tailwind, 확인 창 ConfirmDialog 포함), theme/ = 다크·라이트 전환,
                   layout/ = 사이드바·하단 탭(메뉴 목록은 navItems.ts 한 곳), query/ = TanStack Query Provider,
                   toast/ = 화면을 옮겨도 남는 알림(Zustand 저장소 + Radix Toast, 앱 틀에 하나),
                   date/ = 날짜 도우미(로컬 YYYY-MM-DD, YYYY-MM 달 계산, date-fns 캘린더 계산(calendar.ts), 브라우저에서만 읽는 오늘 useToday)
-  features/       기능 단위 모듈. auth/ = 로그인. 이후 search, chat ...
+  features/       기능 단위 모듈. auth/ = 로그인·로그아웃(authActions), 지금 계정(useCurrentUser). 이후 search, chat ...
+                  settings/ = 설정 화면. api/settingsStore = 설정 저장·조회의 유일한 입구(user_settings),
+                  typeVisibility = 숨긴 타입 계산(순수 함수), hooks/useUserSettings = 설정 훅 + 켜진 타입(useVisibleTypes)
                   calendar/ = 홈 캘린더. calendarState = 주소(?date=) 해석·만들기와 공통 탐색(이전·다음 달, 키보드 이동),
                   useCalendar = 상태(고른 날짜) + 바꾸는 함수(history.replaceState), CalendarGrid(월 캘린더, role=grid, roving tabindex),
                   CalendarHeader(달 이동 + 오늘 아이콘 TodayButton), DaySummary(하루 요약)

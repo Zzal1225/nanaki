@@ -8,7 +8,8 @@ import { getMonthRange } from '@/shared/date/monthRange';
 import { fromLocalDateString } from '@/shared/date/toLocalDateString';
 import { useToday } from '@/shared/date/useToday';
 import Button from '@/shared/ui/Button';
-import { RECORD_TYPE_ORDER } from '../entry/newRecordMenu';
+import { useVisibleTypes } from '@/features/settings/hooks/useUserSettings';
+import { filterVisibleEntries } from '@/features/settings/typeVisibility';
 import { useRecentRecords } from '../hooks/useRecentRecords';
 import { useRecords } from '../hooks/useRecords';
 import { RECORD_TYPE_CONFIG } from '../schema/recordTypes';
@@ -50,8 +51,13 @@ function RecordsOverviewView({ pathname }: { pathname: string | null }) {
 
   const isPending = monthRecords.isPending || recentRecords.isPending;
   const isError = monthRecords.isError || recentRecords.isError;
+  // 설정에서 끈 타입은 카드도 기록도 숨긴다 (데이터는 그대로)
+  const visibleTypes = useVisibleTypes();
   const monthEntries = monthRecords.data ?? [];
-  const recentEntries = recentRecords.data ?? [];
+  const recentEntries = filterVisibleEntries(
+    recentRecords.data ?? [],
+    visibleTypes,
+  );
   const hasNoRecords = !isPending && !isError && recentEntries.length === 0;
 
   return (
@@ -86,12 +92,11 @@ function RecordsOverviewView({ pathname }: { pathname: string | null }) {
             aria-busy={isPending}
             className='grid grid-cols-2 gap-2 px-4 py-4 md:px-6'
           >
-            {RECORD_TYPE_ORDER.map((type, index) => {
-              const isLast = index === RECORD_TYPE_ORDER.length - 1;
+            {visibleTypes.map((type, index) => {
+              const isLast = index === visibleTypes.length - 1;
               // 시안: 첫 카드는 한 줄 전체, 나머지가 홀수 개면 마지막 카드도 한 줄 전체
               const isWide =
-                index === 0 ||
-                ((RECORD_TYPE_ORDER.length - 1) % 2 === 1 && isLast);
+                index === 0 || ((visibleTypes.length - 1) % 2 === 1 && isLast);
               return isPending ? (
                 <div
                   key={type}
