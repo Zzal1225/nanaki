@@ -18,6 +18,7 @@ export const EXPENSE_CATEGORIES = [
   '교통',
   '생활',
   '쇼핑',
+  '의료',
   '기타',
 ] as const;
 export const PAYMENT_METHODS = ['카드', '현금', '계좌이체'] as const;

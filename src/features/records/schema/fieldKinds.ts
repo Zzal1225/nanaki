@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+// 검증 오류 문구를 한국어로. 모든 기록 스키마가 이 파일을 거쳐서 여기서 한 번만 설정한다
+z.config(z.locales.ko());
+
 // 별점은 어느 타입이든 같은 범위라서 타입별 파일이 아니라 빌더 쪽에 둔다
 export const RATING_MIN = 1;
 export const RATING_MAX = 5;
