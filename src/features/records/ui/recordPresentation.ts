@@ -1,3 +1,4 @@
+import { listBodyMeasurements, toBodyTitle } from '../schema/body';
 import type { RecordEntry } from '../schema/recordEntry';
 import type { RecordType } from '../schema/recordTypes';
 
@@ -73,7 +74,50 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
         ? `${entries[0].fields.activity} ${formatMinutes(entries[0].fields.minutes)}`
         : `총 ${formatMinutes(entries.reduce((sum, e) => sum + e.fields.minutes, 0))}`,
   },
+  body: {
+    // 제목을 비우면 적은 항목 이름("체중 · 허리")이 제목이 되어, 시안의 목록 제목과 같아진다
+    listTitle: (entry) => entry.title,
+    listValue: (entry) => formatMeasurement(entry.fields.weight, 'kg'),
+    // 체형은 더하거나 셀 값이 아니라 "지금 몇 kg인지"가 궁금하다 (시안: 최근 체중 68.4kg)
+    monthMetric: '최근 체중',
+    monthValue: (entries) => {
+      const latest = latestEntryOf(entries);
+      return latest ? formatMeasurement(latest.fields.weight, 'kg') : '—';
+    },
+    detailKicker: (entry) => toBodyTitle(entry.fields),
+    headlineField: 'weight',
+    dayLabel: () => '체형',
+    // 시안: "68.4kg · 허리 78cm". 체중과 그다음 적은 항목 하나만 (한 줄에 다 넣으면 잘린다).
+    // 하루에 여러 번 쟀으면 마지막 기록 (펼치면 모두 보인다)
+    dayValue: (entries) => {
+      const latest = latestEntryOf(entries);
+      if (!latest) return '';
+      const [weight, next] = listBodyMeasurements(latest.fields);
+      const weightText = formatMeasurement(weight.value, weight.unit);
+      return next
+        ? `${weightText} · ${next.label} ${formatMeasurement(next.value, next.unit)}`
+        : weightText;
+    },
+  },
 };
+
+// 68.4 + 'kg' → '68.4kg'. 체형 측정값은 단위가 항목마다 달라(kg·cm·%) 단위를 받는다
+export function formatMeasurement(value: number, unit: string): string {
+  return `${value.toLocaleString('ko-KR')}${unit}`;
+}
+
+// 가장 늦은 날짜의 기록. 같은 날이면 배열에서 뒤의 것(조회가 만든 순서로 나중에 쓴 것)
+export function latestEntryOf<T extends { occurredAt: string }>(
+  entries: T[],
+): T | undefined {
+  return entries.reduce<T | undefined>(
+    (latest, entry) =>
+      latest === undefined || entry.occurredAt >= latest.occurredAt
+        ? entry
+        : latest,
+    undefined,
+  );
+}
 
 export function formatMinutes(minutes: number): string {
   return `${minutes.toLocaleString('ko-KR')}분`;

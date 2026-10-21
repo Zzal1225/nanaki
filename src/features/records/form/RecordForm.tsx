@@ -118,7 +118,7 @@ export default function RecordForm(props: RecordFormProps) {
           />
         </Link>
         <h1 className='flex-1 text-center text-body font-semibold text-fg-primary'>
-          {config.label} {editingId ? '수정' : '쓰기'}
+          {editingId ? `${config.label} 수정` : config.createLabel}
         </h1>
         <span aria-hidden='true' className='size-11' />
       </div>

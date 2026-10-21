@@ -18,10 +18,10 @@ describe('RECORD_TYPE_ORDER', () => {
 });
 
 describe('getNewRecordMenuItems', () => {
-  it('이름은 "○○ 쓰기" (시안 문구)', () => {
+  it('이름은 시안 문구 (글은 "쓰기", 수치는 "기록")', () => {
     expect(
       getNewRecordMenuItems(RECORD_TYPE_ORDER).map((item) => item.label),
-    ).toEqual(['가계부 쓰기', '후기 쓰기', '운동 쓰기']);
+    ).toEqual(['가계부 쓰기', '후기 쓰기', '운동 기록', '체형 기록']);
   });
   it('받은 타입만 (설정에서 끈 타입은 빠진다)', () => {
     expect(getNewRecordMenuItems(['review']).map((item) => item.type)).toEqual([

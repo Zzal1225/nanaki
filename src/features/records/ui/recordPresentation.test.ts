@@ -57,6 +57,41 @@ const LEG_DAY: RecordEntry = {
   fields: { activity: '헬스', minutes: 60 },
 };
 
+const MORNING: RecordEntry = {
+  ...BASE,
+  id: '6',
+  type: 'body',
+  occurredAt: '2026-10-19',
+  title: '체중 · 허리',
+  fields: { weight: 68.4, waist: 78, bodyFat: 18.2 },
+};
+const EARLIER: RecordEntry = {
+  ...BASE,
+  id: '7',
+  type: 'body',
+  occurredAt: '2026-10-12',
+  title: '체중',
+  fields: { weight: 68.9 },
+};
+
+describe('체형 표시', () => {
+  it('목록: 제목, 값은 체중', () => {
+    expect(getListTitle(MORNING)).toBe('체중 · 허리');
+    expect(getListValue(MORNING)).toBe('68.4kg');
+  });
+  it('이번 달은 가장 늦은 날짜의 체중 (목록 순서와 상관없이), 없으면 —', () => {
+    expect(getMonthMetric('body')).toBe('최근 체중');
+    expect(getMonthValue('body', [MORNING, EARLIER])).toBe('68.4kg');
+    expect(getMonthValue('body', [TAXI])).toBe('—');
+    expect(getHeadlineField('body')).toBe('weight');
+  });
+  it('하루 요약: 체중과 그다음 적은 항목 하나 (시안: 68.4kg · 허리 78cm)', () => {
+    expect(getDayLabel('body', [MORNING])).toBe('체형');
+    expect(getDayValue('body', [MORNING])).toBe('68.4kg · 허리 78cm');
+    expect(getDayValue('body', [EARLIER])).toBe('68.9kg');
+  });
+});
+
 describe('운동 표시', () => {
   it('목록: 제목이 종목과 같으면 종목만, 다르면 종목 · 제목, 거리가 있으면 붙인다', () => {
     expect(getListTitle(RUN)).toBe('러닝 5.2km');

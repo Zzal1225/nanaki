@@ -1,6 +1,7 @@
 import {
   Dumbbell,
   MessageSquareText,
+  Ruler,
   Wallet,
   type LucideIcon,
 } from 'lucide-react';
@@ -37,5 +38,12 @@ export const RECORD_TYPE_STYLE: Record<RecordType, RecordTypeStyle> = {
     textClass: 'text-type-workout',
     subtleBgClass: 'bg-type-workout-subtle',
     dotClass: 'bg-type-workout',
+  },
+  // 시안 아이콘: ruler
+  body: {
+    icon: Ruler,
+    textClass: 'text-type-body',
+    subtleBgClass: 'bg-type-body-subtle',
+    dotClass: 'bg-type-body',
   },
 };

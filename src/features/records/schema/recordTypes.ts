@@ -1,5 +1,7 @@
+import { BODY_FIELDS } from './body';
 import { EXPENSE_FIELDS } from './expense';
 import {
+  bodyFormSchema,
   expenseRecordSchema,
   reviewRecordSchema,
   workoutFormSchema,
@@ -14,10 +16,12 @@ const REQUIRED_TITLE = {
 } as const;
 
 // 타입마다 다른 것은 모두 여기 모은다. 폼·목록은 이 설정만 보고 그려서 컴포넌트에 타입별 분기가 없다.
-// 새 타입(루틴·체형)은 여기에 한 줄 추가하는 것으로 시작한다
+// 새 타입(루틴)은 여기에 한 줄 추가하는 것으로 시작한다
 export const RECORD_TYPE_CONFIG = {
   expense: {
     label: '가계부',
+    // 새로 쓰기 메뉴·폼 제목. 시안: 글을 남기는 타입은 "쓰기", 수치를 재는 타입은 "기록"
+    createLabel: '가계부 쓰기',
     fields: EXPENSE_FIELDS,
     title: REQUIRED_TITLE,
     // 작성 폼은 id를 보내지 않는다 (createRecord가 만든다)
@@ -25,16 +29,29 @@ export const RECORD_TYPE_CONFIG = {
   },
   review: {
     label: '후기',
+    createLabel: '후기 쓰기',
     fields: REVIEW_FIELDS,
     title: REQUIRED_TITLE,
     formSchema: reviewRecordSchema.omit({ id: true }),
   },
   workout: {
     label: '운동',
+    createLabel: '운동 기록',
     fields: WORKOUT_FIELDS,
     // 비우면 폼 스키마가 종목 이름으로 채운다 (workoutFormSchema)
     title: { isOptional: true, placeholder: '비우면 종목 이름으로 저장해요' },
     formSchema: workoutFormSchema,
+  },
+  body: {
+    label: '체형',
+    createLabel: '체형 기록',
+    fields: BODY_FIELDS,
+    // 비우면 폼 스키마가 적은 항목 이름("체중 · 허리")으로 채운다 (bodyFormSchema)
+    title: {
+      isOptional: true,
+      placeholder: '비우면 적은 항목 이름으로 저장해요',
+    },
+    formSchema: bodyFormSchema,
   },
 } as const;
 
