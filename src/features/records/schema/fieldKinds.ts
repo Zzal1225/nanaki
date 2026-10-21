@@ -117,7 +117,7 @@ export function textField<const N extends string>(options: {
   name: N;
   label: string;
   maxLength: number;
-  // 무엇을 쓰는 칸인지 이름만으로 헷갈릴 때 예시를 보여 준다 (장소 = 주소가 아니라 장소 이름)
+  // 무엇을 쓰는 칸인지 이름만으로 헷갈릴 때 예시를 보여 준다 (예: '장소 이름 (예: 블루보틀 성수)')
   placeholder?: string;
 }) {
   return {
