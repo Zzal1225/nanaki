@@ -35,3 +35,28 @@ export async function signOut(): Promise<AuthError | null> {
 
   return error;
 }
+
+// 계정 삭제 결과. 화면은 결과마다 다른 안내를 보여 준다
+export type DeleteAccountResult = 'deleted' | 'unavailable' | 'failed';
+
+const DELETED_STATUS = 204;
+const UNAVAILABLE_STATUS = 503;
+
+// 내 계정 지우기. 실제 삭제는 서버(app/api/account)가 secret 키로 한다 (브라우저 키로는 사용자를 지울 수 없다).
+// 성공은 204일 때만: 다른 응답(로그인 화면으로 돌려보낸 HTML 등)을 성공으로 착각하지 않게
+export async function deleteAccount(): Promise<DeleteAccountResult> {
+  let response: Response;
+  try {
+    response = await fetch('/api/account', { method: 'DELETE' });
+  } catch {
+    return 'failed';
+  }
+
+  if (response.status === UNAVAILABLE_STATUS) return 'unavailable';
+  if (response.status !== DELETED_STATUS) return 'failed';
+
+  // 서버도 쿠키를 지웠지만, 브라우저에 남은 세션도 지운다. 사용자는 이미 없어서 Supabase에 보내는
+  // 로그아웃 요청은 실패할 수 있는데, supabase-js는 그때도 이 브라우저의 세션은 지운다
+  await signOut();
+  return 'deleted';
+}

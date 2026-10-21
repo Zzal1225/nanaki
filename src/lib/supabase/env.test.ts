@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseSupabaseEnv } from './env';
+import { parseSupabaseEnv, parseSupabaseSecretKey } from './env';
 
 const URL_OK = 'https://abcdefghijklmnopqrst.supabase.co';
 const KEY_OK = 'sb_publishable_example';
@@ -40,5 +40,20 @@ describe('parseSupabaseEnv', () => {
     expect(() => parseSupabaseEnv(URL_OK, 'sb_secret_example')).toThrow(
       'secret 키',
     );
+  });
+});
+
+describe('parseSupabaseSecretKey', () => {
+  it('secret 키는 앞뒤 공백만 지우고 돌려준다', () => {
+    expect(parseSupabaseSecretKey(' sb_secret_example ')).toBe(
+      'sb_secret_example',
+    );
+  });
+  it('없으면 null (계정 삭제만 막고 앱은 뜬다)', () => {
+    expect(parseSupabaseSecretKey(undefined)).toBeNull();
+    expect(parseSupabaseSecretKey('  ')).toBeNull();
+  });
+  it('publishable 키를 잘못 넣으면 무엇을 고칠지 알려 준다', () => {
+    expect(() => parseSupabaseSecretKey(KEY_OK)).toThrow(/Secret keys/);
   });
 });

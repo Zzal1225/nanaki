@@ -56,6 +56,7 @@
 src/
   app/            라우트 (Next.js App Router). globals.css = 디자인 토큰 CSS 변수 + Tailwind 연결
                   auth/callback/ = 구글 로그인 뒤 code를 세션으로 바꾸는 Route Handler
+                  api/account/ = 계정 삭제 Route Handler (DELETE, secret 키로 본인 계정만). API는 proxy가 로그인 화면으로 보내지 않고 스스로 401
                   (app)/ = 로그인 뒤 화면 묶음(/, /records, /records/new, /records/[id](/edit), /records/type/[type], /settings).
                   records/layout.tsx = PC에서 목록(왼쪽) + 상세·폼(오른쪽) 패널. 주소에 안 나타나는 괄호 폴더
   proxy.ts        모든 요청 앞의 문지기. 세션 갱신 + 로그인 안 했으면 /login으로 (공개 주소는 features/auth)
@@ -78,7 +79,7 @@ src/
                   records/overview/ = 기록 탭 첫 화면(이번 달 카드, 최근 기록)
                   records/detail/ = 기록 상세(RecordDetail), 수정·삭제 동작(RecordActions), 수정 화면(RecordEditForm)
                   records/type/ = 타입 상세(달 이동, 타입별 요약 카드 registry, 목록)
-  lib/supabase/   Supabase 클라이언트 (client.ts = 브라우저용, server.ts = 서버용), database.types.ts = DB 타입(자동 생성, 직접 수정 금지)
+  lib/supabase/   Supabase 클라이언트 (client.ts = 브라우저용, server.ts = 서버용, admin.ts = secret 키 관리자용·서버 전용), database.types.ts = DB 타입(자동 생성, 직접 수정 금지)
   lib/db/         Dexie 스키마와 마이그레이션 (예정)
 supabase/migrations/ DB 구조(SQL). 새 파일은 npm run db:new, 적용은 npm run db:push, 타입은 npm run db:types
 tokens/tokens.json   디자인 토큰의 유일한 원본. 바꾸면 src/app/globals.css를 맞춘다

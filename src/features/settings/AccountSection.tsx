@@ -3,9 +3,10 @@
 // 'use client' 이유: 브라우저에 저장된 세션에서 지금 계정(이메일·체험 여부)을 읽는다
 import LogoutButton from '@/features/auth/LogoutButton';
 import { useCurrentUser } from '@/features/auth/useCurrentUser';
+import DeleteAccountButton from './DeleteAccountButton';
 import SettingsSection from './SettingsSection';
 
-// 설정 > 계정: 누구로 로그인했는지 + 로그아웃. 계정 삭제는 15b에서 이 묶음 아래에 붙는다
+// 설정 > 계정: 누구로 로그인했는지 + 로그아웃 + 계정 삭제 (시안 8a 맨 아래 묶음)
 export default function AccountSection() {
   const user = useCurrentUser().data;
 
@@ -39,6 +40,7 @@ export default function AccountSection() {
       ) : (
         <LogoutButton isAnonymous={user?.isAnonymous ?? false} />
       )}
+      <DeleteAccountButton />
     </SettingsSection>
   );
 }
