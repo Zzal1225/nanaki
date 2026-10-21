@@ -121,4 +121,15 @@ describe('RecordDetail', () => {
     );
     expect(replace).not.toHaveBeenCalled();
   });
+
+  // PC는 ⋯ 없이 삭제 버튼이 밖에 있다 (테스트 환경은 CSS가 없어 모바일 메뉴 버튼과 함께 보인다)
+  it('PC 삭제 버튼으로도 바로 지운다', async () => {
+    vi.mocked(getRecord).mockResolvedValue(LUNCH);
+    vi.mocked(deleteRecord).mockResolvedValue();
+    renderDetail();
+
+    fireEvent.click(await screen.findByRole('button', { name: '삭제' }));
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/'));
+  });
 });

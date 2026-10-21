@@ -16,8 +16,9 @@ type RecordActionsProps = {
 const MENU_ITEM_CLASS =
   'flex min-h-11 cursor-pointer items-center gap-3 rounded-sm px-3 text-body-sm font-medium outline-none data-highlighted:bg-surface-hover';
 
-// 상세 위쪽 오른쪽의 동작들. 모바일은 ⋯ 메뉴에 수정·삭제를 모두, PC는 수정을 바로 꺼내 두고 ⋯에는 삭제만 (시안).
-// 폭에 따른 차이는 CSS(lg:hidden / hidden lg:inline-flex)로만
+// 상세 위쪽 오른쪽의 동작들. 모바일은 좁아서 ⋯ 메뉴에 수정·삭제를 넣고, PC는 수정·삭제를 모두 버튼으로 꺼내 둔다.
+// 시안은 PC도 삭제를 ⋯에 숨겼지만, 넓은 화면에서 한 번 더 누를 이유가 없고 삭제는 5초 되돌리기가 있어 바꿨다
+// (private/decisions/2026-10-21-pc-record-actions.md). 폭에 따른 차이는 CSS(lg:hidden / hidden lg:inline-flex)로만
 export default function RecordActions({ id }: RecordActionsProps) {
   const router = useRouter();
   const deleteRecord = useDeleteRecord();
@@ -35,7 +36,7 @@ export default function RecordActions({ id }: RecordActionsProps) {
   }
 
   return (
-    <div className='ml-auto flex items-center gap-1'>
+    <div className='ml-auto flex items-center gap-1 lg:gap-3'>
       <Link
         href={editHref}
         className='hidden min-h-11 items-center gap-2 rounded-md border border-border bg-surface px-4 text-body-sm font-semibold text-fg-primary hover:bg-surface-hover lg:inline-flex'
@@ -47,11 +48,26 @@ export default function RecordActions({ id }: RecordActionsProps) {
         />
         수정
       </Link>
+      {/* 수정과 간격(gap-3)을 두고 빨간 글자 보조 버튼으로: 눈에 띄되 수정을 누르려다 잘못 누르지 않게 */}
+      <button
+        type='button'
+        onClick={() => void handleDelete()}
+        disabled={deleteRecord.isPending}
+        className='hidden min-h-11 items-center gap-2 rounded-md border border-border bg-surface px-4 text-body-sm font-semibold text-danger hover:bg-surface-hover disabled:text-fg-disabled lg:inline-flex'
+      >
+        <Trash2
+          aria-hidden='true'
+          size={ICON_SIZE.sm}
+          strokeWidth={ICON_STROKE_WIDTH}
+        />
+        삭제
+      </button>
+      {/* 모바일·태블릿 전용 */}
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
           aria-label='더보기'
           disabled={deleteRecord.isPending}
-          className='inline-flex size-11 items-center justify-center rounded-md text-fg-primary hover:bg-surface-hover disabled:text-fg-disabled'
+          className='inline-flex size-11 items-center justify-center rounded-md text-fg-primary hover:bg-surface-hover disabled:text-fg-disabled lg:hidden'
         >
           <Ellipsis
             aria-hidden='true'
@@ -65,7 +81,7 @@ export default function RecordActions({ id }: RecordActionsProps) {
             sideOffset={4}
             className='z-40 min-w-40 rounded-md border border-border bg-surface-raised p-1 shadow-float'
           >
-            <DropdownMenu.Item asChild className='lg:hidden'>
+            <DropdownMenu.Item asChild>
               <Link
                 href={editHref}
                 className={`${MENU_ITEM_CLASS} text-fg-primary`}
