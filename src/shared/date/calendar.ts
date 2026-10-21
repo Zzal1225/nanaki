@@ -54,6 +54,15 @@ export function endOfWeekOf(date: string): string {
   return shift(date, (value) => endOfWeek(value, WEEK_OPTIONS));
 }
 
+// 주 보기 칸: 그 날이 있는 주의 일요일~토요일 7일
+export function getWeekDays(date: string): string[] {
+  const value = fromLocalDateString(date);
+  return eachDayOfInterval({
+    start: startOfWeek(value, WEEK_OPTIONS),
+    end: endOfWeek(value, WEEK_OPTIONS),
+  }).map(toLocalDateString);
+}
+
 // 월 보기 칸: 그 달 1일이 있는 주의 일요일 ~ 말일이 있는 주의 토요일, 주 단위로 나눈 것.
 // 달마다 4~6주라 줄 수가 바뀐다 (시안은 5주 예시). 앞뒤 다른 달 날짜도 칸을 채우려고 넣는다
 export function getMonthGrid(date: string): string[][] {

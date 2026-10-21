@@ -34,3 +34,10 @@ export function formatMonthDayLabel(dateString: string): string {
   if (!parts) return '';
   return `${Number(parts.month)}월 ${Number(parts.day)}일 (${parts.weekday})`;
 }
+
+// 'YYYY-MM-DD' → '10월 16일 금요일' (홈 하루 요약 제목). 제목은 크게 한 번 읽히는 자리라 요일을 줄이지 않는다
+export function formatDayHeading(dateString: string): string {
+  const parts = parseDateString(dateString);
+  if (!parts) return '';
+  return `${Number(parts.month)}월 ${Number(parts.day)}일 ${parts.weekday}요일`;
+}
