@@ -52,3 +52,7 @@ private/
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# Lighthouse 결과물 (CI 아티팩트로만 남긴다)
+/.lighthouseci/
+/lighthouse-report/
