@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import type { RecordType } from '../schema/recordTypes';
 import { RECORD_TYPE_STYLE } from '../ui/recordTypeStyle';
@@ -11,21 +12,33 @@ type RecentRecordItemProps = {
   // "가계부 · 10.19 (월)"
   subtitle: string;
   value: string;
+  href: string;
+  // PC에서 오른쪽 패널에 열려 있는 기록 (시안: 캘린더 선택 날짜와 같은 2px fg-primary 테두리)
+  isSelected: boolean;
 };
 
-// 기록 객체 전체 대신 화면에 쓰는 값만 받는다 (CLAUDE.md: props는 필요한 것만).
-// 상세 화면(13b)이 생기면 이 줄 전체를 /records/[id] 링크로 감싼다. 지금은 누를 곳이 없어서 링크로 만들지 않는다
+// 기록 객체 전체 대신 화면에 쓰는 값만 받는다 (CLAUDE.md: props는 필요한 것만). 한 줄 전체가 상세로 가는 링크
 export default function RecentRecordItem({
   type,
   title,
   subtitle,
   value,
+  href,
+  isSelected,
 }: RecentRecordItemProps) {
   const style = RECORD_TYPE_STYLE[type];
   const Icon = style.icon;
 
   return (
-    <div className='flex min-h-17 items-center gap-3 rounded-lg bg-surface px-4 py-3 shadow-card'>
+    <Link
+      href={href}
+      // 화면 읽기 프로그램에 "지금 열린 기록"임을 알린다
+      aria-current={isSelected ? 'page' : undefined}
+      // 테두리 대신 안쪽 링: 선택해도 칸 크기가 변하지 않아 목록이 흔들리지 않는다
+      className={`flex min-h-17 items-center gap-3 rounded-lg bg-surface px-4 py-3 shadow-card hover:bg-surface-hover ${
+        isSelected ? 'ring-2 ring-fg-primary ring-inset' : ''
+      }`}
+    >
       <span
         className={`flex size-10 shrink-0 items-center justify-center rounded-md ${style.subtleBgClass} ${style.textClass}`}
       >
@@ -47,6 +60,6 @@ export default function RecentRecordItem({
       <span className='text-body font-semibold whitespace-nowrap text-fg-primary tabular-nums'>
         {value}
       </span>
-    </div>
+    </Link>
   );
 }

@@ -12,6 +12,10 @@ type RecordPresentation<T extends RecordType> = {
   // 기록 탭 타입 카드의 이름과 이번 달 값
   monthMetric: string;
   monthValue: (entries: EntryOf<T>[]) => string;
+  // 상세 위쪽 칩의 두 번째 말 (시안: "가계부 · 식비", "후기 · 장소")
+  detailKicker: (entry: EntryOf<T>) => string;
+  // 상세에서 제목 아래 크게 보여 줄 필드. 아래 표에서는 빼서 같은 값이 두 번 나오지 않게 한다
+  headlineField: keyof EntryOf<T>['fields'];
 };
 
 // 타입마다 어떻게 보여 줄지는 여기 한 곳에만 둔다. 목록·카드 컴포넌트는 이 함수만 불러서
@@ -23,12 +27,16 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
     monthMetric: '이번 달 지출',
     monthValue: (entries) =>
       formatExpenseAmount(entries.reduce((sum, e) => sum + e.fields.amount, 0)),
+    detailKicker: (entry) => entry.fields.category,
+    headlineField: 'amount',
   },
   review: {
     listTitle: (entry) => entry.title,
     listValue: (entry) => formatRating(entry.fields.rating),
     monthMetric: '이번 달 작성',
     monthValue: (entries) => `${entries.length}건`,
+    detailKicker: (entry) => entry.fields.targetKind,
+    headlineField: 'rating',
   },
 };
 
@@ -67,4 +75,12 @@ export function getMonthValue(
 ): string {
   const ofType = entries.filter((entry) => entry.type === type);
   return presentationOf(type).monthValue(ofType as never);
+}
+
+export function getDetailKicker(entry: RecordEntry): string {
+  return presentationOf(entry.type).detailKicker(entry as never);
+}
+
+export function getHeadlineField(type: RecordType): string {
+  return String(RECORD_PRESENTATION[type].headlineField);
 }

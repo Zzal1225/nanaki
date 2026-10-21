@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import { Sprout } from 'lucide-react';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import AiBadge from './AiBadge';
@@ -19,9 +19,24 @@ type SidebarProps = {
   action?: ReactNode;
 };
 
+// cacheComponents: 아래에 id 같은 동적 주소가 있는 화면(/records/[id])에서는 미리 그릴 때 주소를 몰라 usePathname이 기다린다.
+// Suspense로 감싸서 앱 틀은 미리 그리고, 기다리는 동안은 선택 표시 없는 같은 모양(pathname = null)을 먼저 보여 준다
 export default function Sidebar({ action }: SidebarProps) {
-  const pathname = usePathname();
+  return (
+    <Suspense fallback={<SidebarView pathname={null} action={action} />}>
+      <SidebarWithPathname action={action} />
+    </Suspense>
+  );
+}
 
+function SidebarWithPathname({ action }: SidebarProps) {
+  return <SidebarView pathname={usePathname()} action={action} />;
+}
+
+function SidebarView({
+  pathname,
+  action,
+}: SidebarProps & { pathname: string | null }) {
   return (
     <aside className='sticky top-0 hidden h-dvh w-(--sidebar-collapsed) shrink-0 flex-col gap-2 border-r border-border bg-surface px-3 py-4 md:flex lg:w-(--sidebar-expanded)'>
       <div className='flex h-12 items-center justify-center gap-3 lg:justify-start lg:px-2'>
@@ -45,7 +60,9 @@ export default function Sidebar({ action }: SidebarProps) {
             <li key={item.href}>
               <SidebarLink
                 item={item}
-                isActive={isActivePath(pathname, item.href)}
+                isActive={
+                  pathname !== null && isActivePath(pathname, item.href)
+                }
               />
             </li>
           ))}
@@ -55,7 +72,9 @@ export default function Sidebar({ action }: SidebarProps) {
       <div className='mt-auto'>
         <SidebarLink
           item={SETTINGS_ITEM}
-          isActive={isActivePath(pathname, SETTINGS_ITEM.href)}
+          isActive={
+            pathname !== null && isActivePath(pathname, SETTINGS_ITEM.href)
+          }
         />
       </div>
     </aside>

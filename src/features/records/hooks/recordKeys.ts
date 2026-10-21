@@ -6,4 +6,5 @@ export const recordKeys = {
   list: (from: string, to: string) =>
     [...recordKeys.all, 'list', from, to] as const,
   recent: (limit: number) => [...recordKeys.all, 'recent', limit] as const,
+  detail: (id: string) => [...recordKeys.all, 'detail', id] as const,
 };

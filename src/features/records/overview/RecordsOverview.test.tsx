@@ -7,6 +7,8 @@ import type { RecordEntry } from '../schema/recordEntry';
 import RecordsOverview from './RecordsOverview';
 
 // 실제 Supabase 대신 가짜. 이 테스트는 "받은 기록을 어떻게 보여 주는지"만 본다
+// 테스트에는 Next 라우터가 없어서 지금 주소를 가짜로 준다 (PC 선택 표시용)
+vi.mock('next/navigation', () => ({ usePathname: () => '/records' }));
 vi.mock('../api/recordStore', () => ({
   listRecords: vi.fn(),
   listRecentRecords: vi.fn(),
@@ -60,6 +62,15 @@ describe('RecordsOverview', () => {
     expect(screen.getByText('점심 · 식비')).toBeTruthy();
     expect(screen.getByText('가계부 · 10.19 (월)')).toBeTruthy();
     expect(screen.getByText('★ 4.0')).toBeTruthy();
+  });
+
+  it('최근 기록 한 줄은 그 기록의 상세로 가는 링크', async () => {
+    vi.mocked(listRecords).mockResolvedValue([LUNCH]);
+    vi.mocked(listRecentRecords).mockResolvedValue([LUNCH]);
+    renderOverview();
+
+    const link = await screen.findByRole('link', { name: /점심 · 식비/ });
+    expect(link.getAttribute('href')).toBe('/records/1');
   });
 
   it('이번 달 기록은 오늘이 속한 달의 첫날~말일로 조회한다', async () => {
