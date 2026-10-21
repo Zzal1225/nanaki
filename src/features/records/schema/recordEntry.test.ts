@@ -82,3 +82,22 @@ describe('RecordEntry 타입', () => {
     expectTypeOf<RecordEntry['type']>().toEqualTypeOf<'expense' | 'review'>();
   });
 });
+
+describe('공통 칸 오류 문구', () => {
+  function messages(value: unknown) {
+    return recordEntrySchema
+      .safeParse(value)
+      .error?.issues.map((i) => i.message);
+  }
+
+  it('날짜를 비우면 "날짜를 골라 주세요"', () => {
+    expect(messages({ ...VALID_EXPENSE, occurredAt: '' })).toContain(
+      '날짜를 골라 주세요',
+    );
+  });
+  it('제목을 비우면 "제목을 입력해 주세요"', () => {
+    expect(messages({ ...VALID_EXPENSE, title: '' })).toContain(
+      '제목을 입력해 주세요',
+    );
+  });
+});

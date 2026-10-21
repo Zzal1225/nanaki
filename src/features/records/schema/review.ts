@@ -25,7 +25,13 @@ export const REVIEW_FIELDS = [
   }),
   // 제품·콘텐츠 후기에는 장소가 없으므로 선택
   optional(
-    textField({ name: 'place', label: '장소', maxLength: MAX_PLACE_LENGTH }),
+    textField({
+      name: 'place',
+      label: '장소',
+      maxLength: MAX_PLACE_LENGTH,
+      // 주소가 아니라 장소 이름이라는 걸 예시로 알려 준다
+      placeholder: '장소 이름 (예: 블루보틀 성수)',
+    }),
   ),
 ] satisfies readonly FieldDef[];
 
