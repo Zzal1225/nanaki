@@ -79,7 +79,7 @@ jobs:
       # 크로미움 하나만 (용량·시간). --with-deps: 리눅스에 필요한 라이브러리까지
       - run: npx playwright install --with-deps chromium
 
-      - name: E2E
+      - name: E2E + 화면 비교
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ env.SUPABASE_TEST_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ env.SUPABASE_TEST_ANON_KEY }}
@@ -91,4 +91,16 @@ jobs:
         with:
           name: playwright-report
           path: playwright-report/
+          retention-days: 7
+
+      # 화면 비교 이미지. 기준 이미지가 없을 때(처음·새 화면) Playwright가 snapshots 폴더에 새로 써 두고,
+      # 달라졌을 때는 test-results에 실제·차이 이미지를 남긴다. 내려받아 확인한 뒤 기준 이미지로 커밋한다
+      # (글꼴 렌더링이 운영체제마다 달라 기준 이미지는 이 리눅스 환경에서 만든 것만 쓴다)
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: visual-snapshots
+          path: |
+            tests/e2e/visual.spec.ts-snapshots/
+            test-results/
           retention-days: 7
