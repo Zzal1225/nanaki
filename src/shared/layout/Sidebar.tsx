@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import type { ReactNode } from 'react';
 import { Sprout } from 'lucide-react';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import AiBadge from './AiBadge';
@@ -13,7 +14,12 @@ const NAV_ICON_SIZE = 22;
 
 // 'use client'인 이유: 지금 주소(usePathname)로 선택된 메뉴를 표시해야 한다.
 // 태블릿(md)은 접힘 72px, PC(lg)는 펼침 240px. 폭에 따라 다른 컴포넌트를 그리지 않고 CSS로만 바꾼다
-export default function Sidebar() {
+type SidebarProps = {
+  // 로고 아래 주요 동작 자리("새 기록"). shared가 기록 기능(features)을 직접 import하지 않도록 바깥에서 넣어 준다
+  action?: ReactNode;
+};
+
+export default function Sidebar({ action }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -30,6 +36,8 @@ export default function Sidebar() {
           nanaki
         </span>
       </div>
+
+      {action && <div className='mt-2'>{action}</div>}
 
       <nav aria-label='주요 메뉴' className='mt-2'>
         <ul className='flex flex-col gap-1'>
