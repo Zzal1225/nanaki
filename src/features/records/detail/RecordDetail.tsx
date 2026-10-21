@@ -1,7 +1,7 @@
 'use client';
 
 // 'use client' 이유: 기록을 브라우저에서 불러온다 (step2에서 오프라인 저장소로 바꿀 자리)
-import { ChevronLeft, Pencil } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { formatDisplayDate } from '@/shared/date/formatDisplayDate';
 import Button from '@/shared/ui/Button';
@@ -16,6 +16,7 @@ import {
 } from '../ui/recordPresentation';
 import { RECORD_TYPE_STYLE } from '../ui/recordTypeStyle';
 import DetailRow from './DetailRow';
+import RecordActions from './RecordActions';
 
 const RECORDS_PATH = '/records';
 
@@ -23,7 +24,7 @@ type RecordDetailProps = {
   id: string;
 };
 
-// 기록 보기 (시안 6번, PC는 목록 옆 패널). 조회는 useRecord, 글자 만들기는 recordPresentation·fieldView가 맡는다
+// 기록 보기 (시안 6번, PC는 목록 옆 패널). 조회는 useRecord, 글자 만들기는 recordPresentation·fieldView, 수정·삭제는 RecordActions가 맡는다
 export default function RecordDetail({ id }: RecordDetailProps) {
   const { data: entry, isPending, isError, refetch } = useRecord(id);
 
@@ -100,17 +101,7 @@ export default function RecordDetail({ id }: RecordDetailProps) {
           />
           {config.label} · {getDetailKicker(entry)}
         </span>
-        <Link
-          href={`${RECORDS_PATH}/${entry.id}/edit`}
-          className='ml-auto inline-flex min-h-11 items-center gap-2 rounded-md border border-border bg-surface px-4 text-body-sm font-semibold text-fg-primary hover:bg-surface-hover'
-        >
-          <Pencil
-            aria-hidden='true'
-            size={ICON_SIZE.sm}
-            strokeWidth={ICON_STROKE_WIDTH}
-          />
-          수정
-        </Link>
+        <RecordActions id={entry.id} />
       </div>
 
       <div className='flex flex-col gap-1'>

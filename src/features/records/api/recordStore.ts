@@ -150,3 +150,17 @@ export async function deleteRecord(id: string): Promise<void> {
 
   if (error) throw error;
 }
+
+// 삭제 되돌리기: deleted_at을 비운다 (소프트 삭제라 줄이 그대로 남아 있어서 가능하다).
+// 지운 기록만 대상으로 해서, 이미 되돌린 기록을 또 건드리지 않는다
+export async function restoreRecord(id: string): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+
+  const { error } = await supabase
+    .from('records')
+    .update({ deleted_at: null })
+    .eq('id', id)
+    .not('deleted_at', 'is', null);
+
+  if (error) throw error;
+}

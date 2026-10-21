@@ -1,12 +1,25 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, render, screen } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getRecord } from '../api/recordStore';
+import { useToastStore } from '@/shared/toast/toastStore';
+import { deleteRecord, getRecord } from '../api/recordStore';
 import type { RecordEntry } from '../schema/recordEntry';
 import RecordDetail from './RecordDetail';
 
-vi.mock('../api/recordStore', () => ({ getRecord: vi.fn() }));
+vi.mock('../api/recordStore', () => ({
+  getRecord: vi.fn(),
+  deleteRecord: vi.fn(),
+  restoreRecord: vi.fn(),
+}));
+const replace = vi.fn();
+vi.mock('next/navigation', () => ({ useRouter: () => ({ replace }) }));
 
 const LUNCH: RecordEntry = {
   id: 'lunch-id',
@@ -30,7 +43,12 @@ function renderDetail() {
 }
 
 describe('RecordDetail', () => {
-  beforeEach(() => vi.mocked(getRecord).mockReset());
+  beforeEach(() => {
+    vi.mocked(getRecord).mockReset();
+    vi.mocked(deleteRecord).mockReset();
+    replace.mockReset();
+    useToastStore.setState({ toast: null });
+  });
   afterEach(() => cleanup());
 
   it('칩·제목·금액과 표(날짜, 필드, 태그, 메모)를 보여 준다', async () => {
@@ -68,5 +86,39 @@ describe('RecordDetail', () => {
     renderDetail();
 
     expect(await screen.findByText('기록을 찾을 수 없어요.')).toBeTruthy();
+  });
+
+  // 시안: 확인 창 없이 바로 지우고 홈으로, 되돌리기 토스트
+  it('⋯ → 삭제를 고르면 바로 지우고 홈으로 replace, 되돌리기 토스트', async () => {
+    vi.mocked(getRecord).mockResolvedValue(LUNCH);
+    vi.mocked(deleteRecord).mockResolvedValue();
+    renderDetail();
+
+    const more = await screen.findByRole('button', { name: '더보기' });
+    // Radix 메뉴는 테스트 환경에서 마우스로 열기가 불안정해서 키보드(Enter)로 연다
+    fireEvent.keyDown(more, { key: 'Enter' });
+    fireEvent.click(await screen.findByRole('menuitem', { name: '삭제' }));
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/'));
+    // mutationFn에는 TanStack Query가 두 번째 인자를 함께 넘겨서 첫 번째 인자만 본다
+    expect(vi.mocked(deleteRecord).mock.calls[0][0]).toBe('lunch-id');
+    expect(useToastStore.getState().toast?.action?.label).toBe('되돌리기');
+  });
+
+  it('지우기에 실패하면 이동하지 않고 안내 토스트', async () => {
+    vi.mocked(getRecord).mockResolvedValue(LUNCH);
+    vi.mocked(deleteRecord).mockRejectedValue(new Error('네트워크 오류'));
+    renderDetail();
+
+    const more = await screen.findByRole('button', { name: '더보기' });
+    fireEvent.keyDown(more, { key: 'Enter' });
+    fireEvent.click(await screen.findByRole('menuitem', { name: '삭제' }));
+
+    await waitFor(() =>
+      expect(useToastStore.getState().toast?.message).toContain(
+        '삭제하지 못했어요',
+      ),
+    );
+    expect(replace).not.toHaveBeenCalled();
   });
 });

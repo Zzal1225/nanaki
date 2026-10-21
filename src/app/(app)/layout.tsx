@@ -3,6 +3,7 @@ import SpeedDial from '@/features/records/entry/SpeedDial';
 import BottomTabBar from '@/shared/layout/BottomTabBar';
 import Sidebar from '@/shared/layout/Sidebar';
 import QueryProvider from '@/shared/query/QueryProvider';
+import Toaster from '@/shared/toast/Toaster';
 
 // 로그인 뒤 화면들의 공통 틀. (app) 괄호 폴더는 주소에 나타나지 않아서
 // /login, /design-system은 이 틀 밖에 남는다
@@ -19,6 +20,8 @@ export default function AppLayout({ children }: LayoutProps<'/'>) {
         <BottomTabBar />
         {/* 모바일 전용 작성 버튼. 태블릿·PC는 사이드바의 "새 기록"이 맡는다 */}
         <SpeedDial />
+        {/* 화면을 옮겨 가도 남는 알림(삭제 → 홈에서 되돌리기)이라 앱 틀에 하나 둔다 */}
+        <Toaster />
       </div>
     </QueryProvider>
   );
