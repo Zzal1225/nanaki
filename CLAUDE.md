@@ -81,6 +81,7 @@ src/
                   records/type/ = 타입 상세(달 이동, 타입별 요약 카드 registry, 목록)
                   records/sample/ = 체험하기 예시 기록(오늘 기준 최근 2주, 순수 함수) + 넣기(addSampleRecords)
   lib/supabase/   Supabase 클라이언트 (client.ts = 브라우저용, server.ts = 서버용, admin.ts = secret 키 관리자용·서버 전용), database.types.ts = DB 타입(자동 생성, 직접 수정 금지)
+  lib/sentry/     Sentry 공통 설정(sentryOptions: 켜는 조건, 개인 데이터 수집 끔). instrumentation(-client).ts와 app/global-error.tsx가 쓴다
   lib/db/         Dexie 스키마와 마이그레이션 (예정)
 tests/integration/  진짜 Supabase에 붙는 통합 테스트(RLS 격리 등). npm run test:integration, CI가 로컬 Supabase(Docker)를 띄워 돌린다
 tests/e2e/          Playwright E2E (npm run test:e2e). CI가 같은 로컬 Supabase에 붙인 빌드로 실제 브라우저 흐름을 돌린다
