@@ -20,7 +20,7 @@
 - **화면**: 하단 탭 홈·기록·나키(AI 챗봇 이름, 글자 옆 "AI" 뱃지), 우하단 스피드 다이얼(작성 전용), 설정은 홈 ⚙. 768px 미만 모바일, 768~1023px 태블릿(접힌 사이드바 + 한 줄 배치), 1024px 이상 PC(펼친 사이드바 + 좌우 배치). PC는 사이드바에 설정·새 기록. 다크모드 지원.
 - **고정값**: 한국어, 원화, kg, cm. 날짜(`occurredAt`)는 로컬 'YYYY-MM-DD' 문자열.
 - **단계**: step1 로그인·체험, 가계부·후기, 홈 캘린더, 반응형·다크모드, CI/CD(lint·typecheck·단위·build + E2E 1개), RLS 테스트 → step2 운동·루틴·체형, 검색·필터, 오프라인 이동 실험 → 동기화, 캘린더·초기 로딩 성능 측정, Lighthouse CI, Sentry (끝나면 지원 시작)
-  → step3 AI, 예산·고정지출, 푸시 → step4 눈바디 사진(모바일 촬영, PC는 불러오기와 맞춰 자르기), 보고서, 백업, 성능 개선. 상세는 기획서를 따른다.
+  → step3 AI, 예산·고정지출, 푸시 → step4 눈바디 사진(모바일 촬영, PC는 불러오기와 맞춰 자르기), 후기 사진(같은 업로드 과정), 보고서, 백업, 성능 개선. 상세는 기획서를 따른다.
 
 ## 2. 기술 스택
 
@@ -65,7 +65,8 @@ src/
                   date/ = 날짜 도우미(로컬 YYYY-MM-DD, YYYY-MM 달 계산, date-fns 캘린더 계산(calendar.ts), 브라우저에서만 읽는 오늘 useToday)
   features/       기능 단위 모듈. auth/ = 로그인. 이후 search, chat ...
                   calendar/ = 홈 캘린더. calendarState = 주소(?view=&date=) 해석·만들기와 공통 탐색(이전·다음 기간, 키보드 이동),
-                  useCalendar = 상태 + 바꾸는 함수(history.replaceState), MonthGrid(role=grid, roving tabindex), DaySummary(하루 요약)
+                  calendarPeriod = 월·주 보기마다 다른 것(보이는 칸, 불러올 기간, 제목, 흐린 칸), useCalendar = 상태 + 바꾸는 함수(history.replaceState),
+                  CalendarGrid(월·주 공통, role=grid, roving tabindex), DaySummary(하루 요약)
                   records/schema/ = 필드 빌더(fieldKinds)와 타입별 스키마, RecordEntry 판별 유니온
                   records/api/ = 기록 저장·조회의 유일한 입구(recordStore)와 DB 줄 변환(recordMapper)
                   records/hooks/ = TanStack Query 훅과 쿼리 키(recordKeys)

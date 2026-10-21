@@ -1,7 +1,6 @@
 'use client';
 
 // 'use client' 이유: 타입 줄의 펼침 상태(useState)를 들고 있다
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import {
   getDayLabel,
@@ -10,9 +9,8 @@ import {
   getListValue,
 } from '@/features/records/ui/recordPresentation';
 import type { RecordType } from '@/features/records/schema/recordTypes';
-import { formatMonthDayLabel } from '@/shared/date/formatDisplayDate';
+import { formatDayHeading } from '@/shared/date/formatDisplayDate';
 import Button from '@/shared/ui/Button';
-import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import DayEmptyState from './DayEmptyState';
 import DayTypeRow from './DayTypeRow';
 import type { DayTypeGroup } from './dayRecords';
@@ -24,13 +22,7 @@ type DaySummaryProps = {
   groups: DayTypeGroup[] | null;
   isError: boolean;
   onRetry: () => void;
-  // 전날(-1)·다음 날(+1)
-  onShiftDay: (delta: number) => void;
-  onGoToday: () => void;
 };
-
-const DAY_NAV_BUTTON_CLASS =
-  'inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-fg-primary hover:bg-surface-hover active:bg-surface-pressed';
 
 // 고른 날의 요약 (시안: 캘린더 아래, PC는 오른쪽 400px).
 // 부모가 key={date}로 그려서 날짜가 바뀌면 이 컴포넌트가 새로 만들어지고 펼친 줄도 모두 접힌다.
@@ -41,8 +33,6 @@ export default function DaySummary({
   groups,
   isError,
   onRetry,
-  onShiftDay,
-  onGoToday,
 }: DaySummaryProps) {
   const [openTypes, setOpenTypes] = useState<ReadonlySet<RecordType>>(
     () => new Set(),
@@ -62,51 +52,19 @@ export default function DaySummary({
       aria-labelledby='day-summary-title'
       className='flex flex-col gap-2'
     >
-      <div className='flex h-14 items-center gap-1 lg:h-11'>
-        <button
-          type='button'
-          aria-label='전날'
-          onClick={() => onShiftDay(-1)}
-          className={DAY_NAV_BUTTON_CLASS}
-        >
-          <ChevronLeft
-            aria-hidden='true'
-            size={ICON_SIZE.md}
-            strokeWidth={ICON_STROKE_WIDTH}
-          />
-        </button>
+      {/* 날짜를 옮기는 버튼은 두지 않는다: 날짜는 위 캘린더 칸을 눌러서(키보드는 방향키로) 고른다.
+          머리에 기간 이동(‹ ›)이 이미 있어서, 여기에도 ‹ ›를 두면 같은 모양 버튼이 두 벌이라 무엇이 움직이는지 헷갈린다 */}
+      <div className='flex min-h-11 items-center gap-2'>
         <h2
           id='day-summary-title'
-          className='px-2 text-body font-semibold text-fg-primary tabular-nums lg:text-title'
+          className='text-body font-bold text-fg-primary tabular-nums lg:text-title'
         >
-          {formatMonthDayLabel(date)}
+          {formatDayHeading(date)}
         </h2>
-        <button
-          type='button'
-          aria-label='다음 날'
-          onClick={() => onShiftDay(1)}
-          className={DAY_NAV_BUTTON_CLASS}
-        >
-          <ChevronRight
-            aria-hidden='true'
-            size={ICON_SIZE.md}
-            strokeWidth={ICON_STROKE_WIDTH}
-          />
-        </button>
-        {isToday ? (
-          <span className='ml-1 inline-flex h-6 items-center rounded-full bg-accent px-2 text-caption font-semibold text-accent-foreground'>
+        {isToday && (
+          <span className='inline-flex h-6 items-center rounded-full bg-accent px-2 text-caption font-semibold text-accent-foreground'>
             오늘
           </span>
-        ) : (
-          // 모바일 전용 "오늘로" 버튼. 오늘 뱃지가 있던 자리라 찾기 쉽다.
-          // 태블릿·PC는 캘린더 머리에 "오늘" 버튼이 있다 (CalendarHeader)
-          <button
-            type='button'
-            onClick={onGoToday}
-            className='ml-1 inline-flex min-h-11 items-center rounded-full px-3 text-body-sm font-medium text-accent hover:bg-surface-hover active:bg-surface-pressed md:hidden'
-          >
-            오늘로
-          </button>
         )}
       </div>
 

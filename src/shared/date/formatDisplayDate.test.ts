@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  formatDayHeading,
   formatDisplayDate,
   formatMonthDayLabel,
   formatShortDate,
@@ -35,5 +36,14 @@ describe('formatMonthDayLabel', () => {
   });
   it('형식이 틀리면 빈 글자', () => {
     expect(formatMonthDayLabel('')).toBe('');
+  });
+});
+
+describe('formatDayHeading', () => {
+  it('M월 D일 O요일 (요일을 줄이지 않는다)', () => {
+    expect(formatDayHeading('2026-10-16')).toBe('10월 16일 금요일');
+  });
+  it('형식이 틀리면 빈 글자', () => {
+    expect(formatDayHeading('2026-13')).toBe('');
   });
 });

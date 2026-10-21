@@ -104,7 +104,7 @@ describe('HomeCalendar', () => {
 
     expect(window.location.search).toBe('?date=2026-10-16');
     expect(
-      screen.getByRole('heading', { name: '10월 16일 (금)' }),
+      screen.getByRole('heading', { name: '10월 16일 금요일' }),
     ).toBeDefined();
     expect(screen.getByText('기록이 없어요')).toBeDefined();
   });
@@ -132,6 +132,25 @@ describe('HomeCalendar', () => {
     expect(window.location.search).toBe('?date=2026-11-30');
   });
 
+  it('오늘 아이콘에 오늘 날짜가 적혀 있고, 누르면 오늘로 돌아온다', () => {
+    renderCalendar('?date=2026-08-03');
+    const todayButton = screen.getByRole('button', {
+      name: '오늘(10월 21일 (수))로',
+    });
+    expect(todayButton.textContent).toBe('21');
+
+    fireEvent.click(todayButton);
+
+    expect(window.location.search).toBe('?date=2026-10-21');
+    expect(screen.getByRole('heading', { name: '2026년 10월' })).toBeDefined();
+  });
+
+  it('하루 요약에는 날짜를 옮기는 버튼이 없다 (날짜는 칸을 눌러 고른다)', () => {
+    renderCalendar();
+    expect(screen.queryByRole('button', { name: '전날' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '다음 날' })).toBeNull();
+  });
+
   it('타입 줄을 누르면 그날 기록이 펼쳐진다', async () => {
     renderCalendar();
     const row = await screen.findByRole('button', { name: /가계부 1건/ });
@@ -147,5 +166,59 @@ describe('HomeCalendar', () => {
     renderCalendar('?date=2026-02-30&view=abc');
     expect(cellOf(/^10월 21일/).getAttribute('aria-current')).toBe('date');
     expect(cellOf(/^10월 21일/).tabIndex).toBe(0);
+  });
+});
+
+describe('HomeCalendar 주 보기', () => {
+  beforeEach(() => {
+    vi.mocked(listRecords).mockReset();
+    vi.mocked(listRecords).mockResolvedValue([LUNCH, CAFE]);
+  });
+  afterEach(() => cleanup());
+
+  it('주로 바꾸면 고른 날은 그대로, 그 주 7칸과 그 주 기록만', async () => {
+    renderCalendar('?date=2026-10-21');
+
+    fireEvent.click(screen.getByRole('button', { name: '주 보기' }));
+
+    expect(window.location.search).toBe('?view=week&date=2026-10-21');
+    expect(screen.getByRole('heading', { name: '10월 18–24일' })).toBeDefined();
+    expect(
+      within(screen.getByRole('grid')).getAllByRole('gridcell'),
+    ).toHaveLength(7);
+    expect(listRecords).toHaveBeenLastCalledWith('2026-10-18', '2026-10-24');
+    // 하루 요약은 보기와 상관없이 고른 날 그대로
+    expect(await screen.findByText('가계부 1건')).toBeDefined();
+  });
+
+  it('달이 걸친 주: 다른 달 날짜도 흐리지 않고, 그 주 7일을 불러온다', () => {
+    renderCalendar('?view=week&date=2026-10-01');
+
+    expect(
+      screen.getByRole('heading', { name: '9월 27일–10월 3일' }),
+    ).toBeDefined();
+    expect(listRecords).toHaveBeenCalledWith('2026-09-27', '2026-10-03');
+  });
+
+  it('‹ ›·PageDown은 한 주씩, 아래 방향키로 다음 주로 넘어가도 포커스가 따라간다', () => {
+    renderCalendar('?view=week&date=2026-10-21');
+
+    fireEvent.click(screen.getByRole('button', { name: '10월 25–31일로' }));
+    expect(window.location.search).toBe('?view=week&date=2026-10-28');
+
+    const cell = cellOf(/^10월 28일/);
+    cell.focus();
+    fireEvent.keyDown(cell, { key: 'ArrowDown' });
+    expect(screen.getByRole('heading', { name: '11월 1–7일' })).toBeDefined();
+    expect(document.activeElement).toBe(cellOf(/^11월 4일/));
+  });
+
+  it('월로 돌아가면 view가 주소에서 빠지고 고른 날의 달이 열린다', () => {
+    renderCalendar('?view=week&date=2026-11-04');
+
+    fireEvent.click(screen.getByRole('button', { name: '월 보기' }));
+
+    expect(window.location.search).toBe('?date=2026-11-04');
+    expect(screen.getByRole('heading', { name: '2026년 11월' })).toBeDefined();
   });
 });
