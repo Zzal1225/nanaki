@@ -22,7 +22,7 @@ const VALID_REVIEW = {
   type: 'review',
   title: '블루보틀 성수',
   tags: ['재방문'],
-  fields: { rating: 4, targetKind: '장소', place: '성수' },
+  fields: { rating: 4, targetKind: '장소' },
 };
 
 function isValid(value: unknown) {

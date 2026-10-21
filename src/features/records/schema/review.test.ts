@@ -1,12 +1,8 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { RATING_MAX, RATING_MIN } from './fieldKinds';
-import {
-  MAX_PLACE_LENGTH,
-  reviewFieldsSchema,
-  type ReviewFields,
-} from './review';
+import { reviewFieldsSchema, type ReviewFields } from './review';
 
-const VALID = { rating: 4, targetKind: '장소', place: '블루보틀 성수' };
+const VALID = { rating: 4, targetKind: '장소' };
 
 function isValid(value: unknown) {
   return reviewFieldsSchema.safeParse(value).success;
@@ -15,9 +11,6 @@ function isValid(value: unknown) {
 describe('reviewFieldsSchema', () => {
   it('정상 값은 통과', () => {
     expect(isValid(VALID)).toBe(true);
-  });
-  it('장소를 빼도 통과', () => {
-    expect(isValid({ rating: 4, targetKind: '제품' })).toBe(true);
   });
   it('별점 최솟값·최댓값은 통과', () => {
     expect(isValid({ ...VALID, rating: RATING_MIN })).toBe(true);
@@ -35,12 +28,10 @@ describe('reviewFieldsSchema', () => {
   it('목록 밖 대상 종류는 실패', () => {
     expect(isValid({ ...VALID, targetKind: '음식' })).toBe(false);
   });
-  it('공백만 있는 장소는 실패', () => {
-    expect(isValid({ ...VALID, place: '   ' })).toBe(false);
-  });
-  it('길이 상한을 넘는 장소는 실패', () => {
-    const tooLong = '가'.repeat(MAX_PLACE_LENGTH + 1);
-    expect(isValid({ ...VALID, place: tooLong })).toBe(false);
+  // 장소 칸을 없애기 전에 저장한 기록도 목록에서 사라지지 않아야 한다
+  it('예전 기록에 남은 place는 실패시키지 않고 떨어뜨린다', () => {
+    const parsed = reviewFieldsSchema.parse({ ...VALID, place: '성수' });
+    expect(parsed).toEqual(VALID);
   });
 });
 
@@ -50,7 +41,7 @@ describe('ReviewFields 타입', () => {
       '장소' | '제품' | '콘텐츠' | '경험'
     >();
   });
-  it('place는 string | undefined', () => {
-    expectTypeOf<ReviewFields['place']>().toEqualTypeOf<string | undefined>();
+  it('필드는 별점과 대상 두 개', () => {
+    expectTypeOf<keyof ReviewFields>().toEqualTypeOf<'rating' | 'targetKind'>();
   });
 });
