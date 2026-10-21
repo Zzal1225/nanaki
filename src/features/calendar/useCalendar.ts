@@ -5,6 +5,7 @@ import {
   shiftPeriod,
   toCalendarHref,
   type CalendarState,
+  type CalendarView,
 } from './calendarState';
 
 export type CalendarControls = {
@@ -14,6 +15,8 @@ export type CalendarControls = {
   // 이전(-1)·다음(+1) 기간. 버튼, PageUp/PageDown, 나중에 붙일 스와이프가 모두 이것만 부른다
   shiftPeriod: (delta: number) => void;
   goToday: () => void;
+  // 월·주 전환. 고른 날짜는 그대로라 10월 21일을 보던 중 주 보기로 바꾸면 그 날이 있는 주가 열린다
+  setView: (view: CalendarView) => void;
 };
 
 // router.replace 대신 history.replaceState를 쓰는 이유:
@@ -43,5 +46,6 @@ export function useCalendar(): CalendarControls | null {
     selectDate: (date) => replaceCalendarUrl({ ...state, date }),
     shiftPeriod: (delta) => replaceCalendarUrl(shiftPeriod(state, delta)),
     goToday: () => replaceCalendarUrl({ ...state, date: today }),
+    setView: (view) => replaceCalendarUrl({ ...state, view }),
   };
 }

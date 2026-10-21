@@ -5,6 +5,7 @@ import {
   addWeeksTo,
   endOfWeekOf,
   getMonthGrid,
+  getWeekDays,
   isDateString,
   startOfWeekOf,
 } from './calendar';
@@ -44,6 +45,20 @@ describe('주의 시작·끝 (일요일 시작)', () => {
   });
   it('일요일이면 그날이 시작', () => {
     expect(startOfWeekOf('2026-10-18')).toBe('2026-10-18');
+  });
+});
+
+describe('getWeekDays', () => {
+  it('그 주 일요일~토요일 7일, 달이 걸쳐도', () => {
+    expect(getWeekDays('2026-10-01')).toEqual([
+      '2026-09-27',
+      '2026-09-28',
+      '2026-09-29',
+      '2026-09-30',
+      '2026-10-01',
+      '2026-10-02',
+      '2026-10-03',
+    ]);
   });
 });
 

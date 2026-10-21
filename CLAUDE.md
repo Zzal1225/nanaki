@@ -65,7 +65,8 @@ src/
                   date/ = 날짜 도우미(로컬 YYYY-MM-DD, YYYY-MM 달 계산, date-fns 캘린더 계산(calendar.ts), 브라우저에서만 읽는 오늘 useToday)
   features/       기능 단위 모듈. auth/ = 로그인. 이후 search, chat ...
                   calendar/ = 홈 캘린더. calendarState = 주소(?view=&date=) 해석·만들기와 공통 탐색(이전·다음 기간, 키보드 이동),
-                  useCalendar = 상태 + 바꾸는 함수(history.replaceState), MonthGrid(role=grid, roving tabindex), DaySummary(하루 요약)
+                  calendarPeriod = 월·주 보기마다 다른 것(보이는 칸, 불러올 기간, 제목, 흐린 칸), useCalendar = 상태 + 바꾸는 함수(history.replaceState),
+                  CalendarGrid(월·주 공통, role=grid, roving tabindex), DaySummary(하루 요약)
                   records/schema/ = 필드 빌더(fieldKinds)와 타입별 스키마, RecordEntry 판별 유니온
                   records/api/ = 기록 저장·조회의 유일한 입구(recordStore)와 DB 줄 변환(recordMapper)
                   records/hooks/ = TanStack Query 훅과 쿼리 키(recordKeys)

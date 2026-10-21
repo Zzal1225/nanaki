@@ -31,7 +31,8 @@ export default function SegmentedControl({
         <RadioGroup.Item
           key={option.value}
           value={option.value}
-          className='h-full min-w-14 rounded-sm px-3 text-fg-secondary data-[state=checked]:bg-fg-primary data-[state=checked]:text-surface'
+          // 칸 너비: 모바일 40px, 태블릿 이상 56px (시안 홈 머리). 375px 머리 한 줄에 ‹ 제목 › 월|주 ⚙가 들어가야 한다
+          className='h-full min-w-10 rounded-sm px-3 text-fg-secondary data-[state=checked]:bg-fg-primary data-[state=checked]:text-surface md:min-w-14'
         >
           {option.label}
         </RadioGroup.Item>
