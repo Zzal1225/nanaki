@@ -36,3 +36,34 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  # 진짜 Supabase에 붙는 통합 테스트 (RLS 사용자 격리, 계정 삭제 cascade).
+  # 실제 서비스 DB가 아니라 이 실행 안에서만 사는 빈 로컬 Supabase(Docker)를 띄운다.
+  # 마이그레이션을 처음부터 전부 적용하므로 "빈 DB에 마이그레이션이 깨끗이 들어가는지"도 함께 확인된다
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # Supabase CLI는 devDependencies에 있어 npx로 같은 버전을 쓴다.
+      # 테스트에 필요 없는 서비스(실시간·파일 저장소·관리 화면 등)는 띄우지 않아 시간을 줄인다
+      - name: 로컬 Supabase 시작
+        run: npx supabase start -x realtime,storage-api,imgproxy,studio,edge-runtime,logflare,vector,supavisor,postgres-meta
+
+      # 주소·키는 매번 로컬에서 새로 만들어지는 테스트용 값이라 비밀이 아니다
+      - name: 테스트용 주소·키를 환경 변수로
+        run: |
+          npx supabase status -o json > supabase-status.json
+          echo "SUPABASE_TEST_URL=$(jq -r '.API_URL' supabase-status.json)" >> "$GITHUB_ENV"
+          echo "SUPABASE_TEST_ANON_KEY=$(jq -r '.ANON_KEY' supabase-status.json)" >> "$GITHUB_ENV"
+          echo "SUPABASE_TEST_SERVICE_KEY=$(jq -r '.SERVICE_ROLE_KEY' supabase-status.json)" >> "$GITHUB_ENV"
+
+      - run: npm run test:integration
