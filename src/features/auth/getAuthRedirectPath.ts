@@ -4,7 +4,13 @@ export const LOGIN_PATH = '/login';
 // 로그인 없이 열 수 있는 주소
 // - /auth/callback: 구글에서 돌아오는 순간에는 아직 세션이 없다
 // - /design-system: README에서 면접관이 로그인 없이 보도록 링크한다
-const PUBLIC_PATHS = [LOGIN_PATH, '/auth/callback', '/design-system'];
+// - /robots.txt: 검색 로봇이 읽는 파일. 로그인 화면(HTML)으로 보내면 로봇이 규칙을 못 읽는다 (Lighthouse SEO에서 발견)
+const PUBLIC_PATHS = [
+  LOGIN_PATH,
+  '/auth/callback',
+  '/design-system',
+  '/robots.txt',
+];
 const API_PATH_PREFIX = '/api/';
 
 // 쿠키·요청과 떼어 낸 순수 함수라서 모든 경우를 단위 테스트로 확인할 수 있다.
