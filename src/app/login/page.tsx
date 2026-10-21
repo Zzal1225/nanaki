@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Info, Sprout } from 'lucide-react';
+import { GUEST_RETENTION_DAYS } from '@/features/auth/guestRetention';
 import SignInButtons from '@/features/auth/SignInButtons';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 
@@ -39,7 +40,7 @@ export default function LoginPage() {
             size={ICON_SIZE.sm}
             strokeWidth={ICON_STROKE_WIDTH}
           />
-          체험 기록은 3일 뒤 삭제되고, 이 기기에서만 보여요
+          체험 기록은 {GUEST_RETENTION_DAYS}일 뒤 삭제되고, 이 기기에서만 보여요
         </p>
       </section>
     </main>

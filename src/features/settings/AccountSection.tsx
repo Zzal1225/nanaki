@@ -1,6 +1,7 @@
 'use client';
 
 // 'use client' 이유: 브라우저에 저장된 세션에서 지금 계정(이메일·체험 여부)을 읽는다
+import { GUEST_RETENTION_DAYS } from '@/features/auth/guestRetention';
 import LogoutButton from '@/features/auth/LogoutButton';
 import { useCurrentUser } from '@/features/auth/useCurrentUser';
 import DeleteAccountButton from './DeleteAccountButton';
@@ -22,6 +23,7 @@ export default function AccountSection() {
           <>
             <span className='text-body text-fg-primary'>체험 계정</span>
             <span className='text-caption text-fg-secondary'>
+              만든 지 {GUEST_RETENTION_DAYS}일 뒤 자동으로 삭제되고,
               로그아웃하면 다시 들어올 수 없어요
             </span>
           </>
