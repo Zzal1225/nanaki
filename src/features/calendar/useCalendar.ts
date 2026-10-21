@@ -1,22 +1,15 @@
 import { useSearchParams } from 'next/navigation';
 import { useToday } from '@/shared/date/useToday';
-import {
-  parseCalendarState,
-  shiftPeriod,
-  toCalendarHref,
-  type CalendarState,
-  type CalendarView,
-} from './calendarState';
+import { parseCalendarDate, shiftMonth, toCalendarHref } from './calendarState';
 
 export type CalendarControls = {
-  state: CalendarState;
+  // 고른 날짜 'YYYY-MM-DD'
+  date: string;
   today: string;
   selectDate: (date: string) => void;
-  // 이전(-1)·다음(+1) 기간. 버튼, PageUp/PageDown, 나중에 붙일 스와이프가 모두 이것만 부른다
-  shiftPeriod: (delta: number) => void;
+  // 이전(-1)·다음(+1) 달. 버튼, PageUp/PageDown, 나중에 붙일 스와이프가 모두 이것만 부른다
+  shiftMonth: (delta: number) => void;
   goToday: () => void;
-  // 월·주 전환. 고른 날짜는 그대로라 10월 21일을 보던 중 주 보기로 바꾸면 그 날이 있는 주가 열린다
-  setView: (view: CalendarView) => void;
 };
 
 // router.replace 대신 history.replaceState를 쓰는 이유:
@@ -24,28 +17,24 @@ export type CalendarControls = {
 // - router 대신 history: router.replace는 searchParams가 바뀐 페이지를 서버에 다시 요청한다.
 //   방향키를 누를 때마다 서버를 다녀오면 느리다. Next.js는 history.replaceState도 지켜보고 있어서
 //   useSearchParams가 바로 새 값을 준다 (서버 요청 없음)
-function replaceCalendarUrl(state: CalendarState): void {
-  window.history.replaceState(null, '', toCalendarHref(state));
+function replaceCalendarUrl(date: string): void {
+  window.history.replaceState(null, '', toCalendarHref(date));
 }
 
-// 캘린더의 상태(주소)와 그 상태를 바꾸는 방법을 한곳에 모은다.
+// 캘린더의 상태(주소의 날짜)와 그 상태를 바꾸는 방법을 한곳에 모은다.
 // 오늘을 모르는 동안(서버·첫 하이드레이션)은 null → 화면은 자리만 보여 준다
 export function useCalendar(): CalendarControls | null {
   const searchParams = useSearchParams();
   const today = useToday();
   if (!today) return null;
 
-  const state = parseCalendarState(
-    { view: searchParams.get('view'), date: searchParams.get('date') },
-    today,
-  );
+  const date = parseCalendarDate(searchParams.get('date'), today);
 
   return {
-    state,
+    date,
     today,
-    selectDate: (date) => replaceCalendarUrl({ ...state, date }),
-    shiftPeriod: (delta) => replaceCalendarUrl(shiftPeriod(state, delta)),
-    goToday: () => replaceCalendarUrl({ ...state, date: today }),
-    setView: (view) => replaceCalendarUrl({ ...state, view }),
+    selectDate: replaceCalendarUrl,
+    shiftMonth: (delta) => replaceCalendarUrl(shiftMonth(date, delta)),
+    goToday: () => replaceCalendarUrl(today),
   };
 }

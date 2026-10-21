@@ -39,7 +39,7 @@ async function NewRecordContent({
       mode='create'
       type={recordType}
       date={date}
-      doneHref={toCalendarHref({ view: 'month', date })}
+      doneHref={toCalendarHref(date)}
     />
   );
 }
