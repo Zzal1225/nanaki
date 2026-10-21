@@ -6,6 +6,7 @@ import { Plus, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Suspense, useState } from 'react';
+import { useToastStore } from '@/shared/toast/toastStore';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import { RECORD_TYPE_STYLE } from '../ui/recordTypeStyle';
 import { NEW_RECORD_MENU_ITEMS } from './newRecordMenu';
@@ -33,6 +34,7 @@ export default function SpeedDial() {
 function SpeedDialWithPathname() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const hasToast = useToastStore((state) => state.toast !== null);
 
   // 작성·수정 중에는 숨긴다 (CLAUDE.md: 입력 중 스피드 다이얼 숨김)
   if (
@@ -53,8 +55,13 @@ function SpeedDialWithPathname() {
       )}
       <DropdownMenu.Trigger
         aria-label={isOpen ? '새 기록 메뉴 닫기' : '새 기록 쓰기'}
-        // 하단 탭 위 16px. --tab-bar-height에 홈 막대 여백이 들어 있다
-        className={`fixed right-4 bottom-[calc(var(--tab-bar-height)+16px)] z-40 flex size-14 items-center justify-center rounded-full shadow-float md:hidden ${
+        // 하단 탭 위 16px (토스트가 있으면 그 위). --tab-bar-height에 홈 막대 여백이 들어 있다
+        className={`fixed right-4 z-40 flex size-14 items-center justify-center rounded-full shadow-float transition-[bottom] md:hidden ${
+          // 토스트(높이 48 + 간격 16)가 떠 있는 동안 그만큼 위로 비켜선다. 클래스는 통째로 적는다 (Tailwind는 조합된 이름을 못 찾는다)
+          hasToast
+            ? 'bottom-[calc(var(--tab-bar-height)+80px)]'
+            : 'bottom-[calc(var(--tab-bar-height)+16px)]'
+        } ${
           isOpen
             ? 'bg-surface-raised text-fg-primary'
             : 'bg-accent text-accent-foreground'
