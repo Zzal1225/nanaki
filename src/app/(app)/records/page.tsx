@@ -5,7 +5,17 @@ export const metadata: Metadata = {
   title: '기록',
 };
 
-// 페이지는 서버 컴포넌트로 두고(제목 등 메타데이터), 기록을 불러오는 부분만 클라이언트 컴포넌트에 맡긴다
+// 모바일·태블릿: 목록이 이 화면 자체. PC: 목록은 layout이 왼쪽에 이미 보여 주므로 오른쪽 패널에 안내만.
+// PC에서도 아래 목록이 함께 그려지지만 display:none이라 보이지 않고, 같은 쿼리 키라 조회는 한 번만 나간다
 export default function RecordsPage() {
-  return <RecordsOverview />;
+  return (
+    <>
+      <div className='lg:hidden'>
+        <RecordsOverview />
+      </div>
+      <p className='hidden h-full items-center justify-center text-body text-fg-secondary lg:flex'>
+        기록을 고르면 여기에 보여요
+      </p>
+    </>
+  );
 }

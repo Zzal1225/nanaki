@@ -28,5 +28,5 @@ async function NewRecordContent({
   const recordType = parseRecordType(type);
   if (!recordType) redirect('/');
 
-  return <RecordForm type={recordType} />;
+  return <RecordForm mode='create' type={recordType} />;
 }

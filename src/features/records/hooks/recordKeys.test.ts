@@ -32,3 +32,9 @@ describe('recordKeys.recent', () => {
     );
   });
 });
+
+describe('recordKeys.detail', () => {
+  it("상세 키도 'records'로 시작한다 (수정·삭제 후 무효화에 포함)", () => {
+    expect(recordKeys.detail('abc')).toEqual(['records', 'detail', 'abc']);
+  });
+});

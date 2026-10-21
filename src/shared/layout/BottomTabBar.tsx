@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Suspense } from 'react';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import AiBadge from './AiBadge';
 import { isActivePath } from './isActivePath';
@@ -9,9 +10,21 @@ import { NAV_ITEMS } from './navItems';
 
 // 'use client'인 이유: 지금 주소(usePathname)로 선택된 탭을 표시해야 한다.
 // 모바일 전용. 높이는 탭 56px + 기기의 홈 바 여백(--tab-bar-height)
+// cacheComponents: 아래에 id 같은 동적 주소가 있는 화면(/records/[id])에서는 미리 그릴 때 주소를 몰라 usePathname이 기다린다.
+// Suspense로 감싸서 앱 틀은 미리 그리고, 기다리는 동안은 선택 표시 없는 같은 모양(pathname = null)을 먼저 보여 준다
 export default function BottomTabBar() {
-  const pathname = usePathname();
+  return (
+    <Suspense fallback={<BottomTabBarView pathname={null} />}>
+      <BottomTabBarWithPathname />
+    </Suspense>
+  );
+}
 
+function BottomTabBarWithPathname() {
+  return <BottomTabBarView pathname={usePathname()} />;
+}
+
+function BottomTabBarView({ pathname }: { pathname: string | null }) {
   return (
     <nav
       aria-label='주요 메뉴'
@@ -19,7 +32,8 @@ export default function BottomTabBar() {
     >
       <ul className='flex h-full'>
         {NAV_ITEMS.map((item) => {
-          const isActive = isActivePath(pathname, item.href);
+          const isActive =
+            pathname !== null && isActivePath(pathname, item.href);
           const Icon = item.icon;
           return (
             <li key={item.href} className='flex-1'>

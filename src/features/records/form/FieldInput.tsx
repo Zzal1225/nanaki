@@ -2,40 +2,14 @@ import ChipSelect from '@/shared/ui/ChipSelect';
 import RatingInput from '@/shared/ui/RatingInput';
 import TextField from '@/shared/ui/TextField';
 import { RATING_MAX } from '../schema/fieldKinds';
+import type { FieldView } from '../ui/fieldView';
 import {
   emptyToUndefined,
   formatNumberInput,
   parseNumberInput,
 } from './inputValue';
 
-// 화면에 필요한 정보만 받는다(검증 schema는 폼이 따로 쓴다). 빌더가 만든 정의는 이 모양을 모두 만족한다.
 // kind로만 갈라서 기록 타입(가계부·후기)은 모른다 → 새 타입이 생겨도 이 파일은 그대로
-export type FieldView =
-  | {
-      kind: 'number';
-      name: string;
-      label: string;
-      unit?: string;
-      isOptional?: boolean;
-    }
-  | {
-      kind: 'select';
-      name: string;
-      label: string;
-      options: readonly string[];
-      allowCustom: boolean;
-      isOptional?: boolean;
-    }
-  | { kind: 'rating'; name: string; label: string; isOptional?: boolean }
-  | {
-      kind: 'text';
-      name: string;
-      label: string;
-      maxLength: number;
-      placeholder?: string;
-      isOptional?: boolean;
-    };
-
 type FieldInputProps = {
   field: FieldView;
   // 폼 값은 검증 전이라 무엇이든 올 수 있다. 각 분기에서 그 입력칸에 맞게 좁혀 쓴다

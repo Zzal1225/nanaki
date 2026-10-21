@@ -7,6 +7,8 @@ import {
   getListValue,
   getMonthMetric,
   getMonthValue,
+  getDetailKicker,
+  getHeadlineField,
 } from './recordPresentation';
 
 const BASE = {
@@ -72,5 +74,16 @@ describe('표시 형식', () => {
   });
   it('별점은 소수 한 자리', () => {
     expect(formatRating(5)).toBe('★ 5.0');
+  });
+});
+
+describe('상세 화면', () => {
+  it('칩의 두 번째 말: 가계부는 분류, 후기는 대상 종류', () => {
+    expect(getDetailKicker(TAXI)).toBe('교통');
+    expect(getDetailKicker(CAFE)).toBe('장소');
+  });
+  it('크게 보여 줄 필드: 가계부는 금액, 후기는 별점', () => {
+    expect(getHeadlineField('expense')).toBe('amount');
+    expect(getHeadlineField('review')).toBe('rating');
   });
 });
