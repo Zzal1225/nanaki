@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
+import { toCalendarHref } from '@/features/calendar/calendarState';
 import RecordForm from '@/features/records/form/RecordForm';
 import { parseRecordType } from '@/features/records/schema/recordTypes';
+import { isDateString } from '@/shared/date/calendar';
 
 export const metadata: Metadata = {
   title: '새 기록',
@@ -20,13 +22,24 @@ export default function NewRecordPage({
   );
 }
 
-// 주소(?type=expense)는 누구나 고쳐 칠 수 있어서, 모르는 타입이면 폼을 그리지 않고 홈으로 보낸다
+// 주소(?type=expense)는 누구나 고쳐 칠 수 있어서, 모르는 타입이면 폼을 그리지 않고 홈으로 보낸다.
+// ?date=는 홈에서 고른 날. 틀린 날짜면 무시하고 폼 기본값(오늘)을 쓴다
 async function NewRecordContent({
   searchParams,
 }: Pick<PageProps<'/records/new'>, 'searchParams'>) {
-  const { type } = await searchParams;
+  const { type, date } = await searchParams;
   const recordType = parseRecordType(type);
   if (!recordType) redirect('/');
 
-  return <RecordForm mode='create' type={recordType} />;
+  if (!isDateString(date))
+    return <RecordForm mode='create' type={recordType} />;
+
+  return (
+    <RecordForm
+      mode='create'
+      type={recordType}
+      date={date}
+      doneHref={toCalendarHref({ view: 'month', date })}
+    />
+  );
 }

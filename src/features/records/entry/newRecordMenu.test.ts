@@ -29,4 +29,9 @@ describe('newRecordHref', () => {
   it('/records/new?type=타입', () => {
     expect(newRecordHref('review')).toBe('/records/new?type=review');
   });
+  it('날짜를 주면 ?date=도 붙인다 (홈에서 고른 날)', () => {
+    expect(newRecordHref('expense', '2026-10-16')).toBe(
+      '/records/new?type=expense&date=2026-10-16',
+    );
+  });
 });

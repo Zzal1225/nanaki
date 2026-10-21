@@ -37,9 +37,11 @@ type FormSchema = (typeof RECORD_TYPE_CONFIG)[RecordType]['formSchema'];
 type FormInput = z.input<FormSchema>;
 type FormOutput = z.output<FormSchema>;
 
-// 새로 쓰기: type만, 고치기: 고칠 기록(entry)까지. 같은 폼을 써서 입력칸·검증이 두 화면에서 어긋나지 않는다
+// 새로 쓰기: type만, 고치기: 고칠 기록(entry)까지. 같은 폼을 써서 입력칸·검증이 두 화면에서 어긋나지 않는다.
+// 새로 쓰기의 date·doneHref: 홈 캘린더에서 고른 날에 쓰기 시작하면 그 날짜로 채우고, 닫거나 저장하면 그 날로 돌아간다
 type RecordFormProps =
-  { mode: 'create'; type: RecordType } | { mode: 'edit'; entry: RecordEntry };
+  | { mode: 'create'; type: RecordType; date?: string; doneHref?: string }
+  | { mode: 'edit'; entry: RecordEntry };
 
 // 폼의 처음 값. DefaultValues는 "일부만 채워도 되는" 모양이라 새로 쓰기에서 fields를 비워 둘 수 있다.
 // 고치기는 기록을 그대로 넣는다. id가 함께 들어가도 폼 스키마(id 없음)가 제출 때 검사하며 지워서,
@@ -48,7 +50,7 @@ function toDefaultValues(props: RecordFormProps): DefaultValues<FormInput> {
   if (props.mode === 'edit') return props.entry;
   return {
     type: props.type,
-    occurredAt: toLocalDateString(new Date()),
+    occurredAt: props.date ?? toLocalDateString(new Date()),
     title: '',
     memo: null,
     tags: [],
@@ -60,8 +62,11 @@ export default function RecordForm(props: RecordFormProps) {
   const type = props.mode === 'edit' ? props.entry.type : props.type;
   const config = RECORD_TYPE_CONFIG[type];
   const editingId = props.mode === 'edit' ? props.entry.id : null;
-  // 고치기에서 닫거나 저장하면 그 기록의 상세로, 새로 쓰기는 홈으로
-  const doneHref = editingId ? `/records/${editingId}` : '/';
+  // 고치기에서 닫거나 저장하면 그 기록의 상세로, 새로 쓰기는 홈(또는 시작한 날짜의 홈)으로
+  const doneHref =
+    props.mode === 'edit'
+      ? `/records/${props.entry.id}`
+      : (props.doneHref ?? '/');
 
   const form = useForm<FormInput, unknown, FormOutput>({
     // 제출할 때 타입별 폼 스키마로 검사하고, 실패하면 칸마다 오류를 넣는다 (검증 규칙을 한 곳에서만 관리)

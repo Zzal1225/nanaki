@@ -7,6 +7,8 @@ import {
   getListValue,
   getMonthMetric,
   getMonthValue,
+  getDayLabel,
+  getDayValue,
   getDetailKicker,
   getHeadlineField,
 } from './recordPresentation';
@@ -85,5 +87,20 @@ describe('상세 화면', () => {
   it('크게 보여 줄 필드: 가계부는 금액, 후기는 별점', () => {
     expect(getHeadlineField('expense')).toBe('amount');
     expect(getHeadlineField('review')).toBe('rating');
+  });
+});
+
+describe('하루 요약 한 줄', () => {
+  it('가계부: 건수와 그날 합계', () => {
+    expect(getDayLabel('expense', [TAXI, LUNCH])).toBe('가계부 2건');
+    expect(getDayValue('expense', [TAXI, LUNCH])).toBe('-19,500원');
+  });
+  it('후기 1건: 대상 이름과 별점', () => {
+    expect(getDayLabel('review', [CAFE])).toBe('후기 1건');
+    expect(getDayValue('review', [CAFE])).toBe('동네 로스터리 ★ 4.0');
+  });
+  it('후기 여러 건: 첫 이름 외 N건', () => {
+    const BOOK: RecordEntry = { ...CAFE, id: '4', title: '책' };
+    expect(getDayValue('review', [CAFE, BOOK])).toBe('동네 로스터리 외 1건');
   });
 });
