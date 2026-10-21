@@ -23,8 +23,7 @@ const ICON_BUTTON_CLASS =
   'inline-flex size-11 shrink-0 items-center justify-center rounded-md text-fg-primary hover:bg-surface-hover active:bg-surface-pressed';
 
 // ‹ 2026년 10월 › … [오늘] ⚙ (모바일·PC 같은 모양. ⚙만 모바일 전용).
-// 기간 이동은 링크가 아니라 버튼이다: 주소는 useCalendar가 history로 바꾼다 (서버 요청 없이).
-// 월·주 전환은 캘린더 아래 손잡이(ViewToggle)에 있다
+// 달 이동은 링크가 아니라 버튼이다: 주소는 useCalendar가 history로 바꾼다 (서버 요청 없이)
 export default function CalendarHeader({
   title,
   titleId,

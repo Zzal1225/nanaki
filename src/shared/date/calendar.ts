@@ -1,7 +1,6 @@
 import {
   addDays,
   addMonths,
-  addWeeks,
   eachDayOfInterval,
   endOfMonth,
   endOfWeek,
@@ -36,10 +35,6 @@ export function addDaysTo(date: string, amount: number): string {
   return shift(date, (value) => addDays(value, amount));
 }
 
-export function addWeeksTo(date: string, amount: number): string {
-  return shift(date, (value) => addWeeks(value, amount));
-}
-
 // 직접 계산하지 않고 date-fns를 쓰는 이유: 1월 31일 + 1달 = 2월 28일(말일로 맞춤)처럼
 // 말일 처리를 알아서 해 준다. Date.setMonth는 3월 3일로 넘어가 버린다
 export function addMonthsTo(date: string, amount: number): string {
@@ -52,15 +47,6 @@ export function startOfWeekOf(date: string): string {
 
 export function endOfWeekOf(date: string): string {
   return shift(date, (value) => endOfWeek(value, WEEK_OPTIONS));
-}
-
-// 주 보기 칸: 그 날이 있는 주의 일요일~토요일 7일
-export function getWeekDays(date: string): string[] {
-  const value = fromLocalDateString(date);
-  return eachDayOfInterval({
-    start: startOfWeek(value, WEEK_OPTIONS),
-    end: endOfWeek(value, WEEK_OPTIONS),
-  }).map(toLocalDateString);
 }
 
 // 월 보기 칸: 그 달 1일이 있는 주의 일요일 ~ 말일이 있는 주의 토요일, 주 단위로 나눈 것.
