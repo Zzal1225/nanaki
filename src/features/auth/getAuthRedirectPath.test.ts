@@ -27,6 +27,9 @@ describe('getAuthRedirectPath', () => {
   it('로그인 한 사람은 디자인 시스템을 볼 수 있다', () => {
     expect(getAuthRedirectPath('/design-system', true)).toBe(null);
   });
+  it('robots.txt는 로그인 없이 읽을 수 있다 (검색 로봇)', () => {
+    expect(getAuthRedirectPath('/robots.txt', false)).toBe(null);
+  });
   // API는 로그인 화면으로 보내지 않는다. 대신 각 API가 401을 준다
   it('API는 로그인 여부와 상관없이 보내지 않는다', () => {
     expect(getAuthRedirectPath('/api/account', false)).toBe(null);

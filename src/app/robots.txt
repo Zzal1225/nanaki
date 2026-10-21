@@ -1,0 +1,6 @@
+# 로그인 뒤 화면은 개인 기록이라 검색에 나오지 않게 막고, 누구나 볼 수 있는 두 화면만 연다.
+# (막아도 로그인 없이는 어차피 /login으로 보내진다. 이 파일은 검색 로봇에게 그 사실을 미리 알리는 것)
+User-Agent: *
+Allow: /login
+Allow: /design-system
+Disallow: /
