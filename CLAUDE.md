@@ -36,7 +36,7 @@
 | 백엔드             | Supabase (Postgres + RLS, Auth, Storage 비공개 버킷, Edge Function, pg_cron)                                                                                                          |
 | AI                 | 무료 티어 모델, Next.js Route Handler에서 호출, 어댑터 파일 하나로 감싼다. 질문과 필드 정의(이름·종류·기본 선택지)만 보내고 필터 JSON을 받아 Zod로 검증 후 RLS 권한으로 Supabase 조회 |
 | 알림               | pg_cron + Edge Function + Web Push                                                                                                                                                    |
-| 테스트             | Vitest, Testing Library, MSW, Playwright (E2E + 375/768/1024/1280/1440 + 1280×700 + 터치 기기 프리셋 화면 비교)                                                                       |
+| 테스트             | Vitest, Testing Library (+ jsdom: 훅·컴포넌트 테스트용 가짜 브라우저 환경), MSW, Playwright (E2E + 375/768/1024/1280/1440 + 1280×700 + 터치 기기 프리셋 화면 비교)                    |
 | CI/CD·운영         | GitHub Actions, Lighthouse CI, Vercel (기본 도메인), Sentry (step2)                                                                                                                   |
 
 - 위 목록에 없는 라이브러리를 추가하려면 먼저 사용자에게 **이유와 대안**을 제시하고 승인을 받는다.
@@ -59,8 +59,11 @@ src/
                   (app)/ = 로그인 뒤 화면 묶음(/, /records, /settings). 주소에 안 나타나는 괄호 폴더
   proxy.ts        모든 요청 앞의 문지기. 세션 갱신 + 로그인 안 했으면 /login으로 (공개 주소는 features/auth)
   shared/         공통 코드. ui/ = 공통 컴포넌트(Radix + Tailwind), theme/ = 다크·라이트 전환,
-                  layout/ = 사이드바·하단 탭(메뉴 목록은 navItems.ts 한 곳)
-  features/       기능 단위 모듈. auth/ = 로그인. 이후 records, search, chat ...
+                  layout/ = 사이드바·하단 탭(메뉴 목록은 navItems.ts 한 곳), query/ = TanStack Query Provider
+  features/       기능 단위 모듈. auth/ = 로그인. 이후 search, chat ...
+                  records/schema/ = 필드 빌더(fieldKinds)와 타입별 스키마, RecordEntry 판별 유니온
+                  records/api/ = 기록 저장·조회의 유일한 입구(recordStore)와 DB 줄 변환(recordMapper)
+                  records/hooks/ = TanStack Query 훅과 쿼리 키(recordKeys)
   lib/supabase/   Supabase 클라이언트 (client.ts = 브라우저용, server.ts = 서버용), database.types.ts = DB 타입(자동 생성, 직접 수정 금지)
   lib/db/         Dexie 스키마와 마이그레이션 (예정)
 supabase/migrations/ DB 구조(SQL). 새 파일은 npm run db:new, 적용은 npm run db:push, 타입은 npm run db:types
