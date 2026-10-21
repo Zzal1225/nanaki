@@ -173,6 +173,8 @@ flowchart LR
 
 > 아래는 모두 측정 전 가설입니다. 개선 전 수치를 먼저 측정하고, 실제로 측정한 문제만 남깁니다. 캘린더·초기 로딩은 step2, 목록·검색은 step4에 더미 기록 1만 건으로 비교할 예정입니다.
 
+변경 전 기준 수치(PR마다 도는 Lighthouse CI, 모바일·첫 방문)는 [docs/performance.md](docs/performance.md)에 있습니다. 2026-10-21 기준 성능은 로그인 89, 홈 75, 기록 탭 73점입니다.
+
 | 문제 (예상) | 해결 계획 | 측정 지표 | 전 | 후 |
 | --- | --- | --- | :---: | :---: |
 | 달 이동 시 대기 | 앞뒤 달 미리 가져오기, 날짜별 Map으로 묶기 | 달 이동 시간 | — | — |
@@ -249,7 +251,7 @@ npm run dev
 | --- | --- |
 | `docs/decisions/` _(예정)_ | 설계 결정과 버린 대안 |
 | `docs/troubleshooting/` _(예정)_ | 문제 → 원인 → 해결 → 결과 |
-| `docs/performance.md` _(예정)_ | 성능 측정 환경과 전후 수치 |
+| [`docs/performance.md`](docs/performance.md) | 성능 측정 환경과 전후 수치 |
 | [`docs/milestones.md`](docs/milestones.md) | step별 테스트 개수, CI, Lighthouse 기록 |
 
 ---
