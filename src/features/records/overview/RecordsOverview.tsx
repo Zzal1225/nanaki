@@ -105,6 +105,7 @@ function RecordsOverviewView({ pathname }: { pathname: string | null }) {
                   value={getMonthValue(type, monthEntries)}
                   isEmpty={monthEntries.every((entry) => entry.type !== type)}
                   isWide={isWide}
+                  href={`/records/type/${type}`}
                 />
               );
             })}

@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { ICON_STROKE_WIDTH, ICON_SIZE } from '@/shared/ui/icon';
 import { RECORD_TYPE_CONFIG, type RecordType } from '../schema/recordTypes';
 import { RECORD_TYPE_STYLE } from '../ui/recordTypeStyle';
@@ -10,22 +11,26 @@ type MonthSummaryCardProps = {
   isEmpty: boolean;
   // 그리드 한 줄을 다 차지할지 (첫 카드, 홀수 개일 때 마지막 카드)
   isWide: boolean;
+  // 누르면 그 타입의 이번 달 상세로
+  href: string;
 };
 
-// 표시만 한다. 값 계산은 부르는 쪽(RecordsOverview)과 recordPresentation이 맡는다
+// 표시만 한다. 값 계산은 부르는 쪽(RecordsOverview)과 recordPresentation이 맡는다. 카드 전체가 타입 상세로 가는 링크
 export default function MonthSummaryCard({
   type,
   metric,
   value,
   isEmpty,
   isWide,
+  href,
 }: MonthSummaryCardProps) {
   const style = RECORD_TYPE_STYLE[type];
   const Icon = style.icon;
 
   return (
-    <div
-      className={`flex flex-col gap-2 rounded-lg bg-surface px-4 py-3 shadow-card ${isWide ? 'col-span-2' : ''}`}
+    <Link
+      href={href}
+      className={`flex flex-col gap-2 rounded-lg bg-surface px-4 py-3 shadow-card hover:bg-surface-hover ${isWide ? 'col-span-2' : ''}`}
     >
       <div className='flex items-center gap-2'>
         <span
@@ -51,6 +56,6 @@ export default function MonthSummaryCard({
       >
         {value}
       </span>
-    </div>
+    </Link>
   );
 }

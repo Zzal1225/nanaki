@@ -38,3 +38,14 @@ describe('recordKeys.detail', () => {
     expect(recordKeys.detail('abc')).toEqual(['records', 'detail', 'abc']);
   });
 });
+
+describe('recordKeys.ofType', () => {
+  it("타입·기간별 키도 'records'로 시작하고 타입이 다르면 다르다", () => {
+    expect(recordKeys.ofType('expense', '2026-10-01', '2026-10-31')[0]).toBe(
+      'records',
+    );
+    expect(
+      recordKeys.ofType('expense', '2026-10-01', '2026-10-31'),
+    ).not.toEqual(recordKeys.ofType('review', '2026-10-01', '2026-10-31'));
+  });
+});

@@ -164,3 +164,31 @@ export async function restoreRecord(id: string): Promise<void> {
 
   if (error) throw error;
 }
+
+// 한 타입의 기간 안 기록 (타입 상세). 목록은 최근 것이 위라 내림차순.
+// 타입 조건을 DB에서 건다: 다른 타입 기록까지 받아 와서 브라우저에서 버리지 않게
+export async function listRecordsOfType(
+  type: RecordEntry['type'],
+  from: string,
+  to: string,
+): Promise<RecordEntry[]> {
+  const supabase = createSupabaseBrowserClient();
+
+  const { data, error } = await supabase
+    .from('records')
+    .select('*')
+    .eq('type', type)
+    .gte('occurred_at', from)
+    .lte('occurred_at', to)
+    .is('deleted_at', null)
+    .order('occurred_at', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return data
+    .map(toRecordEntryOrWarn)
+    .filter((e): e is RecordEntry => e !== null);
+}
