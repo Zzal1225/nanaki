@@ -216,6 +216,11 @@
     background: var(--bg);
     color: var(--fg-primary);
     font-family: var(--font-sans);
+    /* 한국어는 글자마다 줄을 바꿀 수 있어서, 기본값이면 "없어 / 요"처럼 단어 중간에서 끊긴다 (Issue #48).
+       keep-all: 띄어쓰기에서만 줄을 바꾼다. 앱 전체 문구가 한국어라 body 한 곳에 둔다 (문구마다 붙이면 빠지는 곳이 생긴다).
+       break-word: 띄어쓰기 없는 긴 글자(URL, 붙여 쓴 제목)가 칸을 뚫고 나가지 않게, 그때만 글자 중간에서 끊는다 */
+    word-break: keep-all;
+    overflow-wrap: break-word;
   }
 
   /* 키보드 포커스에서만 링을 보여 준다. 마우스 클릭엔 안 나타남 */

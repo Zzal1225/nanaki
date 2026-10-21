@@ -9,10 +9,9 @@ import { Suspense, useState } from 'react';
 import { useToastStore } from '@/shared/toast/toastStore';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import { RECORD_TYPE_STYLE } from '../ui/recordTypeStyle';
+import { shouldShowSpeedDial } from './speedDialVisibility';
 import { useNewRecordMenuItems } from './useNewRecordMenuItems';
 
-const NEW_RECORD_PATH = '/records/new';
-const EDIT_PATH_SUFFIX = '/edit';
 // 시안 규격: + 버튼 56px 안의 아이콘 28px
 const FAB_ICON_SIZE = 28;
 
@@ -35,11 +34,8 @@ function SpeedDialWithPathname() {
   // 아래에서 위로 쌓으므로 목록을 뒤집어 그린다. 첫 항목(가계부)이 + 버튼 바로 위, 엄지에 가장 가깝다
   const dialItems = [...useNewRecordMenuItems()].reverse();
 
-  // 작성·수정 중에는 숨긴다 (CLAUDE.md: 입력 중 스피드 다이얼 숨김)
-  if (
-    pathname.startsWith(NEW_RECORD_PATH) ||
-    pathname.endsWith(EDIT_PATH_SUFFIX)
-  ) {
+  // 작성·수정 중, 설정에서는 숨긴다 (규칙은 speedDialVisibility 한 곳에)
+  if (!shouldShowSpeedDial(pathname)) {
     return null;
   }
 
