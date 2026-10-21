@@ -79,6 +79,7 @@ src/
                   records/overview/ = 기록 탭 첫 화면(이번 달 카드, 최근 기록)
                   records/detail/ = 기록 상세(RecordDetail), 수정·삭제 동작(RecordActions), 수정 화면(RecordEditForm)
                   records/type/ = 타입 상세(달 이동, 타입별 요약 카드 registry, 목록)
+                  records/sample/ = 체험하기 예시 기록(오늘 기준 최근 2주, 순수 함수) + 넣기(addSampleRecords)
   lib/supabase/   Supabase 클라이언트 (client.ts = 브라우저용, server.ts = 서버용, admin.ts = secret 키 관리자용·서버 전용), database.types.ts = DB 타입(자동 생성, 직접 수정 금지)
   lib/db/         Dexie 스키마와 마이그레이션 (예정)
 supabase/migrations/ DB 구조(SQL). 새 파일은 npm run db:new, 적용은 npm run db:push, 타입은 npm run db:types
