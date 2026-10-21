@@ -2,15 +2,17 @@ import type { ReactNode } from 'react';
 import type { RecordEntry, RecordEntryOf } from '../schema/recordEntry';
 import type { RecordType } from '../schema/recordTypes';
 import {
+  summarizeBody,
   summarizeExpenses,
   summarizeReviews,
   summarizeWorkouts,
 } from '../ui/typeSummary';
+import BodySummaryCard from './BodySummaryCard';
 import ExpenseSummaryCard from './ExpenseSummaryCard';
 import ReviewSummaryCard from './ReviewSummaryCard';
 import WorkoutSummaryCard from './WorkoutSummaryCard';
 
-// month('YYYY-MM')는 달력 계산이 필요한 카드(운동의 주별 시간)가 쓰고, monthLabel은 화면 글자("이번 달")
+// month('YYYY-MM')는 달력 계산이 필요한 카드(운동의 주별 시간, 체형 그래프의 가로축)가 쓰고, monthLabel은 화면 글자("이번 달")
 type SummaryRenderer<T extends RecordType> = (
   entries: RecordEntryOf<T>[],
   monthLabel: string,
@@ -36,6 +38,12 @@ const SUMMARY_RENDERERS: { [T in RecordType]: SummaryRenderer<T> } = {
     <WorkoutSummaryCard
       monthLabel={monthLabel}
       summary={summarizeWorkouts(entries, month)}
+    />
+  ),
+  body: (entries, monthLabel, month) => (
+    <BodySummaryCard
+      monthLabel={monthLabel}
+      summary={summarizeBody(entries, month)}
     />
   ),
 };

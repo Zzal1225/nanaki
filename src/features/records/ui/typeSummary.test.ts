@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { RecordEntryOf } from '../schema/recordEntry';
 import {
+  summarizeBody,
   summarizeExpenses,
   summarizeReviews,
   summarizeWorkouts,
@@ -112,5 +113,55 @@ describe('summarizeWorkouts', () => {
     expect(summary.count).toBe(0);
     expect(summary.weeks).toHaveLength(4);
     expect(summary.weeks.every((week) => week.minutes === 0)).toBe(true);
+  });
+});
+
+function body(
+  id: string,
+  occurredAt: string,
+  fields: RecordEntryOf<'body'>['fields'],
+): RecordEntryOf<'body'> {
+  return { ...BASE, id, occurredAt, type: 'body', fields };
+}
+
+describe('summarizeBody', () => {
+  it('마지막 체중, 첫 기록 → 마지막 기록 변화(소수 한 자리), 날짜 순 점', () => {
+    const summary = summarizeBody(
+      [
+        body('2', '2026-10-19', { weight: 68.4, waist: 78 }),
+        body('1', '2026-10-01', { weight: 69.6 }),
+      ],
+      '2026-10',
+    );
+    expect(summary.latestWeight).toBe(68.4);
+    // 68.4 - 69.6은 부동소수점으로 -1.1999…가 된다
+    expect(summary.change).toBe(-1.2);
+    expect(summary.points).toEqual([
+      { day: 1, weight: 69.6 },
+      { day: 19, weight: 68.4 },
+    ]);
+    expect(summary.daysInMonth).toBe(31);
+    expect(summary.latestOthers).toEqual([
+      { label: '허리', value: 78, unit: 'cm' },
+    ]);
+  });
+  it('같은 날 여러 번 쟀으면 그날의 마지막 기록만 점 하나', () => {
+    const summary = summarizeBody(
+      [
+        body('1', '2026-10-05', { weight: 70 }),
+        body('2', '2026-10-05', { weight: 69.5 }),
+      ],
+      '2026-10',
+    );
+    expect(summary.points).toEqual([{ day: 5, weight: 69.5 }]);
+    // 잰 날이 하루뿐이면 비교할 게 없다
+    expect(summary.change).toBeNull();
+  });
+  it('기록이 없는 달', () => {
+    const summary = summarizeBody([], '2026-02');
+    expect(summary.latestWeight).toBeNull();
+    expect(summary.change).toBeNull();
+    expect(summary.points).toEqual([]);
+    expect(summary.daysInMonth).toBe(28);
   });
 });

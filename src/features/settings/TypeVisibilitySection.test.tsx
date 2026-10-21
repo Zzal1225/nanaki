@@ -67,7 +67,7 @@ describe('TypeVisibilitySection', () => {
 
   it('마지막 하나 남은 타입은 끌 수 없다', async () => {
     vi.mocked(getUserSettings).mockResolvedValue({
-      hiddenTypes: ['review', 'workout'],
+      hiddenTypes: ['review', 'workout', 'body'],
     });
     renderSection();
 

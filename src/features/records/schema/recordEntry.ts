@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { bodyFieldsSchema, toBodyTitle } from './body';
 import { expenseFieldsSchema } from './expense';
 import { maxLengthMessage, requiredInputMessage } from './fieldKinds';
 import { reviewFieldsSchema } from './review';
@@ -56,21 +57,36 @@ export const workoutRecordSchema = baseRecordSchema.extend({
   fields: workoutFieldsSchema,
 });
 
-// 운동 작성 폼: 제목은 선택이고, 비우면 종목 이름("러닝")을 제목으로 저장한다 (2026-10-21 사용자 결정, 시안 "제목 (선택)").
-// 저장된 기록(workoutRecordSchema)의 제목은 그대로 필수다. DB title이 not null이고, 목록·검색에 늘 이름이 있어야 해서
-// "빈 제목"을 저장하지 않고 폼에서 채워 넣는다. 그래서 마이그레이션 없이 끝난다.
+export const bodyRecordSchema = baseRecordSchema.extend({
+  type: z.literal('body'),
+  fields: bodyFieldsSchema,
+});
+
+// 제목이 선택인 타입(운동·체형)의 작성 폼용 제목 칸: 비워도('') 통과한다.
+// 저장된 기록의 제목은 그대로 필수다. DB title이 not null이고 목록·검색에 늘 이름이 있어야 해서,
+// "빈 제목"을 저장하지 않고 폼 스키마의 transform이 기본 제목으로 채운다. 그래서 마이그레이션 없이 끝난다.
 // transform은 객체를 ZodPipe로 바꿔 .omit·.extend를 더 쓸 수 없으므로 맨 마지막에 붙인다
+const optionalTitleSchema = z
+  .string()
+  .trim()
+  .max(MAX_TITLE_LENGTH, { error: maxLengthMessage(MAX_TITLE_LENGTH) });
+
+// 운동: 비우면 종목 이름("러닝") (2026-10-21 사용자 결정, 시안 "제목 (선택)")
 export const workoutFormSchema = workoutRecordSchema
   .omit({ id: true })
-  .extend({
-    title: z
-      .string()
-      .trim()
-      .max(MAX_TITLE_LENGTH, { error: maxLengthMessage(MAX_TITLE_LENGTH) }),
-  })
+  .extend({ title: optionalTitleSchema })
   .transform((values) => ({
     ...values,
     title: values.title === '' ? values.fields.activity : values.title,
+  }));
+
+// 체형: 비우면 적은 항목 이름("체중 · 허리", 시안의 목록 제목)
+export const bodyFormSchema = bodyRecordSchema
+  .omit({ id: true })
+  .extend({ title: optionalTitleSchema })
+  .transform((values) => ({
+    ...values,
+    title: values.title === '' ? toBodyTitle(values.fields) : values.title,
   }));
 
 // z.union이 아니라 판별 유니온: type을 먼저 보고 맞는 스키마 하나만 검사해서 오류가 그 타입 기준으로 정확히 나온다
@@ -78,6 +94,7 @@ export const recordEntrySchema = z.discriminatedUnion('type', [
   expenseRecordSchema,
   reviewRecordSchema,
   workoutRecordSchema,
+  bodyRecordSchema,
 ]);
 export type RecordEntry = z.infer<typeof recordEntrySchema>;
 

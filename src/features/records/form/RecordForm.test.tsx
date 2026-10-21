@@ -220,3 +220,35 @@ describe('RecordForm (운동)', () => {
     });
   });
 });
+
+describe('RecordForm (체형)', () => {
+  beforeEach(() => {
+    vi.mocked(createRecord).mockReset();
+    vi.mocked(createRecord).mockImplementation(async (input) => ({
+      ...input,
+      id: 'new-id',
+    }));
+    replace.mockReset();
+  });
+  afterEach(() => cleanup());
+
+  it('폼 제목은 "체형 기록", 제목을 비우면 적은 항목 이름으로 저장한다', async () => {
+    renderForm('body');
+    expect(screen.getByRole('heading', { name: '체형 기록' })).toBeTruthy();
+
+    fireEvent.change(screen.getByLabelText('체중'), {
+      target: { value: '68.4' },
+    });
+    fireEvent.change(screen.getByLabelText('허리 (선택)'), {
+      target: { value: '78' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    await waitFor(() => expect(createRecord).toHaveBeenCalled());
+    expect(vi.mocked(createRecord).mock.calls[0][0]).toMatchObject({
+      type: 'body',
+      title: '체중 · 허리',
+      fields: { weight: 68.4, waist: 78 },
+    });
+  });
+});
