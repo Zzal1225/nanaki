@@ -46,9 +46,9 @@ describe('reviewFieldsSchema', () => {
 });
 
 describe('ReviewFields 타입', () => {
-  it("targetKind는 '장소' | '제품' | '콘텐츠'", () => {
+  it("targetKind는 '장소' | '제품' | '콘텐츠' | '경험'", () => {
     expectTypeOf<ReviewFields['targetKind']>().toEqualTypeOf<
-      '장소' | '제품' | '콘텐츠'
+      '장소' | '제품' | '콘텐츠' | '경험'
     >();
   });
   it('place는 string | undefined', () => {
