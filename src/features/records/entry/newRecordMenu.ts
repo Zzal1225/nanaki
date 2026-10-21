@@ -1,8 +1,12 @@
 import { RECORD_TYPE_CONFIG, type RecordType } from '../schema/recordTypes';
 
 // 자주 쓰는 순서. 기록 탭 카드도 이 순서. 모바일 스피드 다이얼은 이 순서를 아래에서 위로 쌓아 첫 번째(가계부)가 엄지에 가장 가깝다 (시안 3번).
-// 운동·루틴·체형은 step2에서 여기와 RECORD_TYPE_CONFIG에 함께 추가한다
-export const RECORD_TYPE_ORDER: readonly RecordType[] = ['expense', 'review'];
+// 루틴·체형은 step2에서 여기와 RECORD_TYPE_CONFIG에 함께 추가한다
+export const RECORD_TYPE_ORDER: readonly RecordType[] = [
+  'expense',
+  'review',
+  'workout',
+];
 
 export type NewRecordMenuItem = {
   type: RecordType;

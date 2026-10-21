@@ -22,7 +22,7 @@ export const RATING_MAX = 5;
 
 // 필드 정의 하나에 화면 정보(이름·단위·선택지)와 검증(Zod)을 함께 담는다.
 // 폼·필터·카드가 이 정의만 보고 그려서, 컴포넌트에 타입별 분기(if type === 'expense')가 생기지 않는다.
-// step1은 4종류만. boolean·list는 운동·루틴과 함께 step2에 추가한다
+// 지금은 4종류. boolean·list는 필요한 타입(루틴 등)이 생길 때 추가한다 (운동은 세트 목록을 뺀 범위라 list가 필요 없었다)
 export type FieldKind = 'number' | 'select' | 'rating' | 'text';
 
 // 모든 빌더가 돌려주는 공통 모양. 각 빌더는 여기에 자기 종류의 정보(unit, options ...)를 더한다
@@ -45,18 +45,26 @@ export function numberField<const N extends string>(options: {
   unit?: string;
   // 상한은 필수. 빠뜨리면 타입 오류가 나서 상한을 깜빡할 수 없다
   max: number;
+  // 소수 자리 수 (거리 5.5km = 1). 없으면 정수만. 폼은 이 값이 있으면 소수 입력칸을 그린다
+  decimals?: number;
 }) {
+  const unit = options.unit ?? '';
+  // 비어 있으면(undefined) 타입 오류로 오므로 그때 "입력해 주세요"를 보여 준다
+  const base = z
+    .number({ error: requiredInputMessage(options.label) })
+    .positive({ error: '0보다 큰 값을 입력해 주세요' })
+    .max(options.max, {
+      error: `${options.max.toLocaleString('ko-KR')}${unit}까지 입력할 수 있어요`,
+    });
   return {
     ...options,
     kind: 'number' as const,
-    // 비어 있으면(undefined) 타입 오류로 오므로 그때 "입력해 주세요"를 보여 준다
-    schema: z
-      .number({ error: requiredInputMessage(options.label) })
-      .int({ error: '정수로 입력해 주세요' })
-      .positive({ error: '0보다 큰 값을 입력해 주세요' })
-      .max(options.max, {
-        error: `${options.max.toLocaleString('ko-KR')}${options.unit ?? ''}까지 입력할 수 있어요`,
-      }),
+    // 소수 자리는 multipleOf(0.1)로 제한한다. Zod는 0.3 % 0.1 같은 부동소수점 나머지 오차를 보정해서 검사한다
+    schema: options.decimals
+      ? base.multipleOf(10 ** -options.decimals, {
+          error: `소수 ${options.decimals}자리까지 입력할 수 있어요`,
+        })
+      : base.int({ error: '정수로 입력해 주세요' }),
   };
 }
 

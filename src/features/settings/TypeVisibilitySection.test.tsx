@@ -66,7 +66,9 @@ describe('TypeVisibilitySection', () => {
   });
 
   it('마지막 하나 남은 타입은 끌 수 없다', async () => {
-    vi.mocked(getUserSettings).mockResolvedValue({ hiddenTypes: ['review'] });
+    vi.mocked(getUserSettings).mockResolvedValue({
+      hiddenTypes: ['review', 'workout'],
+    });
     renderSection();
 
     const expenseSwitch = await screen.findByRole('switch', { name: '가계부' });

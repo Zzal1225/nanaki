@@ -41,6 +41,41 @@ const CAFE: RecordEntry = {
   fields: { rating: 4, targetKind: '장소' },
 };
 
+const RUN: RecordEntry = {
+  ...BASE,
+  id: '4',
+  type: 'workout',
+  // 제목을 비워 종목 이름이 제목이 된 기록
+  title: '러닝',
+  fields: { activity: '러닝', minutes: 30, distance: 5.2 },
+};
+const LEG_DAY: RecordEntry = {
+  ...BASE,
+  id: '5',
+  type: 'workout',
+  title: '하체 데이',
+  fields: { activity: '헬스', minutes: 60 },
+};
+
+describe('운동 표시', () => {
+  it('목록: 제목이 종목과 같으면 종목만, 다르면 종목 · 제목, 거리가 있으면 붙인다', () => {
+    expect(getListTitle(RUN)).toBe('러닝 5.2km');
+    expect(getListTitle(LEG_DAY)).toBe('헬스 · 하체 데이');
+    expect(getListValue(LEG_DAY)).toBe('60분');
+  });
+  it('이번 달은 횟수, 상세 칩은 종목, 크게 보일 값은 시간', () => {
+    expect(getMonthMetric('workout')).toBe('이번 달 운동');
+    expect(getMonthValue('workout', [RUN, LEG_DAY, TAXI])).toBe('2회');
+    expect(getDetailKicker(LEG_DAY)).toBe('헬스');
+    expect(getHeadlineField('workout')).toBe('minutes');
+  });
+  it('하루 요약: 하나면 종목과 시간, 여럿이면 총 시간', () => {
+    expect(getDayLabel('workout', [RUN])).toBe('운동 1회');
+    expect(getDayValue('workout', [RUN])).toBe('러닝 30분');
+    expect(getDayValue('workout', [RUN, LEG_DAY])).toBe('총 90분');
+  });
+});
+
 describe('목록 한 줄', () => {
   it('가계부: 제목 · 분류, 값은 마이너스 금액', () => {
     expect(getListTitle(TAXI)).toBe('택시 · 교통');

@@ -7,7 +7,7 @@ describe('parseRecordType', () => {
     expect(parseRecordType('review')).toBe('review');
   });
   it('아직 없는 타입은 null', () => {
-    expect(parseRecordType('workout')).toBeNull();
+    expect(parseRecordType('routine')).toBeNull();
   });
   it('값이 없거나 배열(?type=a&type=b)이면 null', () => {
     expect(parseRecordType(undefined)).toBeNull();

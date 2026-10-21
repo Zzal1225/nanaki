@@ -105,6 +105,7 @@ export default function TypeDetail({
               type,
               entries,
               formatMonthLabel(month, currentMonth),
+              month,
             )}
           </section>
 

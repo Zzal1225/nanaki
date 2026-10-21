@@ -1,13 +1,20 @@
 import type { ReactNode } from 'react';
 import type { RecordEntry, RecordEntryOf } from '../schema/recordEntry';
 import type { RecordType } from '../schema/recordTypes';
-import { summarizeExpenses, summarizeReviews } from '../ui/typeSummary';
+import {
+  summarizeExpenses,
+  summarizeReviews,
+  summarizeWorkouts,
+} from '../ui/typeSummary';
 import ExpenseSummaryCard from './ExpenseSummaryCard';
 import ReviewSummaryCard from './ReviewSummaryCard';
+import WorkoutSummaryCard from './WorkoutSummaryCard';
 
+// month('YYYY-MM')는 달력 계산이 필요한 카드(운동의 주별 시간)가 쓰고, monthLabel은 화면 글자("이번 달")
 type SummaryRenderer<T extends RecordType> = (
   entries: RecordEntryOf<T>[],
   monthLabel: string,
+  month: string,
 ) => ReactNode;
 
 // 타입마다 요약 카드 모양이 달라서, "어떤 카드를 그릴지"를 이 목록 한 곳에 모은다.
@@ -25,6 +32,12 @@ const SUMMARY_RENDERERS: { [T in RecordType]: SummaryRenderer<T> } = {
       summary={summarizeReviews(entries)}
     />
   ),
+  workout: (entries, monthLabel, month) => (
+    <WorkoutSummaryCard
+      monthLabel={monthLabel}
+      summary={summarizeWorkouts(entries, month)}
+    />
+  ),
 };
 
 // entries는 이 type의 기록만 들어온다(listRecordsOfType이 DB에서 거름). TypeScript는 type과 꺼낸 함수의
@@ -33,7 +46,8 @@ export function renderTypeSummary(
   type: RecordType,
   entries: RecordEntry[],
   monthLabel: string,
+  month: string,
 ): ReactNode {
   const render = SUMMARY_RENDERERS[type] as SummaryRenderer<RecordType>;
-  return render(entries as never, monthLabel);
+  return render(entries as never, monthLabel, month);
 }

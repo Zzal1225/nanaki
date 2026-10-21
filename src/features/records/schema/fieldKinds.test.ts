@@ -39,6 +39,20 @@ describe('빌더', () => {
     expect(isValid(schema, 0)).toBe(false);
     expect(isValid(schema, 1.5)).toBe(false);
   });
+  it('numberField decimals: 1이면 소수 한 자리까지 (부동소수점 나머지 오차에 걸리지 않음)', () => {
+    const { schema } = numberField({
+      name: 'distance',
+      label: '거리',
+      max: 100,
+      decimals: 1,
+    });
+    expect(isValid(schema, 5.5)).toBe(true);
+    // 0.3 % 0.1은 JS에서 0이 아니다 (0.09999…). 그대로 비교하면 정상 값이 막힌다
+    expect(isValid(schema, 0.3)).toBe(true);
+    expect(isValid(schema, 42.2)).toBe(true);
+    expect(isValid(schema, 5.55)).toBe(false);
+    expect(isValid(schema, 0)).toBe(false);
+  });
   it('customSelectField는 목록 밖 값도 통과하고 allowCustom은 true', () => {
     const field = customSelectField({
       name: 'c',

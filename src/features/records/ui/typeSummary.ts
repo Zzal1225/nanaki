@@ -1,8 +1,11 @@
+import { getMonthGrid } from '@/shared/date/calendar';
 import type { RecordEntryOf } from '../schema/recordEntry';
 import { REVIEW_TARGET_KINDS } from '../schema/review';
 
 const PERCENT = 100;
 const AVERAGE_DECIMALS = 1;
+// 'YYYY-MM-DD'에서 일(DD)이 시작하는 자리
+const DAY_OF_MONTH_START = 'YYYY-MM-'.length;
 
 export type CategoryShare = {
   name: string;
@@ -67,4 +70,53 @@ export function summarizeReviews(
   }));
 
   return { count, average, kinds };
+}
+
+export type WeekMinutes = {
+  // 그 달 안에서 이 주의 첫날·마지막 날 (일). 1주는 1일부터, 마지막 주는 말일까지라 7일이 안 될 수 있다
+  firstDay: number;
+  lastDay: number;
+  minutes: number;
+};
+
+export type WorkoutSummary = {
+  count: number;
+  totalMinutes: number;
+  // 캘린더와 같은 일요일 시작 주. 달마다 4~6주
+  weeks: WeekMinutes[];
+};
+
+// 타입 상세 운동 요약: 이번 달 횟수 + 총 시간 + 주별 시간 (시안 "운동 · 주별 시간", 2026-10-21 사용자 결정: 달 단위).
+// 주는 홈 캘린더의 줄과 같게 나눈다(getMonthGrid). "1~7일 / 8~14일"로 자르면 캘린더에서 본 주와 어긋난다
+export function summarizeWorkouts(
+  entries: RecordEntryOf<'workout'>[],
+  month: string,
+): WorkoutSummary {
+  const minutesByDate = new Map<string, number>();
+  for (const entry of entries) {
+    const { occurredAt } = entry;
+    minutesByDate.set(
+      occurredAt,
+      (minutesByDate.get(occurredAt) ?? 0) + entry.fields.minutes,
+    );
+  }
+
+  const weeks = getMonthGrid(`${month}-01`).map((week) => {
+    // 캘린더 줄에는 앞뒤 달 날짜도 있다. 이 달 날짜만 남긴다
+    const days = week.filter((date) => date.startsWith(month));
+    return {
+      firstDay: Number(days[0].slice(DAY_OF_MONTH_START)),
+      lastDay: Number(days[days.length - 1].slice(DAY_OF_MONTH_START)),
+      minutes: days.reduce(
+        (sum, date) => sum + (minutesByDate.get(date) ?? 0),
+        0,
+      ),
+    };
+  });
+
+  return {
+    count: entries.length,
+    totalMinutes: entries.reduce((sum, entry) => sum + entry.fields.minutes, 0),
+    weeks,
+  };
 }

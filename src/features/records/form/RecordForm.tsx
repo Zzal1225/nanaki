@@ -157,8 +157,9 @@ export default function RecordForm(props: RecordFormProps) {
       <hr className='border-border' />
 
       <TextField
-        label='제목'
-        placeholder='제목을 입력하세요'
+        // 운동은 제목이 선택(비우면 종목 이름). 타입별 차이는 설정(config.title)에서 읽는다
+        label={config.title.isOptional ? '제목 (선택)' : '제목'}
+        placeholder={config.title.placeholder}
         maxLength={MAX_TITLE_LENGTH}
         error={form.formState.errors.title?.message}
         {...form.register('title')}
