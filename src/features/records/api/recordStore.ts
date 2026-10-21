@@ -156,13 +156,18 @@ export async function deleteRecord(id: string): Promise<void> {
 export async function restoreRecord(id: string): Promise<void> {
   const supabase = createSupabaseBrowserClient();
 
-  const { error } = await supabase
+  // select로 실제로 바뀐 줄을 돌려받는다. update는 조건에 맞는 줄이 0개여도 오류가 아니라서,
+  // 확인하지 않으면 그사이 줄이 아예 지워진 경우(대시보드에서 직접 삭제, step2에서 다른 기기의 정리 등)에도
+  // "되돌렸어요"라고 거짓으로 알리게 된다
+  const { data, error } = await supabase
     .from('records')
     .update({ deleted_at: null })
     .eq('id', id)
-    .not('deleted_at', 'is', null);
+    .not('deleted_at', 'is', null)
+    .select('id');
 
   if (error) throw error;
+  if (data.length === 0) throw new Error(`되돌릴 기록이 없음: ${id}`);
 }
 
 // 한 타입의 기간 안 기록 (타입 상세). 목록은 최근 것이 위라 내림차순.
