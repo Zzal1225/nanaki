@@ -27,10 +27,9 @@ export default defineConfig({
   // 네트워크·첫 빌드 지연으로 가끔 흔들리는 실패를 한 번만 다시 시도한다. 두 번 다 실패하면 진짜 실패
   retries: IS_CI ? 1 : 0,
   reporter: IS_CI ? [['github'], ['html', { open: 'never' }]] : 'list',
-  // CI는 기준 이미지를 스스로 쓰지 않는다. 쓰게 두면 첫 시도가 "기준 없음"으로 실패하며 이미지를 써 두고,
-  // 재시도가 방금 쓴 이미지와 비교해 통과해 버린다 (확인 안 된 화면이 기준이 됨).
-  // 새 기준 이미지는 CI가 남긴 실제 이미지(test-results/*-actual.png)를 사람이 보고 커밋한다
-  updateSnapshots: IS_CI ? 'none' : 'missing',
+  // 기준 이미지가 없으면 새로 써 두고 그 실행은 실패로 끝난다 (Playwright 기본값). 써 둔 이미지는 CI 아티팩트로 내려받아
+  // 사람이 보고 커밋한다. 이미 있는 기준 이미지는 절대 덮어쓰지 않는다 (덮어쓰기는 --update-snapshots를 직접 줄 때만)
+  updateSnapshots: 'missing',
   use: {
     baseURL: BASE_URL,
     // 실패했을 때만 기록(화면·네트워크·DOM 시간순)을 남겨 원인을 볼 수 있게
@@ -49,15 +48,18 @@ export default defineConfig({
       testMatch: 'guest-record-flow.spec.ts',
       use: { ...devices['Desktop Chrome'] },
     },
+    // 화면 비교는 다시 시도하지 않는다: 재시도는 첫 시도가 방금 써 둔 기준 이미지와 비교해 통과해 버린다.
     // 화면 비교: CLAUDE.md의 크기들. 모바일 375 / 태블릿 768 / PC 경계 1024 / 1280 / 1440 / 낮은 노트북 1280×700 / 터치 기기
     ...VISUAL_VIEWPORTS.map(({ name, width, height }) => ({
       name,
       testMatch: 'visual.spec.ts',
+      retries: 0,
       use: { ...devices['Desktop Chrome'], viewport: { width, height } },
     })),
     {
       name: 'touch',
       testMatch: 'visual.spec.ts',
+      retries: 0,
       // 터치·모바일 브라우저 동작(hasTouch, isMobile)을 켠 기기 프리셋. 크로미움이라 브라우저를 더 깔지 않는다.
       // 화면 배율은 1로: 기기 기본값(2.625)이면 이미지가 일곱 배 커지는데 비교에서 더 알 수 있는 건 없다
       use: { ...devices['Pixel 7'], deviceScaleFactor: 1 },
