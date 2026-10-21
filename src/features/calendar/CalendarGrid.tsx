@@ -19,6 +19,9 @@ type CalendarGridProps = {
   today: string;
   // 날짜 → 그날 기록이 있는 타입 (점). 기록을 불러오는 중이면 비어 있다
   dotTypesByDate: Map<string, RecordType[]>;
+  // 이 달 기록을 불러오는 중. aria-busy로 알려서 화면 읽기 프로그램이 점 없는 칸을 "기록 없음"으로 단정하지 않게 한다.
+  // 성능 측정 스크립트도 이 표시가 꺼지는 때를 "기록이 그려진 때"로 본다 (scripts/calendar-perf.mts)
+  isBusy: boolean;
   onSelectDate: (date: string) => void;
   // 제목("2026년 10월")의 id. grid의 이름으로 읽힌다
   labelledBy: string;
@@ -40,6 +43,7 @@ export default function CalendarGrid({
   date: selectedDate,
   today,
   dotTypesByDate,
+  isBusy,
   onSelectDate,
   labelledBy,
 }: CalendarGridProps) {
@@ -74,6 +78,7 @@ export default function CalendarGrid({
       ref={gridRef}
       role='grid'
       aria-labelledby={labelledBy}
+      aria-busy={isBusy}
       onKeyDown={handleKeyDown}
       className='flex flex-col px-3 lg:flex-1 lg:px-2 lg:pb-2'
     >
