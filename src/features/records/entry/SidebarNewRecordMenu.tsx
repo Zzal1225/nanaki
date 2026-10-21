@@ -11,7 +11,7 @@ export default function SidebarNewRecordMenu() {
         <button
           type='button'
           aria-label='새 기록'
-          className='group mx-auto flex size-11 items-center justify-center rounded-md bg-accent text-body-sm font-semibold text-accent-foreground hover:bg-accent-hover lg:mx-0 lg:w-full lg:justify-start lg:gap-2 lg:px-3'
+          className='group mx-auto flex size-11 items-center justify-center rounded-md bg-accent text-body-sm font-semibold text-accent-foreground hover:bg-accent-hover active:bg-accent-pressed lg:mx-0 lg:w-full lg:justify-start lg:gap-2 lg:px-3'
         >
           <Plus
             aria-hidden='true'

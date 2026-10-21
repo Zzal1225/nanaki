@@ -25,7 +25,7 @@ export default function RecordsEmptyState() {
         trigger={
           <button
             type='button'
-            className='mt-2 inline-flex min-h-11 items-center gap-2 rounded-md bg-accent px-4 text-body-sm font-semibold text-accent-foreground hover:bg-accent-hover'
+            className='mt-2 inline-flex min-h-11 items-center gap-2 rounded-md bg-accent px-4 text-body-sm font-semibold text-accent-foreground hover:bg-accent-hover active:bg-accent-pressed'
           >
             <Plus
               aria-hidden='true'

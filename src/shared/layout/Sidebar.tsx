@@ -91,7 +91,7 @@ function SidebarLink({ item, isActive }: { item: NavItem; isActive: boolean }) {
       className={`relative mx-auto flex size-12 items-center justify-center rounded-md text-body lg:mx-0 lg:h-11 lg:w-full lg:justify-start lg:gap-3 lg:px-3 ${
         isActive
           ? 'bg-surface-hover font-semibold text-fg-primary'
-          : 'font-medium text-fg-secondary hover:bg-surface-hover'
+          : 'font-medium text-fg-secondary hover:bg-surface-hover active:bg-surface-pressed'
       }`}
     >
       <Icon

@@ -83,7 +83,7 @@ export default function RecordDetail({ id }: RecordDetailProps) {
         <Link
           href={RECORDS_PATH}
           aria-label='기록 탭으로 돌아가기'
-          className='-ml-2 inline-flex size-11 items-center justify-center rounded-md text-fg-primary hover:bg-surface-hover lg:hidden'
+          className='-ml-2 inline-flex size-11 items-center justify-center rounded-md text-fg-primary hover:bg-surface-hover active:bg-surface-pressed lg:hidden'
         >
           <ChevronLeft
             aria-hidden='true'

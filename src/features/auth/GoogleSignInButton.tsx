@@ -17,7 +17,9 @@ export default function GoogleSignInButton({
   return (
     <button
       type={type}
-      className={`${roboto.variable} flex h-12 w-full items-center justify-center gap-3 rounded-full border border-google-button-border bg-google-button-bg font-google text-body-sm font-medium text-google-button-fg disabled:opacity-60 ${className}`}
+      // hover·눌림은 구글 가이드의 state layer: 배경색을 바꾸지 않고 글자색을 얇게 덮는다 (hover 8%, 눌림 12%).
+      // 글자색이 테마마다 반대라서 라이트·다크 모두 같은 규칙으로 보인다. 지정 배경색을 건드리지 않아 가이드도 지킨다
+      className={`${roboto.variable} relative flex h-12 w-full items-center justify-center gap-3 overflow-hidden rounded-full border border-google-button-border bg-google-button-bg font-google text-body-sm font-medium text-google-button-fg after:absolute after:inset-0 after:bg-google-button-fg after:opacity-0 enabled:hover:after:opacity-8 enabled:active:after:opacity-12 disabled:opacity-60 ${className}`}
       {...rest}
     >
       <GoogleLogo />

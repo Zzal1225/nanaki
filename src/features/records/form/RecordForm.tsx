@@ -109,7 +109,7 @@ export default function RecordForm(props: RecordFormProps) {
           // 닫으면 작성 화면을 방문 기록에서 지운다. 뒤로 가기로 쓰다 만 폼에 돌아오지 않게
           replace
           aria-label='닫기'
-          className='inline-flex size-11 items-center justify-center rounded-md text-fg-primary hover:bg-surface-hover'
+          className='inline-flex size-11 items-center justify-center rounded-md text-fg-primary hover:bg-surface-hover active:bg-surface-pressed'
         >
           <X
             aria-hidden='true'

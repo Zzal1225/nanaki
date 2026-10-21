@@ -39,7 +39,7 @@ export default function RecordActions({ id }: RecordActionsProps) {
     <div className='ml-auto flex items-center gap-1 lg:gap-3'>
       <Link
         href={editHref}
-        className='hidden min-h-11 items-center gap-2 rounded-md border border-border bg-surface px-4 text-body-sm font-semibold text-fg-primary hover:bg-surface-hover lg:inline-flex'
+        className='hidden min-h-11 items-center gap-2 rounded-md border border-border bg-surface px-4 text-body-sm font-semibold text-fg-primary hover:bg-surface-hover active:bg-surface-pressed lg:inline-flex'
       >
         <Pencil
           aria-hidden='true'
@@ -53,7 +53,7 @@ export default function RecordActions({ id }: RecordActionsProps) {
         type='button'
         onClick={() => void handleDelete()}
         disabled={deleteRecord.isPending}
-        className='hidden min-h-11 items-center gap-2 rounded-md border border-border bg-surface px-4 text-body-sm font-semibold text-danger hover:bg-surface-hover disabled:text-fg-disabled lg:inline-flex'
+        className='hidden min-h-11 items-center gap-2 rounded-md border border-border bg-surface px-4 text-body-sm font-semibold text-danger hover:bg-surface-hover active:bg-surface-pressed disabled:text-fg-disabled lg:inline-flex'
       >
         <Trash2
           aria-hidden='true'
@@ -67,7 +67,7 @@ export default function RecordActions({ id }: RecordActionsProps) {
         <DropdownMenu.Trigger
           aria-label='더보기'
           disabled={deleteRecord.isPending}
-          className='inline-flex size-11 items-center justify-center rounded-md text-fg-primary hover:bg-surface-hover disabled:text-fg-disabled lg:hidden'
+          className='inline-flex size-11 items-center justify-center rounded-md text-fg-primary hover:bg-surface-hover active:bg-surface-pressed disabled:text-fg-disabled lg:hidden'
         >
           <Ellipsis
             aria-hidden='true'

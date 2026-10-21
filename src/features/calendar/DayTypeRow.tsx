@@ -45,7 +45,7 @@ export default function DayTypeRow({
         aria-expanded={isOpen}
         aria-controls={listId}
         onClick={onToggle}
-        className='flex min-h-13 w-full items-center gap-3 pr-2 pl-3 text-left hover:bg-surface-hover'
+        className='flex min-h-13 w-full items-center gap-3 pr-2 pl-3 text-left hover:bg-surface-hover active:bg-surface-pressed'
       >
         <span
           className={`flex size-8 shrink-0 items-center justify-center rounded-md ${style.subtleBgClass} ${style.textClass}`}

@@ -48,7 +48,7 @@ export default function RatingInput({
               value={String(score)}
               aria-label={`${score}점`}
               // 별 아이콘은 작아도 누르는 영역은 44px
-              className={`inline-flex size-11 items-center justify-center rounded-md hover:bg-surface-hover ${
+              className={`inline-flex size-11 items-center justify-center rounded-md hover:bg-surface-hover active:bg-surface-pressed ${
                 isFilled ? 'text-type-review' : 'text-fg-disabled'
               }`}
             >

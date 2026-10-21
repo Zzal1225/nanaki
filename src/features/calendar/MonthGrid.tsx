@@ -121,7 +121,7 @@ export default function MonthGrid({
                     className={`flex h-12 w-full flex-col items-center gap-1 rounded-md border-2 pt-1 md:h-14 lg:h-full lg:min-h-16 lg:items-start lg:justify-between lg:p-2 ${
                       isSelected
                         ? 'border-fg-primary bg-surface'
-                        : 'border-transparent hover:bg-surface-hover'
+                        : 'border-transparent hover:bg-surface-hover active:bg-surface-pressed'
                     }`}
                   >
                     <span
