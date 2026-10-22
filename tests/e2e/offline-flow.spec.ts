@@ -106,6 +106,39 @@ test('오프라인 작성: 연 적 없는 작성 화면에서 저장하면 바�
 
   await context.setOffline(true);
   // 작성 화면은 한 번도 연 적이 없다 (미리 받아 둔 한 장이 모든 타입에 쓰인다)
+  // DEBUG(임시): 캐시 상태
+  console.log(
+    '[캐시 진단]',
+    JSON.stringify(
+      await page.evaluate(async () => {
+        const out: Record<string, unknown> = {};
+        for (const name of await caches.keys()) {
+          const cache = await caches.open(name);
+          const keys = await cache.keys();
+          out[name] = await Promise.all(
+            keys
+              .filter((k) => !k.url.includes('/_next/'))
+              .map(async (k) => {
+                const res = await cache.match(k);
+                return `${new URL(k.url).pathname}${new URL(k.url).search} vary=${res?.headers.get('vary')}`;
+              }),
+          );
+        }
+        out.match = Boolean(
+          await caches.match('/records/new?type=expense', {
+            ignoreSearch: true,
+          }),
+        );
+        out.matchIgnoreVary = Boolean(
+          await caches.match('/records/new?type=expense', {
+            ignoreSearch: true,
+            ignoreVary: true,
+          }),
+        );
+        return out;
+      }),
+    ),
+  );
   await page.goto('/records/new?type=expense');
   await expect(
     page.getByRole('status').filter({ hasText: '오프라인이에요' }),
