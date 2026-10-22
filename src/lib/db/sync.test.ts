@@ -4,6 +4,7 @@ import { closeLocalDb, openLocalDb, type LocalRecordRow } from './localDb';
 import {
   compareCursor,
   createTableSync,
+  NIL_UUID,
   pullChanges,
   rewindCursor,
   SYNC_MIN_INTERVAL_MS,
@@ -70,7 +71,7 @@ describe('커서', () => {
       compareCursor({ ...a, updatedAt: '2026-10-22T02:00:00+00:00' }, a),
     ).toBe(1);
   });
-  it('겹쳐 받기: 60초 앞, id는 비워 그 시각의 줄을 모두 다시 받는다', () => {
+  it('겹쳐 받기: 60초 앞, id는 가장 작은 UUID로 그 시각의 줄을 모두 다시 받는다', () => {
     const rewound = rewindCursor({
       updatedAt: '2026-10-22T01:00:00.000Z',
       id: 'x',
@@ -79,7 +80,7 @@ describe('커서', () => {
       updatedAt: new Date(
         Date.parse('2026-10-22T01:00:00.000Z') - SYNC_OVERLAP_MS,
       ).toISOString(),
-      id: '',
+      id: NIL_UUID,
     });
     expect(rewindCursor(null)).toBeNull();
   });

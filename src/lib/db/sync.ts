@@ -31,14 +31,19 @@ export function compareCursor(a: SyncCursor, b: SyncCursor): number {
   return a.id < b.id ? -1 : 1;
 }
 
-// 겹쳐 받기 시작점. id를 비워 그 시각의 줄을 모두 다시 받는다
+// 가장 작은 UUID. 겹쳐 받기에서 "그 시각의 줄 모두"를 뜻하는 id로 쓴다.
+// 빈 글자('')를 쓰면 안 된다: id 칸이 uuid 타입이라 서버가 id.gt."" 를 읽지 못해 400(22P02)을 돌려준다
+// (첫 동기화 뒤 모든 동기화가 실패했다 — 단위 테스트는 가짜 서버라 못 잡고, E2E가 잡았다)
+export const NIL_UUID = '00000000-0000-0000-0000-000000000000';
+
+// 겹쳐 받기 시작점. id를 가장 작은 UUID로 두어 그 시각의 줄을 모두 다시 받는다
 export function rewindCursor(cursor: SyncCursor | null): SyncCursor | null {
   if (!cursor) return null;
   return {
     updatedAt: new Date(
       Date.parse(cursor.updatedAt) - SYNC_OVERLAP_MS,
     ).toISOString(),
-    id: '',
+    id: NIL_UUID,
   };
 }
 

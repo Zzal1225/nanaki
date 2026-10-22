@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { toAfterCursorFilter } from '@/lib/db/sync';
+import { rewindCursor, toAfterCursorFilter } from '@/lib/db/sync';
 import type { SyncCursor } from '@/lib/db/localDb';
 import {
   deleteGuests,
@@ -56,6 +56,29 @@ describe.skipIf(!hasTestSupabase)('동기화 커서', () => {
     }
     expect([...seen].sort()).toEqual(['가', '나', '다', '라', '마']);
     expect(new Set(seen).size).toBe(5);
+  });
+
+  // 두 번째 동기화부터 쓰는 커서. 예전에는 id를 ''로 두어 서버가 uuid로 읽지 못하고 400(22P02)을 돌려줬다
+  it('겹쳐 받기 커서(60초 앞, 가장 작은 UUID)를 서버가 받아들이고 그 뒤 줄을 모두 준다', async () => {
+    const oldest = await guest.client
+      .from('records')
+      .select('updated_at')
+      .order('updated_at', { ascending: true })
+      .limit(1);
+    const rewound = rewindCursor({
+      updatedAt: oldest.data![0].updated_at,
+      id: 'ignored',
+    })!;
+    const seen: string[] = [];
+    let after: SyncCursor | null = rewound;
+    for (;;) {
+      const rows = await page(after);
+      seen.push(...rows.map((row) => row.title));
+      if (rows.length < PAGE) break;
+      const last = rows[rows.length - 1];
+      after = { updatedAt: last.updated_at, id: last.id };
+    }
+    expect([...seen].sort()).toEqual(['가', '나', '다', '라', '마']);
   });
 
   it('마지막 커서 뒤로는 받을 줄이 없다', async () => {

@@ -36,11 +36,39 @@ test('오프라인: 연 화면은 기기 사본의 기록으로 그려지고, �
     page.getByRole('searchbox', { name: '검색어' }).filter({ visible: true }),
   ).toBeVisible();
 
+  // 오프라인에서 화면이 무엇을 하는지 실패 때 볼 수 있게 콘솔·페이지 오류를 모은다
+  const logs: string[] = [];
+  page.on('console', (message) =>
+    logs.push(`[console.${message.type()}] ${message.text()}`),
+  );
+  page.on('pageerror', (error) => logs.push(`[pageerror] ${error.message}`));
+
   await context.setOffline(true);
 
   // (1) 연 적 있는 화면을 새로 고쳐도 기록이 보인다 (서버에 못 물어도 사본으로)
   await page.goto('/records');
-  await expect(visibleText(page, '[식비] 점심')).toBeVisible();
+  try {
+    await expect(visibleText(page, '[식비] 점심')).toBeVisible();
+  } catch (error) {
+    // 진단: 사본이 있는지, 조회가 실패해 다시 시도하는 중인지(재시도가 끝나면 오류 안내가 뜬다)
+    const databases = await page.evaluate(async () =>
+      (await indexedDB.databases()).map((db) => db.name),
+    );
+    await page.waitForTimeout(10_000);
+    const hasErrorNotice =
+      (await page
+        .getByText('기록을 불러오지 못했어요')
+        .filter({ visible: true })
+        .count()) > 0;
+    console.log(
+      [
+        `[오프라인 진단] IndexedDB: ${databases.join(', ')}`,
+        `[오프라인 진단] 10초 뒤 오류 안내: ${hasErrorNotice}`,
+        ...logs,
+      ].join('\n'),
+    );
+    throw error;
+  }
 
   // (2) 검색: 주소만 바꾸고(서버에 묻지 않음) 사본에서 찾는다. 메모("원두")로 찾기
   await page.goto('/records/search');
