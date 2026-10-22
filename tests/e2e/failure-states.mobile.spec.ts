@@ -6,6 +6,11 @@ import { expect, test, type Page, type Route } from '@playwright/test';
 // 여기서는 서버(Supabase REST) 응답만 Playwright route로 바꾸고, 앱은 그대로 돌린다.
 // 이 파일을 처음 쓰며 찾은 것: 처음 방문에서 서버 조회가 실패하면 빈 사본을 읽어 "기록이 없어요"로 보였다 (syncForRead로 고침)
 
+// 서비스 워커를 끈다: 서비스 워커가 페이지를 맡으면 Supabase 요청을 워커가 대신 보내고, 그 요청은 page.route를 거치지 않는다.
+// 처음 쓴 판에서 첫 요청만 가짜 500을 받고, 재시도는 워커를 통해 진짜 서버(200)로 가서 오류 대신 기록이 그려졌다 (CI trace로 확인).
+// 오프라인 화면(서비스 워커)은 offline-flow.spec.ts가 따로 맡는다
+test.use({ serviceWorkers: 'block' });
+
 // 기록 표 요청 (조회 GET, 저장 POST). 주소 뒤 ?select=… 는 붙기도 하고 안 붙기도 한다
 const RECORDS_API = /\/rest\/v1\/records(\?|$)/;
 const ROUTINES_API = /\/rest\/v1\/routines(\?|$)/;
