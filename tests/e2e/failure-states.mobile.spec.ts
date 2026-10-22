@@ -136,17 +136,19 @@ test('응답이 느리면 불러오는 중 자리를 보여 주고, 다 오면 �
 });
 
 test('기록이 하나도 없으면 홈·기록 탭에 빈 상태 안내', async ({ page }) => {
-  // 서버가 빈 목록을 돌려주는 계정 (체험 계정은 예시 기록이 늘 있어서 조회 응답을 비운다)
-  const empty = (route: Route) =>
-    route.request().method() === 'GET'
+  // 정말 빈 계정을 만든다: 체험하기의 예시 넣기(POST)만 실패시킨다 (예시 넣기는 실패해도 체험이 시작된다, addSampleRecords).
+  // 조회 응답만 비우는 흉내는 쓰지 않는다: 예시 루틴은 만들 때 서버가 돌려준 줄이 기기 사본에 바로 들어가서
+  // 조회를 비워도 "루틴 0/1"이 남았다 (처음 판, 로컬 빌드로 확인)
+  const failInsert = (route: Route) =>
+    route.request().method() === 'POST'
       ? route.fulfill({
-          status: 200,
+          status: 500,
           contentType: 'application/json',
-          body: '[]',
+          body: postgrestError('XX000'),
         })
       : route.continue();
-  await page.route(RECORDS_API, empty);
-  await page.route(ROUTINES_API, empty);
+  await page.route(RECORDS_API, failInsert);
+  await page.route(ROUTINES_API, failInsert);
   await startAsGuest(page);
 
   await expect(daySummary(page).getByText('기록이 없어요')).toBeVisible();
