@@ -378,6 +378,13 @@ describe('처음 방문 (이 기기에 사본이 아직 없음)', () => {
     expect(await db.records.count()).toBe(1);
   });
 
+  // 31단계 E2E로 찾은 것: 예전에는 빈 사본을 읽어 "기록 없음"으로 보였다
+  it('서버 조회와 동기화가 모두 실패하면 빈 목록이 아니라 오류', async () => {
+    server.failNext();
+    server.failNext();
+    await expect(listRecords('2026-10-01', '2026-10-31')).rejects.toThrow();
+  });
+
   it('오프라인이면 서버에 묻지 않고 사본(아직 빈 목록)으로', async () => {
     vi.stubGlobal('navigator', { onLine: false });
     const entries = await listRecords('2026-10-01', '2026-10-31');

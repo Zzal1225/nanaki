@@ -1,4 +1,8 @@
-import { currentLocalDb, syncBeforeRead } from '@/lib/db/currentLocalDb';
+import {
+  currentLocalDb,
+  syncBeforeRead,
+  syncForRead,
+} from '@/lib/db/currentLocalDb';
 import type {
   LocalDb,
   LocalRecordRow,
@@ -84,7 +88,8 @@ const syncRecords = createTableSync((db) =>
 // 조회 전에 부른다: 바뀐 것을 받아 두고(실패·오프라인·3초 넘김이면 기다리지 않음) 사본을 돌려준다
 async function readyLocalDb(): Promise<LocalDb> {
   const db = await currentLocalDb();
-  await syncBeforeRead('records', () => syncRecords(db));
+  // 처음 방문이면 다 받을 때까지 기다리고 실패하면 오류로 (빈 사본을 "기록 없음"으로 그리지 않게, syncForRead)
+  await syncForRead(db, 'records', () => syncRecords(db));
   return db;
 }
 
