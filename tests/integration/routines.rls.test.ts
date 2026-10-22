@@ -76,13 +76,18 @@ describe.skipIf(!hasTestSupabase)('routines RLS: 사용자 격리', () => {
     expect((await readAliceRoutineAsAdmin())?.user_id).toBe(alice.userId);
   });
 
-  // 지난 체크 기록과 달성률이 이 규칙을 기준으로 계산되므로 줄을 지우지 않고 그만두게만 한다
-  it('본인도 루틴을 지울 수 없다 (삭제 권한 없음, 그만두기만)', async () => {
-    const { error } = await alice.client
+  // 지난 체크 기록과 달성률이 이 규칙을 기준으로 계산되므로 줄을 지우지 않고 그만두게만 한다.
+  // 막는 것은 "삭제 정책이 없는 RLS"다: 정책이 없으면 지울 수 있는 줄이 0줄이라 오류 없이 아무것도 지워지지 않는다.
+  // (처음에는 "권한 없음" 오류를 기대했는데 CI에서 오류가 없었다. Supabase는 public 표에 로그인 사용자의
+  // 기본 권한을 모두 주므로 grant에서 delete를 빼는 것만으로는 권한이 사라지지 않는다)
+  it('본인도 루틴을 지울 수 없다 (삭제 정책 없음 → 0줄, 그만두기만)', async () => {
+    const { data, error } = await alice.client
       .from('routines')
       .delete()
-      .eq('id', aliceRoutine.id);
-    expect(error?.code).toBe(INSUFFICIENT_PRIVILEGE);
+      .eq('id', aliceRoutine.id)
+      .select('id');
+    expect(error).toBeNull();
+    expect(data).toEqual([]);
     expect(await readAliceRoutineAsAdmin()).not.toBeNull();
   });
 

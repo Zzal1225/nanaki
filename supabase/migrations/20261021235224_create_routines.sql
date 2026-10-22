@@ -33,7 +33,10 @@ for each row execute function public.set_updated_at();
 
 alter table public.routines enable row level security;
 
--- 삭제 권한은 주지 않는다: 앱은 그만두기(ended_on)만 쓰고, 줄은 계정을 지울 때 cascade로만 사라진다
+-- 앱은 그만두기(ended_on)만 쓰고, 줄은 계정을 지울 때 cascade로만 사라진다.
+-- 삭제를 막는 것은 아래에 "삭제 정책이 없는 것"이다 (RLS: 정책이 없으면 지울 수 있는 줄이 0줄).
+-- 이 grant에서 delete를 뺀 것만으로는 막히지 않는다: Supabase는 public 표에 로그인 사용자의 기본 권한을 모두 준다
+-- (CI 통합 테스트에서 삭제 요청이 "권한 없음" 오류 없이 0줄로 끝나는 것으로 확인)
 grant select, insert, update on public.routines to authenticated;
 
 -- 조건은 records와 같다: 지금 로그인한 사람 = 이 줄의 주인
