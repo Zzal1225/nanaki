@@ -115,6 +115,12 @@
   --tab-bar-height: calc(56px + env(safe-area-inset-bottom));
 }
 
+/* 작성·수정 화면은 하단 탭이 없다 (BottomTabBar가 표시만 남긴다). 탭 높이를 홈 막대 여백만 남겨서
+   이 변수를 쓰는 본문 아래 여백·저장 버튼 위치가 함께 내려간다. 컴포넌트마다 화면을 따지지 않고 변수 하나로 맞춘다 */
+:root:has([data-tab-bar-hidden]) {
+  --tab-bar-height: env(safe-area-inset-bottom);
+}
+
 /* ---------- 4. Tailwind 연결 ---------- */
 /* inline: 클래스가 값을 복사하지 않고 var()를 참조해서, .dark 전환이 클래스에 반영된다 */
 @theme inline {

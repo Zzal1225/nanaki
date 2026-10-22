@@ -41,7 +41,9 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className='min-h-full flex flex-col'>
+      {/* 위쪽 여백 = 기기의 상태 표시줄(시계·배터리) 높이. viewport-fit=cover로 화면이 상태 표시줄 뒤까지 넓어져서,
+          없으면 홈 화면에 추가한 앱에서 맨 위 글자가 시계에 붙는다 (2026-10-22 사용자 확인). 일반 브라우저·PC에서는 0 */}
+      <body className='min-h-full flex flex-col pt-[env(safe-area-inset-top)]'>
         <ThemeSync />
         {/* 서비스 워커 등록 (src/sw/sw.ts).
             - 개발 서버에서는 끈다: 고친 코드가 캐시에 가려 안 보이는 일을 막는다
