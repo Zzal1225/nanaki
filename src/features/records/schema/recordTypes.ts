@@ -9,11 +9,13 @@ import {
 import { REVIEW_FIELDS } from './review';
 import { WORKOUT_FIELDS } from './workout';
 
-// 작성 폼의 제목 칸. 타입마다 필수 여부와 안내 문구가 달라서 폼이 if (type === ...) 대신 이 값을 읽는다
+// 작성 폼의 제목 칸. 타입마다 있고 없음이 달라서 폼이 if (type === ...) 대신 이 값을 읽는다.
+// 운동·체형은 제목 칸이 없다 (2026-10-22 사용자 결정): 종목·잰 항목이 곧 이름이고, 폼 스키마가 그 이름으로 채운다
 const REQUIRED_TITLE = {
-  isOptional: false,
+  isHidden: false,
   placeholder: '제목을 입력하세요',
 } as const;
+const HIDDEN_TITLE = { isHidden: true, placeholder: '' } as const;
 
 // 타입마다 다른 것은 모두 여기 모은다. 폼·목록은 이 설정만 보고 그려서 컴포넌트에 타입별 분기가 없다.
 // 새 타입(루틴)은 여기에 한 줄 추가하는 것으로 시작한다
@@ -38,19 +40,16 @@ export const RECORD_TYPE_CONFIG = {
     label: '운동',
     createLabel: '운동 기록',
     fields: WORKOUT_FIELDS,
-    // 비우면 폼 스키마가 종목 이름으로 채운다 (workoutFormSchema)
-    title: { isOptional: true, placeholder: '비우면 종목 이름으로 저장해요' },
+    // 종목 이름이 제목이 된다 (workoutFormSchema)
+    title: HIDDEN_TITLE,
     formSchema: workoutFormSchema,
   },
   body: {
     label: '체형',
     createLabel: '체형 기록',
     fields: BODY_FIELDS,
-    // 비우면 폼 스키마가 적은 항목 이름("체중 · 허리")으로 채운다 (bodyFormSchema)
-    title: {
-      isOptional: true,
-      placeholder: '비우면 적은 항목 이름으로 저장해요',
-    },
+    // 잰 항목 이름("체중" / "허리둘레")이 제목이 된다 (bodyFormSchema)
+    title: HIDDEN_TITLE,
     formSchema: bodyFormSchema,
   },
 } as const;

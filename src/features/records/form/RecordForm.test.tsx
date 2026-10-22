@@ -181,9 +181,9 @@ describe('RecordForm (운동)', () => {
   });
   afterEach(() => cleanup());
 
-  it('제목을 비우면 종목 이름으로, 거리는 소수 한 자리로 저장한다', async () => {
+  it('제목 칸이 없고 종목 이름으로 저장한다, 거리는 소수 한 자리', async () => {
     renderForm('workout');
-    expect(screen.getByLabelText('제목 (선택)')).toBeTruthy();
+    expect(screen.queryByLabelText(/^제목/)).toBeNull();
 
     fireEvent.click(screen.getByRole('radio', { name: '러닝' }));
     fireEvent.change(screen.getByLabelText('시간'), {
@@ -232,14 +232,12 @@ describe('RecordForm (체형)', () => {
   });
   afterEach(() => cleanup());
 
-  it('폼 제목은 "체형 기록", 제목을 비우면 적은 항목 이름으로 저장한다', async () => {
+  it('폼 제목은 "체형 기록", 제목 칸 없이 허리둘레만 적으면 "허리둘레"로 저장한다', async () => {
     renderForm('body');
     expect(screen.getByRole('heading', { name: '체형 기록' })).toBeTruthy();
+    expect(screen.queryByLabelText(/^제목/)).toBeNull();
 
-    fireEvent.change(screen.getByLabelText('체중'), {
-      target: { value: '68.4' },
-    });
-    fireEvent.change(screen.getByLabelText('허리 (선택)'), {
+    fireEvent.change(screen.getByLabelText('허리둘레 (선택)'), {
       target: { value: '78' },
     });
     fireEvent.click(screen.getByRole('button', { name: '저장' }));
@@ -247,8 +245,24 @@ describe('RecordForm (체형)', () => {
     await waitFor(() => expect(createRecord).toHaveBeenCalled());
     expect(vi.mocked(createRecord).mock.calls[0][0]).toMatchObject({
       type: 'body',
-      title: '체중 · 허리',
-      fields: { weight: 68.4, waist: 78 },
+      title: '허리둘레',
+      fields: { waist: 78 },
     });
+  });
+
+  it('체중과 허리둘레를 둘 다 적으면 저장하지 않고 "하나만" 안내', async () => {
+    renderForm('body');
+    fireEvent.change(screen.getByLabelText('체중 (선택)'), {
+      target: { value: '68.4' },
+    });
+    fireEvent.change(screen.getByLabelText('허리둘레 (선택)'), {
+      target: { value: '78' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    expect(
+      await screen.findByText('체중과 허리둘레 중 하나만 입력해 주세요'),
+    ).toBeTruthy();
+    expect(createRecord).not.toHaveBeenCalled();
   });
 });

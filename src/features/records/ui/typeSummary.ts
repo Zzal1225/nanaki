@@ -1,5 +1,5 @@
 import { getMonthGrid } from '@/shared/date/calendar';
-import { listBodyMeasurements } from '../schema/body';
+import type { BodyMeasure } from '../schema/body';
 import type { RecordEntryOf } from '../schema/recordEntry';
 import { REVIEW_TARGET_KINDS } from '../schema/review';
 
@@ -114,64 +114,34 @@ export function summarizeWorkouts(
   };
 }
 
-export type WeightPoint = {
-  // 그 달의 몇 일 (그래프 가로 위치)
-  day: number;
-  weight: number;
+export type MeasurePoint = {
+  // 'YYYY-MM-DD'
+  date: string;
+  value: number;
 };
 
 export type BodySummary = {
-  // 그 달 마지막 기록의 체중. 기록이 없으면 null
-  latestWeight: number | null;
-  // 그 달 첫 기록 → 마지막 기록 체중 차이(kg, 소수 한 자리). 잰 날이 하루뿐이면 비교할 게 없어 null
-  change: number | null;
-  // 날짜마다 하나(같은 날 여러 번이면 마지막), 날짜 순
-  points: WeightPoint[];
-  daysInMonth: number;
-  // 마지막 기록의 체중 말고 다른 항목 (시안: 허리 78cm · 엉덩이 94cm 칩)
-  latestOthers: { label: string; value: number; unit: string }[];
+  // 날짜마다 하나(같은 날 여러 번이면 마지막), 날짜 순. 체중·허리둘레를 따로 (2026-10-22 사용자 결정: 그래프를 나눈다)
+  points: Record<BodyMeasure, MeasurePoint[]>;
 };
 
-// 체중 차이를 소수 한 자리로: 68.4 - 69.6 = -1.1999999999999886 (부동소수점) → -1.2
-const CHANGE_DECIMALS = 1;
-
-// 타입 상세 체형 요약: 이 달 마지막 체중 + 이 달 변화 + 체중 선 그래프 (2026-10-22 사용자 결정: 달 단위)
-export function summarizeBody(
-  entries: RecordEntryOf<'body'>[],
-  month: string,
-): BodySummary {
-  // 날짜마다 마지막 기록만. Map은 같은 키에 다시 넣으면 값만 바뀌므로, 조회 순서(날짜·쓴 순서)대로 넣으면 마지막 것이 남는다
-  const byDate = new Map<string, RecordEntryOf<'body'>>();
-  for (const entry of [...entries].sort((a, b) =>
+// 타입 상세 체형 그래프의 점들. 가로축은 1~31일이 아니라 실제로 잰 날들이다 (사용자 결정): 한 달에 몇 번 안 재면
+// 1~31일 축에서는 점이 한쪽에 몰리고 가운데가 비어 변화가 잘 안 보인다.
+// "최근 체중"(달과 상관없이 전체 기록 중 마지막)은 여기서 계산하지 않는다: 이 달 기록만으로는 알 수 없어 따로 조회한다
+export function summarizeBody(entries: RecordEntryOf<'body'>[]): BodySummary {
+  const sorted = [...entries].sort((a, b) =>
     a.occurredAt.localeCompare(b.occurredAt),
-  )) {
-    byDate.set(entry.occurredAt, entry);
+  );
+  function dailyPoints(measure: BodyMeasure): MeasurePoint[] {
+    // 같은 날짜 키에 다시 넣으면 값만 바뀐다 → 날짜순(정렬은 안정 정렬이라 같은 날은 쓴 순서)으로 넣으면 마지막 것이 남는다
+    const byDate = new Map<string, number>();
+    for (const entry of sorted) {
+      const value = entry.fields[measure];
+      if (value !== undefined) byDate.set(entry.occurredAt, value);
+    }
+    return [...byDate].map(([date, value]) => ({ date, value }));
   }
-  const daily = [...byDate.values()];
-  const first = daily.at(0);
-  const latest = daily.at(-1);
-
   return {
-    latestWeight: latest?.fields.weight ?? null,
-    change:
-      first && latest && daily.length > 1
-        ? Number(
-            (latest.fields.weight - first.fields.weight).toFixed(
-              CHANGE_DECIMALS,
-            ),
-          )
-        : null,
-    points: daily.map((entry) => ({
-      day: Number(entry.occurredAt.slice(DAY_OF_MONTH_START)),
-      weight: entry.fields.weight,
-    })),
-    daysInMonth: getMonthGrid(`${month}-01`)
-      .flat()
-      .filter((date) => date.startsWith(month)).length,
-    latestOthers: latest
-      ? listBodyMeasurements(latest.fields)
-          .filter((measurement) => measurement.name !== 'weight')
-          .map(({ label, value, unit }) => ({ label, value, unit }))
-      : [],
+    points: { weight: dailyPoints('weight'), waist: dailyPoints('waist') },
   };
 }

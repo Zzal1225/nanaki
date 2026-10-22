@@ -1,67 +1,81 @@
 import { describe, expect, it } from 'vitest';
-import { listBodyMeasurements, MAX_BODY_WEIGHT_KG, toBodyTitle } from './body';
+import {
+  BODY_ONLY_ONE_MESSAGE,
+  MAX_BODY_WEIGHT_KG,
+  measureOf,
+  toBodyTitle,
+} from './body';
 import { bodyFormSchema, recordEntrySchema } from './recordEntry';
 
 const VALID_BODY = {
   id: '0b6e4f0e-2d4c-4c84-9a0c-5a5e1c2f7a31',
   type: 'body',
   occurredAt: '2026-10-21',
-  title: '체중 · 허리',
+  title: '체중',
   memo: null,
   tags: [],
-  fields: { weight: 68.4, waist: 78 },
+  fields: { weight: 68.4 },
 };
 
 function isValid(value: unknown) {
   return recordEntrySchema.safeParse(value).success;
 }
 
-describe('체형 기록 스키마', () => {
-  it('체중만으로 통과 (나머지는 모두 선택)', () => {
-    expect(isValid({ ...VALID_BODY, fields: { weight: 68.4 } })).toBe(true);
+describe('체형 기록 스키마 (저장된 기록)', () => {
+  it('체중만, 허리둘레만 모두 통과', () => {
+    expect(isValid(VALID_BODY)).toBe(true);
+    expect(isValid({ ...VALID_BODY, fields: { waist: 78 } })).toBe(true);
   });
-  it('체중은 필수', () => {
-    expect(isValid({ ...VALID_BODY, fields: { waist: 78 } })).toBe(false);
+  it('둘 다 비면 실패', () => {
+    expect(isValid({ ...VALID_BODY, fields: {} })).toBe(false);
+  });
+  // 규칙을 바꾸기 전에 저장된 기록이 목록에서 사라지면 안 된다
+  it('둘 다 있는 예전 기록도 읽는다, 없어진 항목(체지방률 등)은 떨어뜨린다', () => {
+    const result = recordEntrySchema.safeParse({
+      ...VALID_BODY,
+      fields: { weight: 68.4, waist: 78, bodyFat: 18.2 },
+    });
+    expect(result.success).toBe(true);
+    expect(result.data?.fields).toEqual({ weight: 68.4, waist: 78 });
   });
   it('소수 한 자리·상한까지', () => {
     expect(isValid({ ...VALID_BODY, fields: { weight: 68.45 } })).toBe(false);
     expect(
       isValid({ ...VALID_BODY, fields: { weight: MAX_BODY_WEIGHT_KG + 1 } }),
     ).toBe(false);
-    expect(
-      isValid({ ...VALID_BODY, fields: { weight: 68.4, bodyFat: 18.2 } }),
-    ).toBe(true);
   });
 });
 
-describe('적은 항목 나열', () => {
-  it('폼 순서대로, 적은 것만 (체중 → 허리 → … → 체지방률)', () => {
-    expect(
-      listBodyMeasurements({ weight: 68.4, bodyFat: 18.2, waist: 78 }).map(
-        (measurement) => measurement.label,
-      ),
-    ).toEqual(['체중', '허리', '체지방률']);
-  });
-  it('기본 제목은 적은 항목 이름', () => {
+describe('잰 항목과 제목', () => {
+  it('체중 기록은 "체중", 허리둘레 기록은 "허리둘레" (둘 다 있으면 체중)', () => {
     expect(toBodyTitle({ weight: 68.4 })).toBe('체중');
-    expect(toBodyTitle({ weight: 68.4, waist: 78, hip: 94 })).toBe(
-      '체중 · 허리 · 엉덩이',
-    );
+    expect(toBodyTitle({ waist: 78 })).toBe('허리둘레');
+    expect(measureOf({ weight: 68.4, waist: 78 })).toBe('weight');
   });
 });
 
-describe('체형 작성 폼 스키마 (제목 선택)', () => {
-  // 작성 폼은 id 없이 받는다
-  const input = { ...VALID_BODY, id: undefined };
+describe('체형 작성 폼 스키마', () => {
+  // 작성 폼은 id 없이, 제목 칸 없이('') 받는다
+  const input = { ...VALID_BODY, id: undefined, title: '' };
 
-  it('제목을 비우면 적은 항목 이름이 제목이 된다', () => {
-    expect(bodyFormSchema.parse({ ...input, title: '' }).title).toBe(
-      '체중 · 허리',
-    );
+  it('제목은 잰 항목 이름으로 채운다', () => {
+    expect(bodyFormSchema.parse(input).title).toBe('체중');
+    expect(
+      bodyFormSchema.parse({ ...input, fields: { waist: 78 } }).title,
+    ).toBe('허리둘레');
   });
-  it('제목을 쓰면 그대로', () => {
-    expect(bodyFormSchema.parse({ ...input, title: '아침 공복' }).title).toBe(
-      '아침 공복',
-    );
+  it('둘 다 적으면 "하나만" 오류 (체중 칸 아래)', () => {
+    const result = bodyFormSchema.safeParse({
+      ...input,
+      fields: { weight: 68.4, waist: 78 },
+    });
+    expect(result.error?.issues[0]).toMatchObject({
+      message: BODY_ONLY_ONE_MESSAGE,
+      path: ['fields', 'weight'],
+    });
+  });
+  it('둘 다 비면 "입력해 주세요" 오류', () => {
+    const result = bodyFormSchema.safeParse({ ...input, fields: {} });
+    expect(result.success).toBe(false);
   });
 });

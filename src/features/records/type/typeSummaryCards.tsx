@@ -2,12 +2,11 @@ import type { ReactNode } from 'react';
 import type { RecordEntry, RecordEntryOf } from '../schema/recordEntry';
 import type { RecordType } from '../schema/recordTypes';
 import {
-  summarizeBody,
   summarizeExpenses,
   summarizeReviews,
   summarizeWorkouts,
 } from '../ui/typeSummary';
-import BodySummaryCard from './BodySummaryCard';
+import BodySummarySection from './BodySummarySection';
 import ExpenseSummaryCard from './ExpenseSummaryCard';
 import ReviewSummaryCard from './ReviewSummaryCard';
 import WorkoutSummaryCard from './WorkoutSummaryCard';
@@ -40,12 +39,8 @@ const SUMMARY_RENDERERS: { [T in RecordType]: SummaryRenderer<T> } = {
       summary={summarizeWorkouts(entries, month)}
     />
   ),
-  body: (entries, monthLabel, month) => (
-    <BodySummaryCard
-      monthLabel={monthLabel}
-      summary={summarizeBody(entries, month)}
-    />
-  ),
+  // 체형은 "최근 체중"을 따로 불러와서(달과 상관없음) 조회가 있는 컴포넌트로 감싼다
+  body: (entries) => <BodySummarySection entries={entries} />,
 };
 
 // entries는 이 type의 기록만 들어온다(listRecordsOfType이 DB에서 거름). TypeScript는 type과 꺼낸 함수의

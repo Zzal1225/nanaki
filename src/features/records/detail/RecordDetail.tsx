@@ -9,11 +9,7 @@ import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import { useRecord } from '../hooks/useRecord';
 import { RECORD_TYPE_CONFIG } from '../schema/recordTypes';
 import { formatFieldValue } from '../ui/fieldView';
-import {
-  getDetailKicker,
-  getHeadlineField,
-  getListValue,
-} from '../ui/recordPresentation';
+import { getHeadlineField, getListValue } from '../ui/recordPresentation';
 import { RECORD_TYPE_STYLE } from '../ui/recordTypeStyle';
 import DetailRow from './DetailRow';
 import RecordActions from './RecordActions';
@@ -72,7 +68,7 @@ export default function RecordDetail({ id }: RecordDetailProps) {
   const config = RECORD_TYPE_CONFIG[entry.type];
   const style = RECORD_TYPE_STYLE[entry.type];
   const TypeIcon = style.icon;
-  const headlineField = getHeadlineField(entry.type);
+  const headlineField = getHeadlineField(entry);
   // 화면에 그리기 위해 이름으로 값을 꺼낸다. 이미 검증을 통과한 기록이라 읽기만 한다
   const fieldValues = entry.fields as Record<string, unknown>;
 
@@ -99,7 +95,8 @@ export default function RecordDetail({ id }: RecordDetailProps) {
             size={ICON_SIZE.sm}
             strokeWidth={ICON_STROKE_WIDTH}
           />
-          {config.label} · {getDetailKicker(entry)}
+          {/* 타입 이름만 (2026-10-22 사용자 결정: "가계부 · 교통"처럼 항목까지 붙이면 어색하다) */}
+          {config.label}
         </span>
         <RecordActions id={entry.id} />
       </div>
