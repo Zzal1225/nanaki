@@ -70,3 +70,16 @@ export function newRecordRow(
     fields: { amount: 1000, category: '식비' },
   };
 }
+
+// 루틴 한 줄 (DB 칸 이름 그대로): 월·수·금 체크형
+export function newRoutineRow(
+  name: string,
+): TablesInsert<'routines'> & { id: string } {
+  return {
+    id: crypto.randomUUID(),
+    name,
+    start_date: '2026-10-01',
+    schedule: { kind: 'weekly', days: [1, 3, 5] },
+    goal: { kind: 'check' },
+  };
+}
