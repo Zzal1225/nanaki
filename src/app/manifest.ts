@@ -15,9 +15,15 @@ export default function manifest(): MetadataRoute.Manifest {
     display: 'standalone',
     background_color: '#f7f7f8',
     theme_color: '#2e7d4f',
-    // 임시 아이콘: 로고(새싹)를 SVG로 그린 것. 한 장으로 모든 크기를 덮는다(sizes: any).
-    // maskable은 기기가 원·둥근 사각형으로 잘라도 그림이 남게 안쪽 80%에만 그렸다
+    // PNG 512(사용자가 만든 아이콘)를 먼저 둔다: 설치 화면·스플래시는 PNG를 더 넓게 지원한다.
+    // SVG는 크기 무관(sizes: any) 대비책, maskable은 기기가 원·둥근 사각형으로 잘라도 그림이 남게 안쪽 80%에만 그렸다
     icons: [
+      {
+        src: '/icons/nanaki-icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any',
+      },
       {
         src: '/icons/icon.svg',
         sizes: 'any',
