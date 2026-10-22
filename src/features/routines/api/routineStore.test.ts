@@ -1,7 +1,17 @@
-import { describe, expect, it, vi } from 'vitest';
-import { toRoutine, toRoutineInsert } from './routineStore';
+import 'fake-indexeddb/auto';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { closeLocalDb } from '@/lib/db/localDb';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import { createFakeBrowserClient } from '@/lib/supabase/fakeBrowserClient.testing';
+import {
+  endRoutine,
+  getRoutine,
+  listRoutines,
+  toRoutine,
+  toRoutineInsert,
+} from './routineStore';
 
-// toRoutine·toRoutineInsert는 DB를 부르지 않는 순수 변환이라 Supabase 클라이언트는 쓰이지 않는다
+// 변환 테스트는 서버를 부르지 않는다. 조회·쓰기 테스트만 아래에서 가짜 클라이언트를 넣는다
 vi.mock('@/lib/supabase/client', () => ({
   createSupabaseBrowserClient: vi.fn(),
 }));
@@ -42,5 +52,45 @@ describe('toRoutine', () => {
     expect(
       toRoutine({ ...ROW, ...insert, ended_on: insert.ended_on ?? null }),
     ).toEqual(routine);
+  });
+});
+
+describe('기기 사본', () => {
+  afterEach(() => closeLocalDb());
+
+  const WATER = '11111111-1111-4111-8111-111111111111';
+  const STRETCH = '22222222-2222-4222-8222-222222222222';
+
+  it('서버의 루틴을 받아 만든 순서로 읽고, 그만두기는 돌려받은 줄로 사본을 고친다', async () => {
+    const server = createFakeBrowserClient('routine-user');
+    vi.mocked(createSupabaseBrowserClient).mockReturnValue(
+      server.client as never,
+    );
+    const stretch = {
+      ...ROW,
+      id: STRETCH,
+      name: '스트레칭',
+      created_at: '2026-10-02T00:00:00Z',
+      updated_at: '2026-10-02T00:00:00Z',
+    };
+    const water = {
+      ...ROW,
+      id: WATER,
+      created_at: '2026-10-01T00:00:00Z',
+      updated_at: '2026-10-01T00:00:00Z',
+    };
+    server.respond({ data: [stretch, water], error: null });
+
+    expect((await listRoutines()).map((r) => r.name)).toEqual([
+      '물 마시기',
+      '스트레칭',
+    ]);
+
+    server.respond({
+      data: [{ ...water, ended_on: '2026-10-21' }],
+      error: null,
+    });
+    await endRoutine(WATER, '2026-10-21');
+    expect((await getRoutine(WATER))?.endedOn).toBe('2026-10-21');
   });
 });

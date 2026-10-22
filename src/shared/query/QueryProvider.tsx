@@ -19,6 +19,10 @@ export default function QueryProvider({ children }: { children: ReactNode }) {
         defaultOptions: {
           queries: {
             staleTime: STALE_TIME_MS,
+            // 'always': 오프라인이어도 조회 함수를 실행한다. 기본값('online')은 오프라인이면 조회를 멈춰 두어
+            // 화면이 회색 자리에 머물렀다 (25a 오프라인 실험). 기록·루틴 조회는 기기 사본에서 읽으므로
+            // 네트워크가 없어도 끝난다 (동기화 실패는 recordStore가 삼킨다)
+            networkMode: 'always',
           },
         },
       }),

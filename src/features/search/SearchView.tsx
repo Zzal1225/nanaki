@@ -87,11 +87,17 @@ function SearchViewContent() {
   const detailQuery = toSearchParams(view);
 
   // 모든 바꾸기는 replace: 검색어·칩을 바꿀 때마다 방문 기록이 쌓이면 뒤로 가기를 여러 번 눌러야 기록 탭에 돌아간다.
-  // scroll: false: 칩을 바꿔도 화면이 맨 위로 튀지 않게
+  // 검색 화면 안에서는 history.replaceState로 주소만 바꾼다 (홈 캘린더와 같은 방식, useCalendar):
+  // router.replace는 같은 화면이어도 서버에 화면 조각(RSC)을 다시 묻는데, 오프라인이면 그 요청이 실패해
+  // 오프라인 대체 화면으로 넘어간다. 결과는 기기 사본에서 찾으므로 서버에 물을 것이 없다 (Next가 주소 변화를 useSearchParams에 반영한다).
+  // PC에서 상세(/records/<id>?q=)를 보다가 조건을 바꾸면 화면 자체가 검색으로 바뀌어야 해서 그때만 router.replace
   function update(next: Partial<SearchState>) {
-    router.replace(toSearchHref({ ...view, ...next }), {
-      scroll: false,
-    });
+    const href = toSearchHref({ ...view, ...next });
+    if (pathname === '/records/search') {
+      window.history.replaceState(null, '', href);
+    } else {
+      router.replace(href, { scroll: false });
+    }
   }
 
   return (
