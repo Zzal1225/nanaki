@@ -15,6 +15,7 @@ import Button from '@/shared/ui/Button';
 import { useVisibleTypes } from '@/features/settings/hooks/useUserSettings';
 import { filterVisibleEntries } from '@/features/settings/typeVisibility';
 import { useRecentRecords } from '../hooks/useRecentRecords';
+import { usePendingRecordIds } from '../hooks/usePendingRecordIds';
 import { useRecords } from '../hooks/useRecords';
 import { useRoutines } from '@/features/routines/hooks/useRoutines';
 import SearchBarLink from '@/features/search/SearchBarLink';
@@ -61,6 +62,8 @@ function RecordsOverviewView({ pathname }: { pathname: string | null }) {
     currentMonth ? getMonthRangeOf(shiftMonth(currentMonth, -1)) : null,
   );
   const recentRecords = useRecentRecords(RECENT_RECORD_LIMIT);
+  // 아직 서버에 보내지 않은 기록에 구름 아이콘 (시안 15a)
+  const pendingIds = usePendingRecordIds();
   // 루틴 카드의 달성률은 "해야 했던 날"(루틴 규칙)이 있어야 계산된다 (2026-10-22 사용자 결정: 달성률)
   const routines = useRoutines();
 
@@ -181,6 +184,7 @@ function RecordsOverviewView({ pathname }: { pathname: string | null }) {
                     value={getListValue(entry)}
                     href={`/records/${entry.id}`}
                     // 상세와 그 수정 화면 모두 선택된 것으로 본다
+                    isPending={pendingIds.has(entry.id)}
                     isSelected={
                       pathname !== null &&
                       pathname.startsWith(`/records/${entry.id}`)

@@ -18,12 +18,38 @@ export type SyncMeta = {
   cursor: SyncCursor;
 };
 
+// 서버에 보낼 기록 내용 (DB 칸 이름). user_id·시각 칸은 서버가 붙인다
+export type OutboxRecordRow = Pick<
+  LocalRecordRow,
+  'id' | 'type' | 'occurred_at' | 'title' | 'memo' | 'tags' | 'fields'
+>;
+
+// 아직 서버에 보내지 않은 기록 변경 하나 (25c, 오프라인 작성 대기열).
+// seq(자동 증가) 순서대로 보낸다: 같은 기록을 만들고 → 고치고 → 지운 순서가 서버에서도 지켜져야 한다
+export type OutboxOp = {
+  seq?: number;
+  recordId: string;
+  queuedAt: string;
+  // 서버가 거절한 이유. 있으면 자동으로 다시 보내지 않고 "다시 시도"를 기다린다 (네트워크 실패는 적지 않는다)
+  failure?: string;
+} & (
+  | { kind: 'upsert'; row: OutboxRecordRow }
+  // 지우기 전 줄을 들고 있다: 보내기 전에 되돌리면 이 줄을 사본에 다시 넣는다
+  | { kind: 'delete'; deletedAt: string; previous: LocalRecordRow }
+  | { kind: 'restore' }
+);
+
 export class LocalDb extends Dexie {
   records!: Table<LocalRecordRow, string>;
   routines!: Table<LocalRoutineRow, string>;
   meta!: Table<SyncMeta, SyncedTable>;
+  outbox!: Table<OutboxOp, number>;
 
-  constructor(name: string) {
+  constructor(
+    name: string,
+    // 사본 주인. 기기에서 만든 줄의 user_id로 쓴다 (서버로는 보내지 않는다)
+    readonly userId: string,
+  ) {
     super(name);
     // 첫 칸이 기본 키, 나머지는 색인 (Dexie stores 문법).
     // - occurred_at: 달·기간 목록(홈 캘린더, 검색 기간)
@@ -35,6 +61,10 @@ export class LocalDb extends Dexie {
         'id, occurred_at, [type+occurred_at], [occurred_at+created_at+id]',
       routines: 'id',
       meta: 'table',
+    });
+    // 2: 오프라인 작성 대기열 (25c). ++seq = 자동 증가 기본 키(보낼 순서), recordId = 그 기록의 대기 중 변경 찾기
+    this.version(2).stores({
+      outbox: '++seq, recordId',
     });
   }
 }
@@ -51,7 +81,7 @@ let opened: { userId: string; db: LocalDb } | null = null;
 export function openLocalDb(userId: string): LocalDb {
   if (opened?.userId === userId) return opened.db;
   opened?.db.close();
-  opened = { userId, db: new LocalDb(localDbName(userId)) };
+  opened = { userId, db: new LocalDb(localDbName(userId), userId) };
   return opened.db;
 }
 

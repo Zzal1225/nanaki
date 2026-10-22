@@ -6,6 +6,8 @@ export const recordKeys = {
   list: (from: string, to: string) =>
     [...recordKeys.all, 'list', from, to] as const,
   recent: (limit: number) => [...recordKeys.all, 'recent', limit] as const,
+  // 아직 서버에 보내지 않은 기록 id (대기열). 기록을 쓰면 함께 무효화된다
+  pending: () => [...recordKeys.all, 'pending'] as const,
   detail: (id: string) => [...recordKeys.all, 'detail', id] as const,
   ofType: (type: string, from: string, to: string) =>
     [...recordKeys.all, 'type', type, from, to] as const,

@@ -1,3 +1,4 @@
+import { CloudUpload } from 'lucide-react';
 import Link from 'next/link';
 import { splitByKeyword } from '@/features/search/searchResults';
 import { ICON_STROKE_WIDTH } from '@/shared/ui/icon';
@@ -18,6 +19,8 @@ type RecentRecordItemProps = {
   isSelected: boolean;
   // 검색 결과에서 제목 안의 검색어를 타입 옅은 색으로 강조한다 (시안 14a)
   highlight?: string;
+  // 아직 서버에 보내지 않은 기록 (시안 15a: 날짜 옆 작은 구름). 온라인에서 보내지면 사라진다
+  isPending?: boolean;
 };
 
 // 기록 객체 전체 대신 화면에 쓰는 값만 받는다 (CLAUDE.md: props는 필요한 것만). 한 줄 전체가 상세로 가는 링크
@@ -29,6 +32,7 @@ export default function RecentRecordItem({
   href,
   isSelected,
   highlight = '',
+  isPending = false,
 }: RecentRecordItemProps) {
   const style = RECORD_TYPE_STYLE[type];
   const Icon = style.icon;
@@ -69,8 +73,17 @@ export default function RecentRecordItem({
             ),
           )}
         </span>
-        <span className='text-caption font-medium text-fg-secondary tabular-nums'>
+        <span className='flex items-center gap-1 text-caption font-medium text-fg-secondary tabular-nums'>
           {subtitle}
+          {isPending && (
+            // 아이콘만으로는 뜻을 알 수 없어서 화면 읽기 프로그램에 글로 알린다
+            <CloudUpload
+              role='img'
+              aria-label='아직 저장되지 않음'
+              size={14}
+              strokeWidth={ICON_STROKE_WIDTH}
+            />
+          )}
         </span>
       </div>
       <span className='text-body font-semibold whitespace-nowrap text-fg-primary tabular-nums'>

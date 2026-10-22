@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { closeLocalDb } from '@/lib/db/localDb';
+import { closeLocalDb, openLocalDb } from '@/lib/db/localDb';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { createFakeBrowserClient } from '@/lib/supabase/fakeBrowserClient.testing';
 import { buildSampleRecords } from '../sample/sampleRecords';
@@ -11,16 +11,25 @@ import {
   deleteRecord,
   getRecord,
   listLatestRecordsWithField,
+  listPendingRecordIds,
   listRecentRecords,
   listRecords,
   restoreRecord,
   SEARCH_RESULT_LIMIT,
   searchRecords,
+  setRoutineCheck,
+  updateRecord,
   type NewRecordInput,
 } from './recordStore';
+import { flushRecordOutbox } from './recordOutbox';
 
 vi.mock('@/lib/supabase/client', () => ({
   createSupabaseBrowserClient: vi.fn(),
+}));
+// 보내기는 recordOutbox.test에서 따로 본다. 여기서는 "쓰면 보내기를 시작한다"까지만
+vi.mock('./recordOutbox', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  flushRecordOutbox: vi.fn(async () => 'done'),
 }));
 
 // 기록 id는 UUID여야 검증을 통과한다. 테스트에서는 이름으로 부르고 같은 이름은 같은 UUID로
@@ -204,7 +213,7 @@ describe('검색 (기기 사본)', () => {
   });
 });
 
-describe('쓰기: 서버에 보내고, 돌려받은 줄을 사본에 바로 넣는다', () => {
+describe('쓰기: 기기 사본에 먼저 쓰고 대기열에 쌓는다 (보내기는 recordOutbox)', () => {
   const LUNCH: NewRecordInput = {
     type: 'expense',
     occurredAt: '2026-10-21',
@@ -213,43 +222,99 @@ describe('쓰기: 서버에 보내고, 돌려받은 줄을 사본에 바로 넣�
     tags: [],
     fields: { amount: 9800, category: '식비' },
   };
+  const db = () => openLocalDb(`user-${userCount}`);
 
-  it('새 기록은 다음 동기화를 기다리지 않고 목록에 보인다', async () => {
+  it('새 기록은 서버를 기다리지 않고 목록에 보이고, 대기열에 upsert로 쌓인다', async () => {
     serverHas();
     await listRecords('2026-10-01', '2026-10-31');
 
-    server.respond({ data: row({ id: 'lunch', title: '점심' }), error: null });
-    await createRecord(LUNCH);
+    const saved = await createRecord(LUNCH);
 
-    // 방금 동기화했으므로(5초 안) 서버에 다시 묻지 않고 사본에서 읽는다
     const entries = await listRecords('2026-10-01', '2026-10-31');
     expect(entries.map((e) => e.title)).toEqual(['점심']);
+    const ops = await db().outbox.toArray();
+    expect(ops).toMatchObject([
+      { kind: 'upsert', recordId: saved.id, row: { title: '점심' } },
+    ]);
+    expect(await listPendingRecordIds()).toEqual([saved.id]);
+    // 서버에 바로 보내지 않는다 (보내기는 뒤에서)
+    expect(server.calls.some((call) => call.method === 'insert')).toBe(false);
+    expect(flushRecordOutbox).toHaveBeenCalled();
   });
 
-  it('지우면 사본에서 빠지고, 되돌리면 다시 들어온다', async () => {
-    const lunch = row({ id: 'lunch' });
+  it('없는 기록은 고치지 않는다', async () => {
+    const saved = await createRecord(LUNCH);
+    await expect(updateRecord({ ...saved, id: uid('없음') })).rejects.toThrow(
+      '수정할 기록이 없음',
+    );
+  });
+
+  it('보내기 전에 지우고 되돌리면 대기열에서 삭제가 빠지고 기록이 그대로 돌아온다', async () => {
+    const saved = await createRecord(LUNCH);
+    await deleteRecord(saved.id);
+    expect(await getRecord(saved.id)).toBeNull();
+
+    await restoreRecord(saved.id);
+    expect((await getRecord(saved.id))?.title).toBe('점심');
+    expect((await db().outbox.toArray()).map((op) => op.kind)).toEqual([
+      'upsert',
+    ]);
+  });
+
+  it('이미 보낸 삭제를 되돌리면 되살리기를 쌓는다', async () => {
+    const saved = await createRecord(LUNCH);
+    await deleteRecord(saved.id);
+    // 보내기가 끝난 상태를 흉내: 대기열을 비운다
+    await db().outbox.clear();
+
+    await restoreRecord(saved.id);
+    expect((await getRecord(saved.id))?.title).toBe('점심');
+    expect((await db().outbox.toArray()).map((op) => op.kind)).toEqual([
+      'restore',
+    ]);
+  });
+
+  // 거짓으로 "되돌렸어요"라고 하지 않는다
+  it('되돌릴 줄을 모르면 실패로 알린다', async () => {
+    await expect(restoreRecord(uid('모름'))).rejects.toThrow(
+      '되돌릴 기록이 없음',
+    );
+  });
+
+  it('루틴 체크: 사본에서 그날 줄을 찾아 만들고 → 고치고 → 0이면 지운다 (오프라인에서도)', async () => {
+    const check = {
+      routineId: '11111111-1111-4111-8111-111111111111',
+      routineName: '물 마시기',
+      date: '2026-10-21',
+      target: 8,
+      unit: '잔',
+    };
+    await setRoutineCheck({ ...check, count: 1 });
+    await setRoutineCheck({ ...check, count: 2 });
+    const rows = await db().records.toArray();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].fields).toMatchObject({ count: 2 });
+
+    await setRoutineCheck({ ...check, count: 0 });
+    expect(await db().records.count()).toBe(0);
+  });
+
+  it('보내지 않은 변경이 있는 기록은 동기화가 서버의 예전 내용으로 덮어쓰지 않는다', async () => {
+    const lunch = row({ id: 'lunch', title: '점심' });
     serverHas(lunch);
     await listRecords('2026-10-01', '2026-10-31');
+    const [entry] = await listRecords('2026-10-01', '2026-10-31');
+    await updateRecord({ ...entry, title: '점심(고침)' });
 
-    server.respond({
-      data: [{ ...lunch, deleted_at: '2026-10-22T01:00:00Z' }],
-      error: null,
-    });
-    await deleteRecord(uid('lunch'));
-    expect(await getRecord(uid('lunch'))).toBeNull();
-
-    server.respond({ data: [lunch], error: null });
-    await restoreRecord(uid('lunch'));
-    expect(await getRecord(uid('lunch'))).not.toBeNull();
+    // 5초 뒤 다시 동기화: 서버는 아직 예전 제목을 준다
+    vi.useFakeTimers({ now: Date.now() + 10_000, toFake: ['Date'] });
+    serverHas({ ...lunch, updated_at: '2026-10-22T09:00:00.000Z' });
+    const entries = await listRecords('2026-10-01', '2026-10-31');
+    vi.useRealTimers();
+    expect(entries.map((e) => e.title)).toEqual(['점심(고침)']);
   });
 
-  // 대시보드에서 줄을 아예 지운 경우 등: 오류 없이 0줄이 바뀐다. 성공으로 알리면 안 된다
-  it('되돌릴 줄이 없으면 실패로 알린다', async () => {
-    server.respond({ data: [], error: null });
-    await expect(restoreRecord('gone')).rejects.toThrow('되돌릴 기록이 없음');
-  });
-
-  it('여러 기록을 요청 하나로, 각자 새 id와 DB 칸 이름으로 보낸다', async () => {
+  it('체험하기 예시 기록은 요청 하나로 서버에 바로 넣는다 (각자 새 id, DB 칸 이름)', async () => {
     const inputs = buildSampleRecords('2026-10-21');
     server.respond({ data: [], error: null });
 
@@ -263,7 +328,7 @@ describe('쓰기: 서버에 보내고, 돌려받은 줄을 사본에 바로 넣�
   });
 
   // 하나라도 스키마에 어긋나면 아무것도 보내지 않는다 (일부만 들어가지 않게)
-  it('검사에 실패한 기록이 있으면 보내지 않고 던진다', async () => {
+  it('검사에 실패한 예시 기록이 있으면 보내지 않고 던진다', async () => {
     const [valid] = buildSampleRecords('2026-10-21');
     const invalid = { ...valid, title: '' } as NewRecordInput;
 
@@ -271,9 +336,8 @@ describe('쓰기: 서버에 보내고, 돌려받은 줄을 사본에 바로 넣�
     expect(server.calls.some((call) => call.method === 'insert')).toBe(false);
   });
 
-  it('DB 오류는 그대로 던진다', async () => {
-    const dbError = new Error('네트워크 오류');
-    server.respond({ data: null, error: dbError });
-    await expect(createRecord(LUNCH)).rejects.toBe(dbError);
+  it('스키마에 어긋난 기록은 사본에도 대기열에도 넣지 않는다', async () => {
+    await expect(createRecord({ ...LUNCH, title: '' })).rejects.toThrow();
+    expect(await db().outbox.count()).toBe(0);
   });
 });

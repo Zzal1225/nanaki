@@ -1,5 +1,10 @@
 import { currentLocalDb, syncBeforeRead } from '@/lib/db/currentLocalDb';
-import type { LocalDb, LocalRecordRow, SyncCursor } from '@/lib/db/localDb';
+import type {
+  LocalDb,
+  LocalRecordRow,
+  OutboxRecordRow,
+  SyncCursor,
+} from '@/lib/db/localDb';
 import {
   createTableSync,
   pullChanges,
@@ -10,12 +15,18 @@ import type { DateRange } from '@/shared/date/monthRange';
 import { recordEntrySchema, type RecordEntry } from '../schema/recordEntry';
 import { SCHEDULE_DRIVEN_TYPES } from '../schema/recordTypes';
 import { toRecordEntry, toRecordInsert, type RecordRow } from './recordMapper';
+import {
+  flushRecordOutbox,
+  hasFailedRecords,
+  pendingRecordIds,
+  retryFailedRecords,
+} from './recordOutbox';
 import { matchesKeyword } from './searchQuery';
 
 // 기록 저장·조회는 이 파일의 함수로만 한다. 훅·컴포넌트는 Supabase·IndexedDB를 직접 부르지 않는다.
 // 25b부터 안쪽이 바뀌었다 (위의 훅과 화면은 그대로):
 // - 조회: 서버의 바뀐 줄을 기기 사본(IndexedDB)에 받은 뒤(sync), 사본에서 읽는다 → 오프라인에서도 그려진다
-// - 쓰기: 지금은 서버에 보내고, 서버가 돌려준 줄을 사본에 바로 넣는다 (오프라인 작성 대기열은 25c)
+// - 쓰기(25c): 사본에 먼저 쓰고 대기열(outbox)에 쌓는다 → 뒤에서 서버로 보낸다 (recordOutbox)
 // "내 기록만" 조건은 쓰지 않는다. 서버는 RLS가 auth.uid() = user_id를 붙이고, 사본은 계정마다 따로다
 
 // 망가진 기록 하나 때문에 목록 전체가 안 보이면 안 되므로, 그 줄만 건너뛰고 어느 줄인지 남긴다
@@ -64,6 +75,8 @@ const syncRecords = createTableSync((db) =>
     target: db.records,
     fetchChanges: fetchRecordChanges,
     isRemoved: (row) => row.deleted_at !== null,
+    // 아직 보내지 않은 내 변경이 있는 기록은 서버의 예전 내용으로 덮어쓰지 않는다
+    pendingIds: () => pendingRecordIds(db),
   }),
 );
 
@@ -221,34 +234,88 @@ export async function searchRecords({
   };
 }
 
-// ── 쓰기 (서버 → 사본) ─────────────────────────────────
+// ── 쓰기 (기기 사본 먼저 → 대기열 → 서버) ───────────────
+// 모든 쓰기는 사본과 대기열(outbox)을 한 트랜잭션으로 바꾼 뒤 바로 끝난다. 서버로 보내기는 뒤에서 한다 (recordOutbox).
+// 온라인이어도 같은 길로 간다 (2026-10-22 사용자 결정): 저장 버튼이 늘 바로 끝나고, 오프라인과 동작이 같다
+
+function nowIso(): string {
+  return new Date().toISOString();
+}
+
+function toOutboxRow(entry: RecordEntry): OutboxRecordRow {
+  const insert = toRecordInsert(entry);
+  return {
+    id: entry.id,
+    type: insert.type,
+    occurred_at: insert.occurred_at,
+    title: insert.title,
+    memo: insert.memo ?? null,
+    tags: insert.tags ?? [],
+    fields: insert.fields ?? {},
+  };
+}
+
+// 기기에서 만든·고친 줄. 시각 칸은 서버가 다시 붙인다 (보낸 뒤 돌려받은 줄로 덮어쓴다).
+// 만든 시각은 처음 값을 유지해서, 고쳐도 같은 날 기록 사이의 순서가 바뀌지 않게 한다
+function toLocalRow(
+  entry: RecordEntry,
+  userId: string,
+  existing: LocalRecordRow | undefined,
+): LocalRecordRow {
+  const now = nowIso();
+  return {
+    ...toOutboxRow(entry),
+    user_id: userId,
+    created_at: existing?.created_at ?? now,
+    updated_at: now,
+    deleted_at: null,
+  };
+}
+
+// 쌓은 뒤 보내기를 시작한다. 기다리지 않는다: 저장은 사본에 쓴 순간 끝났고, 보내기 결과는 화면이 이벤트로 받는다
+function startFlush(db: LocalDb): void {
+  void flushRecordOutbox(db);
+}
+
+async function saveLocally(
+  // 검사 전 값 (스키마가 RecordEntry로 확인한다)
+  entry: unknown,
+  mustExist: boolean,
+): Promise<RecordEntry> {
+  const db = await currentLocalDb();
+  const checked = recordEntrySchema.parse(entry);
+  await db.transaction('rw', db.records, db.outbox, async () => {
+    const existing = await db.records.get(checked.id);
+    if (mustExist && !existing) {
+      throw new Error(`수정할 기록이 없음: ${checked.id}`);
+    }
+    await db.records.put(toLocalRow(checked, db.userId, existing));
+    await db.outbox.add({
+      kind: 'upsert',
+      recordId: checked.id,
+      row: toOutboxRow(checked),
+      queuedAt: nowIso(),
+    });
+  });
+  startFlush(db);
+  return checked;
+}
 
 export async function createRecord(
   input: NewRecordInput,
 ): Promise<RecordEntry> {
-  const supabase = createSupabaseBrowserClient();
-
-  // id를 브라우저가 만들어야 오프라인(25c)에서 서버 없이 기록을 만들 수 있다.
-  // 폼을 거치지 않은 호출도 막으려고 저장 직전에 한 번 더 검사한다
-  const entry = recordEntrySchema.parse({ ...input, id: crypto.randomUUID() });
-
-  const { data, error } = await supabase
-    .from('records')
-    .insert(toRecordInsert(entry))
-    .select()
-    .single();
-
-  if (error) throw error;
-  await applyServerRows([data]);
-
-  // 방금 검사를 통과한 값이라 정상이면 일어나지 않는다. 일어나면 조용히 넘기지 않고 알린다
-  const saved = toRecordEntryOrWarn(data);
-  if (!saved) throw new Error(`저장된 기록을 읽을 수 없음: ${data.id}`);
-  return saved;
+  // id를 브라우저가 만든다: 서버 없이(오프라인) 만들 수 있고, 다시 보내도 같은 id라 중복이 생기지 않는다.
+  // 폼을 거치지 않은 호출도 막으려고 저장 직전에 한 번 더 검사한다 (saveLocally)
+  return saveLocally({ ...input, id: crypto.randomUUID() }, false);
 }
 
-// 여러 기록을 한 번에 (체험하기 예시 기록). createRecord를 여러 번 부르면 요청이 기록 수만큼 가고,
-// 중간에 실패하면 일부만 들어간다. 배열 insert는 요청 하나라 전부 들어가거나 전부 안 들어간다
+// 지운 기록은 고치지 않는다 (사본에 없으면 오류로 알린다)
+export async function updateRecord(entry: RecordEntry): Promise<RecordEntry> {
+  return saveLocally(entry, true);
+}
+
+// 여러 기록을 한 번에 (체험하기 예시 기록). 체험하기 버튼 바로 뒤라 온라인이 확실하고,
+// 일부만 들어가면 안 돼서 대기열을 거치지 않고 요청 하나(배열 insert)로 서버에 보낸다
 export async function createRecords(inputs: NewRecordInput[]): Promise<void> {
   const supabase = createSupabaseBrowserClient();
 
@@ -263,70 +330,56 @@ export async function createRecords(inputs: NewRecordInput[]): Promise<void> {
   await applyServerRows(data);
 }
 
-// updated_at은 보내지 않는다. DB 트리거가 붙인다 (동기화 커서의 기준이라 서버 시각이어야 한다)
-export async function updateRecord(entry: RecordEntry): Promise<RecordEntry> {
-  const supabase = createSupabaseBrowserClient();
+// 이미 보낸 삭제를 되돌릴 때 사본에 다시 넣을 줄 (되돌리기는 지운 직후 5초 안에만 보인다)
+const recentlyDeleted = new Map<string, LocalRecordRow>();
 
-  const checked = recordEntrySchema.parse(entry);
-
-  // 지운 기록은 고치지 않는다. 0줄이면 조용히 넘기지 않고 에러로 알린다
-  const { data, error } = await supabase
-    .from('records')
-    .update(toRecordInsert(checked))
-    .eq('id', checked.id)
-    .is('deleted_at', null)
-    .select()
-    .maybeSingle();
-
-  if (error) throw error;
-  if (!data) throw new Error(`수정할 기록이 없음: ${checked.id}`);
-  await applyServerRows([data]);
-
-  const saved = toRecordEntryOrWarn(data);
-  if (!saved) throw new Error(`수정된 기록을 읽을 수 없음: ${data.id}`);
-  return saved;
-}
-
-// 줄을 지우지 않고 deleted_at만 채운다(소프트 삭제). 되돌리기와 동기화(지운 사실 전파)를 위해.
-// 이미 지운 기록이면 처음 지운 시각을 덮어쓰지 않는다
+// 소프트 삭제: 서버에는 deleted_at만 채운다(되돌리기와 다른 기기로 지운 사실 전파).
+// 사본에서는 바로 빼고, 지우기 전 줄을 대기열에 같이 둔다 (보내기 전에 되돌리면 그 줄을 다시 넣는다)
 export async function deleteRecord(id: string): Promise<void> {
-  const supabase = createSupabaseBrowserClient();
-
-  const { data, error } = await supabase
-    .from('records')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .is('deleted_at', null)
-    .select();
-
-  if (error) throw error;
-  await applyServerRows(data);
+  const db = await currentLocalDb();
+  await db.transaction('rw', db.records, db.outbox, async () => {
+    const previous = await db.records.get(id);
+    if (!previous) return;
+    await db.records.delete(id);
+    await db.outbox.add({
+      kind: 'delete',
+      recordId: id,
+      deletedAt: nowIso(),
+      previous,
+      queuedAt: nowIso(),
+    });
+    recentlyDeleted.set(id, previous);
+  });
+  startFlush(db);
 }
 
-// 삭제 되돌리기: deleted_at을 비운다 (소프트 삭제라 줄이 그대로 남아 있어서 가능하다).
-// 지운 기록만 대상으로 해서, 이미 되돌린 기록을 또 건드리지 않는다
+// 삭제 되돌리기.
+// - 아직 안 보낸 삭제면 그 삭제를 대기열에서 빼고 줄을 되돌린다 (서버는 지운 적도 모른다)
+// - 이미 보냈으면 "되살리기"를 쌓는다
+// 둘 다 아니면(되돌릴 줄을 모름) 거짓으로 "되돌렸어요"라고 하지 않게 오류로 알린다
 export async function restoreRecord(id: string): Promise<void> {
-  const supabase = createSupabaseBrowserClient();
-
-  // select로 실제로 바뀐 줄을 돌려받는다. update는 조건에 맞는 줄이 0개여도 오류가 아니라서,
-  // 확인하지 않으면 그사이 줄이 아예 지워진 경우(대시보드에서 직접 삭제 등)에도
-  // "되돌렸어요"라고 거짓으로 알리게 된다
-  const { data, error } = await supabase
-    .from('records')
-    .update({ deleted_at: null })
-    .eq('id', id)
-    .not('deleted_at', 'is', null)
-    .select();
-
-  if (error) throw error;
-  if (data.length === 0) throw new Error(`되돌릴 기록이 없음: ${id}`);
-  await applyServerRows(data);
+  const db = await currentLocalDb();
+  await db.transaction('rw', db.records, db.outbox, async () => {
+    const pendingDelete = await db.outbox
+      .where('recordId')
+      .equals(id)
+      .filter((op) => op.kind === 'delete')
+      .last();
+    if (pendingDelete?.kind === 'delete') {
+      await db.outbox.delete(pendingDelete.seq!);
+      await db.records.put(pendingDelete.previous);
+      return;
+    }
+    const previous = recentlyDeleted.get(id);
+    if (!previous) throw new Error(`되돌릴 기록이 없음: ${id}`);
+    await db.records.put({ ...previous, deleted_at: null });
+    await db.outbox.add({ kind: 'restore', recordId: id, queuedAt: nowIso() });
+  });
+  recentlyDeleted.delete(id);
+  startFlush(db);
 }
 
 // ── 루틴 체크 ─────────────────────────────────────────
-
-// Postgres 고유 제약 위반 (records_routine_check_unique: 같은 루틴·같은 날 두 줄)
-const UNIQUE_VIOLATION = '23505';
 
 export type RoutineCheckInput = {
   routineId: string;
@@ -339,36 +392,23 @@ export type RoutineCheckInput = {
   unit: string;
 };
 
-// "이미 있는 체크"는 서버에 묻는다: 다른 기기에서 방금 만든 체크를 사본이 아직 모를 수 있고,
-// 하루 한 줄 규칙(고유 색인)을 지키는 곳이 서버라서다 (오프라인 체크는 25c에서 바뀐다)
-async function findRoutineCheckId(
-  routineId: string,
-  date: string,
-): Promise<string | null> {
-  const supabase = createSupabaseBrowserClient();
-  // fields->>routineId: jsonb 안의 글자 값을 꺼내 비교한다 (PostgREST 경로 필터)
-  const { data, error } = await supabase
-    .from('records')
-    .select('id')
-    .eq('type', 'routine')
-    .eq('occurred_at', date)
-    .eq('fields->>routineId', routineId)
-    .is('deleted_at', null)
-    .maybeSingle();
-  if (error) throw error;
-  return data?.id ?? null;
-}
-
-// 루틴 체크 저장: 루틴 하나 × 하루 = 기록 한 줄 (2026-10-22 사용자 결정).
-// "있으면 고치고, 없으면 만들고, 0이면 지운다". 두 기기가 동시에 "없음"을 보고 둘 다 만들면
-// DB 고유 색인이 둘째를 막는다(23505) → 그때는 먼저 생긴 줄을 다시 찾아 고친다.
-// upsert(on conflict)를 쓰지 않는 이유: 이 고유 색인은 식(fields->>'routineId')과 조건(where)이 붙은 부분 색인이라
-// PostgREST의 on_conflict(칸 이름 목록)로 가리킬 수 없다
+// 루틴 체크 저장: 루틴 하나 × 하루 = 기록 한 줄 (2026-10-22 사용자 결정). "있으면 고치고, 없으면 만들고, 0이면 지운다".
+// 25c부터 "있는지"를 사본에서 찾는다 → 오프라인에서도 체크된다.
+// 두 기기가 따로 같은 날을 체크하면 서버 고유 색인이 둘째를 막고(23505), 보내기(recordOutbox)가 먼저 생긴 줄로 합친다
 export async function setRoutineCheck(input: RoutineCheckInput): Promise<void> {
-  const existingId = await findRoutineCheckId(input.routineId, input.date);
+  const db = await currentLocalDb();
+  const existing = await db.records
+    .where('[type+occurred_at]')
+    .equals(['routine', input.date])
+    .filter(
+      (row) =>
+        (row.fields as { routineId?: unknown } | null)?.routineId ===
+        input.routineId,
+    )
+    .first();
 
   if (input.count === 0) {
-    if (existingId) await deleteRecord(existingId);
+    if (existing) await deleteRecord(existing.id);
     return;
   }
 
@@ -386,18 +426,35 @@ export async function setRoutineCheck(input: RoutineCheckInput): Promise<void> {
     },
   };
 
-  if (existingId) {
-    await updateRecord({ ...record, id: existingId });
-    return;
-  }
-
-  try {
+  if (existing) {
+    await updateRecord({ ...record, id: existing.id });
+  } else {
     await createRecord(record);
-  } catch (error) {
-    const code = (error as { code?: unknown } | null)?.code;
-    if (code !== UNIQUE_VIOLATION) throw error;
-    const winnerId = await findRoutineCheckId(input.routineId, input.date);
-    if (!winnerId) throw error;
-    await updateRecord({ ...record, id: winnerId });
   }
+}
+
+// ── 대기열 상태 (화면용) ───────────────────────────────
+
+// 아직 서버에 보내지 않은 기록 id (목록의 구름 아이콘)
+export async function listPendingRecordIds(): Promise<string[]> {
+  const db = await currentLocalDb();
+  return [...(await pendingRecordIds(db))];
+}
+
+// 연결이 돌아왔을 때·앱을 열 때 쌓인 것을 보낸다 (OutboxSync)
+export async function sendPendingRecords(): Promise<void> {
+  const db = await currentLocalDb();
+  await flushRecordOutbox(db);
+}
+
+// "다시 시도": 서버가 거절해 멈춘 기록을 다시 보낸다
+export async function retryFailedRecordSends(): Promise<void> {
+  const db = await currentLocalDb();
+  await retryFailedRecords(db);
+}
+
+// 서버가 거절해 멈춰 있는 기록이 있는지 (앱을 열 때 "다시 시도"를 다시 보여 줄지)
+export async function hasFailedRecordSends(): Promise<boolean> {
+  const db = await currentLocalDb();
+  return hasFailedRecords(db);
 }

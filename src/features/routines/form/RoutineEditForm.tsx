@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { formatDisplayDate } from '@/shared/date/formatDisplayDate';
 import { useToday } from '@/shared/date/useToday';
+import { useOnlineStatus } from '@/shared/network/useOnlineStatus';
 import Button from '@/shared/ui/Button';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 import { useEndRoutine, useRoutine } from '../hooks/useRoutines';
@@ -25,6 +26,7 @@ export default function RoutineEditForm({
 }: RoutineEditFormProps) {
   const { data: routine, isPending, isError } = useRoutine(id);
   const endRoutine = useEndRoutine();
+  const isOnline = useOnlineStatus();
   const today = useToday();
   const router = useRouter();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -92,8 +94,8 @@ export default function RoutineEditForm({
             <Button
               variant='secondary'
               onClick={() => setIsConfirmOpen(true)}
-              // 오늘을 읽기 전(첫 하이드레이션)에는 그만둔 날을 정할 수 없다
-              disabled={!today}
+              // 오늘을 읽기 전(첫 하이드레이션)에는 그만둔 날을 정할 수 없다. 그만두기도 온라인 전용
+              disabled={!today || !isOnline}
             >
               이 루틴 그만두기
             </Button>

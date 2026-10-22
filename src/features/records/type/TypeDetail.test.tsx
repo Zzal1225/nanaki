@@ -8,7 +8,11 @@ import { listRecordsOfType } from '../api/recordStore';
 import type { RecordEntry } from '../schema/recordEntry';
 import TypeDetail from './TypeDetail';
 
-vi.mock('../api/recordStore', () => ({ listRecordsOfType: vi.fn() }));
+vi.mock('../api/recordStore', () => ({
+  listRecordsOfType: vi.fn(),
+  // 구름 아이콘(아직 안 보낸 기록). 이 테스트에서는 모두 보낸 상태
+  listPendingRecordIds: vi.fn().mockResolvedValue([]),
+}));
 
 const BASE = { memo: null, tags: [], occurredAt: '2026-09-12' };
 const LUNCH: RecordEntry = {

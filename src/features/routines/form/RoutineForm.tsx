@@ -6,6 +6,7 @@ import { X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Controller, useForm } from 'react-hook-form';
+import { useOnlineStatus } from '@/shared/network/useOnlineStatus';
 import Button from '@/shared/ui/Button';
 import DateField from '@/shared/ui/DateField';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
@@ -72,6 +73,7 @@ export default function RoutineForm(props: RoutineFormProps) {
   const createRoutine = useCreateRoutine();
   const updateRoutine = useUpdateRoutine();
   const saving = isEdit ? updateRoutine : createRoutine;
+  const isOnline = useOnlineStatus();
   const router = useRouter();
 
   async function onSubmit(values: RoutineFormValues) {
@@ -168,7 +170,13 @@ export default function RoutineForm(props: RoutineFormProps) {
             저장하지 못했어요. 잠시 후 다시 시도해 주세요.
           </p>
         )}
-        <Button type='submit' isLoading={saving.isPending}>
+        {!isOnline && (
+          // 루틴 만들기·수정은 온라인 전용 (2026-10-22 사용자 결정): 규칙은 드물게 바꾸고, 오프라인 충돌을 따질 만큼 자주 쓰지 않는다
+          <p className='text-caption text-fg-secondary'>
+            연결되면 저장할 수 있어요
+          </p>
+        )}
+        <Button type='submit' isLoading={saving.isPending} disabled={!isOnline}>
           저장
         </Button>
       </div>

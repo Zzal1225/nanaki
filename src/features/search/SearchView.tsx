@@ -14,6 +14,7 @@ import { Suspense, useId, useRef, useState } from 'react';
 import { SEARCH_RESULT_LIMIT } from '@/features/records/api/recordStore';
 import { MAX_SEARCH_KEYWORD_LENGTH } from '@/features/records/api/searchQuery';
 import { useSearchRecords } from '@/features/records/hooks/useSearchRecords';
+import { usePendingRecordIds } from '@/features/records/hooks/usePendingRecordIds';
 import RecentRecordItem from '@/features/records/overview/RecentRecordItem';
 import { RECORD_TYPE_CONFIG } from '@/features/records/schema/recordTypes';
 import {
@@ -57,6 +58,8 @@ function SearchViewContent() {
   const pathname = usePathname();
   const state = parseSearchState(useSearchParams());
   const visibleTypes = useVisibleTypes();
+  // 아직 서버에 보내지 않은 기록에 구름 아이콘 (시안 15a)
+  const pendingIds = usePendingRecordIds();
   // 설정에서 끈 타입이 주소에 남아 있으면(예전에 저장한 주소) 전체로 본다. 칩이 없는 타입이 골라진 채로 남지 않게
   const type =
     state.type && visibleTypes.includes(state.type) ? state.type : null;
@@ -244,6 +247,7 @@ function SearchViewContent() {
                     value={getListValue(entry)}
                     // 검색 조건을 달고 간다: PC는 왼쪽에 결과가 남고, 모바일 상세의 뒤로 버튼은 이 결과로 돌아온다
                     href={`/records/${entry.id}?${detailQuery}`}
+                    isPending={pendingIds.has(entry.id)}
                     isSelected={pathname === `/records/${entry.id}`}
                     highlight={state.keyword}
                   />

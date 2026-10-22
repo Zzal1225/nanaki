@@ -23,6 +23,8 @@ vi.mock('@/features/settings/api/settingsStore', () => ({
 vi.mock('../api/recordStore', () => ({
   listRecords: vi.fn(),
   listRecentRecords: vi.fn(),
+  // 구름 아이콘(아직 안 보낸 기록). 이 테스트에서는 모두 보낸 상태
+  listPendingRecordIds: vi.fn().mockResolvedValue([]),
 }));
 
 const LUNCH: RecordEntry = {
