@@ -20,6 +20,7 @@ import { usePendingRecordIds } from '../hooks/usePendingRecordIds';
 import { useRecords } from '../hooks/useRecords';
 import { useRoutines } from '@/features/routines/hooks/useRoutines';
 import SearchBarLink from '@/features/search/SearchBarLink';
+import MobileSettingsLink from '@/shared/layout/MobileSettingsLink';
 import { RECORD_TYPE_CONFIG } from '../schema/recordTypes';
 import {
   getListTitle,
@@ -111,8 +112,12 @@ function RecordsOverviewView({ openId }: { openId: string | null }) {
           화면 읽기 프로그램에는 이 화면의 제목이 있어야 해서 sr-only로 남긴다 */}
       <h1 className='sr-only'>기록</h1>
       {/* 기록을 불러오지 못해도 검색은 따로 시도할 수 있게 오류 안내보다 위에 둔다 */}
-      <div className='px-4 pt-6 md:px-6'>
-        <SearchBarLink />
+      {/* 검색창 옆 ⚙: 홈 머리와 같은 자리(오른쪽 끝)에 설정 (모바일만, MobileSettingsLink) */}
+      <div className='flex items-center gap-2 px-4 pt-6 md:px-6'>
+        <div className='min-w-0 flex-1'>
+          <SearchBarLink />
+        </div>
+        <MobileSettingsLink origin='records' />
       </div>
 
       {isError ? (

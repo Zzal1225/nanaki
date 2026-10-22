@@ -5,7 +5,12 @@ import type {
   SerwistPlugin,
 } from 'serwist';
 import { ExpirationPlugin, NetworkFirst, NetworkOnly, Serwist } from 'serwist';
-import { isPagePath, PAGE_CACHE_PREFIX } from '../lib/offlinePages';
+import {
+  isPagePath,
+  isWarmPagesMessage,
+  PAGE_CACHE_PREFIX,
+  warmPageCache,
+} from '../lib/offlinePages';
 
 // 서비스 워커: 브라우저와 네트워크 사이에서 요청을 가로채, 연결이 없어도 화면 틀(HTML·JS·CSS)을 내준다.
 // 기록 데이터는 여기서 저장하지 않는다 (IndexedDB 사본, src/lib/db). 여기는 "화면을 여는 것"만 맡는다.
@@ -112,6 +117,25 @@ self.addEventListener('activate', (event) => {
             .map((name) => caches.delete(name)),
         ),
       ),
+  );
+});
+
+// 페이지(OfflineWarmup)가 보낸 "이 화면들을 받아 둬". 받는 것도, 이미 있는지 보는 것도 이 버전의 화면 캐시에서만 한다.
+// 페이지에서 직접 fetch하던 때는, 새 버전이 오는 중에 옛 서비스 워커가 옛 캐시에 담거나(곧 지워짐)
+// 옛 캐시에 있는 것을 보고 건너뛰어서, 배포 직후 받아 둔 화면이 없었다 (2026-10-22 아이폰 확인).
+// 이 fetch는 서비스 워커 자신이 보내서 위의 저장 규칙(runtimeCaching)을 거치지 않는다 → 같은 규칙을 warmPageCache가 지킨다.
+// waitUntil: 받는 도중에 브라우저가 서비스 워커를 재우지 않게
+self.addEventListener('message', (event) => {
+  if (!isWarmPagesMessage(event.data)) return;
+  const { paths } = event.data;
+  event.waitUntil(
+    caches.open(PAGE_CACHE).then((cache) =>
+      warmPageCache({
+        cache,
+        paths,
+        fetchPage: (path) => fetch(path, { credentials: 'same-origin' }),
+      }),
+    ),
   );
 });
 

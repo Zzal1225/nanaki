@@ -1,8 +1,9 @@
 'use client';
 
-// 'use client' 이유: 브라우저 캐시(Cache Storage)에 무엇이 있는지 보고, 없는 화면을 받아 둔다
+// 'use client' 이유: 브라우저의 서비스 워커에 메시지를 보내고, 연결·서비스 워커 바뀜 이벤트를 듣는다
 import { useEffect } from 'react';
 import { RECORD_TYPE_ORDER } from '@/features/records/entry/newRecordMenu';
+import { WARM_PAGES_MESSAGE, type WarmPagesMessage } from '@/lib/offlinePages';
 
 // 로그인 뒤 미리 받아 둘 화면 (25c-2). 연 적 없는 화면도 오프라인에서 열리게:
 // - 고정 화면: 홈·기록 탭·검색·작성·설정
@@ -23,28 +24,37 @@ export const WARMUP_PATHS: readonly string[] = [
 // 앱을 연 직후에는 첫 화면 요청과 겹치지 않게 조금 미룬다
 const WARMUP_DELAY_MS = 3_000;
 
-// 아직 저장되지 않은 화면만 받는다. 페이지에서 fetch하면 서비스 워커가 가로채 화면 저장 규칙대로 담는다.
-// (서비스 워커에 "이 주소들을 받아 둬"라는 메시지(CACHE_URLS)를 보내는 방법은 쓰지 않는다: 메시지가 갔는지·저장됐는지
-//  페이지에서 알 수 없고, 같은 규칙을 거치는 fetch가 더 단순하다)
-// 이미 있는지는 주소 그대로 찾는다: ?를 무시하면 Next가 미리 받아 둔 화면 조각(/records?_rsc=…)까지 같은 주소로 쳐서
-// "이미 있다"고 잘못 판단한다 (25c-2 E2E에서 실제로 미리 받기가 하나도 일어나지 않았다)
+// 받아 두는 일은 서비스 워커가 한다: 페이지는 주소 목록만 보낸다 (src/sw/sw.ts, warmPageCache).
+// 예전에는 페이지가 caches.match로 확인하고 직접 fetch했는데, caches.match는 옛 버전 캐시까지 뒤진다.
+// 배포 직후 "이미 있다"고 건너뛰거나 옛 서비스 워커가 옛 캐시에 담은 뒤, 새 버전이 옛 캐시를 지워서
+// 받아 둔 화면이 하나도 없었다 (2026-10-22 아이폰 확인: 비행기 모드에서 작성 화면 대신 오프라인 대체 화면).
+// 보내는 때:
+// - 앱을 열고 조금 뒤 (첫 화면 요청과 겹치지 않게)
+// - 새 버전 서비스 워커가 이 페이지를 맡았을 때(controllerchange): 새 버전의 캐시는 비어 있다
+// - 연결이 돌아왔을 때(online): 오프라인으로 연 경우
+// 여러 번 보내도 서비스 워커가 이미 있는 화면은 건너뛰어 요청이 늘지 않는다
 export default function OfflineWarmup() {
   useEffect(() => {
-    if (!('caches' in window) || !('serviceWorker' in navigator)) return;
-    let isCancelled = false;
-    const timer = window.setTimeout(async () => {
-      // 서비스 워커가 이 페이지를 맡고 있어야 fetch가 가로채져 저장된다. 아직이면 다음에 앱을 열 때
-      if (!navigator.onLine || !navigator.serviceWorker.controller) return;
-      for (const path of WARMUP_PATHS) {
-        if (isCancelled) return;
-        if (await caches.match(path)) continue;
-        // 하나씩: 한꺼번에 보내면 화면을 쓰는 동안 요청이 몰린다. 실패는 다음 기회에
-        await fetch(path, { credentials: 'same-origin' }).catch(() => {});
-      }
-    }, WARMUP_DELAY_MS);
+    if (!('serviceWorker' in navigator)) return;
+    const serviceWorker = navigator.serviceWorker;
+
+    function requestWarmup() {
+      // 아직 이 페이지를 맡은 서비스 워커가 없으면(처음 설치) controllerchange 때 보낸다
+      if (!navigator.onLine || !serviceWorker.controller) return;
+      const message: WarmPagesMessage = {
+        type: WARM_PAGES_MESSAGE,
+        paths: [...WARMUP_PATHS],
+      };
+      serviceWorker.controller.postMessage(message);
+    }
+
+    const timer = window.setTimeout(requestWarmup, WARMUP_DELAY_MS);
+    serviceWorker.addEventListener('controllerchange', requestWarmup);
+    window.addEventListener('online', requestWarmup);
     return () => {
-      isCancelled = true;
       window.clearTimeout(timer);
+      serviceWorker.removeEventListener('controllerchange', requestWarmup);
+      window.removeEventListener('online', requestWarmup);
     };
   }, []);
 
