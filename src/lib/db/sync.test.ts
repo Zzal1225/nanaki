@@ -4,6 +4,7 @@ import { closeLocalDb, openLocalDb, type LocalRecordRow } from './localDb';
 import {
   compareCursor,
   createTableSync,
+  hasPulledOnce,
   NIL_UUID,
   pullChanges,
   rewindCursor,
@@ -125,6 +126,20 @@ describe('바뀐 것만 받기', () => {
       rewindCursor({ updatedAt: T1, id: 'b' }),
       SYNC_PAGE_SIZE,
     );
+  });
+
+  // 커서가 없으면 화면이 매번 "처음 방문"으로 보고 서버에서 직접 읽는다 (recordStore)
+  it('받을 줄이 하나도 없어도(새 계정) 한 번 받아 봤다는 표시를 남긴다', async () => {
+    const db = freshDb();
+    expect(await hasPulledOnce(db, 'records')).toBe(false);
+    await pullChanges({
+      db,
+      table: 'records',
+      target: db.records,
+      fetchChanges: serverOf([]),
+      isRemoved: () => false,
+    });
+    expect(await hasPulledOnce(db, 'records')).toBe(true);
   });
 
   it('지운 줄이 내려오면 사본에서 뺀다', async () => {

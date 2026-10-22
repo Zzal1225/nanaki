@@ -263,7 +263,7 @@ async function measureTimings(
     // 처음 방문은 매번 모두 비운다. TanStack Query 캐시(메모리)는 어느 쪽이든 페이지를 새로 열면 사라진다
     if (visit === 'first') await resetToFirstVisit(cdp);
 
-    // 기록 요청 = 기기 사본 동기화 요청 (25b부터). 처음 방문은 기록 전체, 다시 방문은 바뀐 것만 받는다
+    // 첫 기록 요청: 처음 방문은 보는 달 바로 받기(26단계, 전체 동기화는 뒤에서), 다시 방문은 바뀐 것만 받는 동기화
     const recordsResponse = page.waitForResponse(
       (response) =>
         response.url().includes('/rest/v1/records') &&
@@ -391,7 +391,7 @@ function toMarkdown(
     '| 항목 | 각 실행 | 가운데 값 |',
     '| --- | --- | --- |',
     row('홈 첫 표시 (기록까지)', pick('firstRecordsMs')),
-    row('└ 그중 기록 요청 (기기 사본 동기화)', pick('recordsRequestMs')),
+    row('└ 그중 첫 기록 요청', pick('recordsRequestMs')),
     row('다음 달 (처음 가는 달)', pick('nextMonthMs')),
     row('돌아온 달 (캐시)', pick('backMonthMs')),
     `| 기록 응답 크기 | | **${toKiB(median(pick('recordsResponseBytes')))}** |`,

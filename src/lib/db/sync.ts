@@ -35,6 +35,16 @@ export function compareCursor(a: SyncCursor, b: SyncCursor): number {
 // 빈 글자('')를 쓰면 안 된다: id 칸이 uuid 타입이라 서버가 id.gt."" 를 읽지 못해 400(22P02)을 돌려준다
 // (첫 동기화 뒤 모든 동기화가 실패했다 — 단위 테스트는 가짜 서버라 못 잡고, E2E가 잡았다)
 export const NIL_UUID = '00000000-0000-0000-0000-000000000000';
+// 아무것도 없을 때의 커서 시각 (이보다 앞선 줄은 없다)
+const EPOCH = '1970-01-01T00:00:00.000Z';
+
+// 이 표를 한 번이라도 서버에서 받아 봤는지 (처음 방문인지)
+export async function hasPulledOnce(
+  db: LocalDb,
+  table: SyncedTable,
+): Promise<boolean> {
+  return (await db.meta.get(table)) !== undefined;
+}
 
 // 겹쳐 받기 시작점. id를 가장 작은 UUID로 두어 그 시각의 줄을 모두 다시 받는다
 export function rewindCursor(cursor: SyncCursor | null): SyncCursor | null {
@@ -83,7 +93,17 @@ export async function pullChanges<Row extends SyncedRow>({
 
   for (;;) {
     const rows = await fetchChanges(after, SYNC_PAGE_SIZE);
-    if (rows.length === 0) return;
+    if (rows.length === 0) {
+      // 처음 받았는데 줄이 하나도 없으면(새 계정) 그래도 "받아 봤다"는 표시를 남긴다.
+      // 커서가 없으면 화면이 매번 "아직 한 번도 못 받은 기기"로 보고 서버에서 직접 읽는다 (recordStore 처음 방문)
+      if (!newest) {
+        await db.meta.put({
+          table,
+          cursor: { updatedAt: EPOCH, id: NIL_UUID },
+        });
+      }
+      return;
+    }
 
     const last = rows[rows.length - 1];
     const lastCursor = { updatedAt: last.updated_at, id: last.id };

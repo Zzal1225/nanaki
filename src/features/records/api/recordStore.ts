@@ -7,6 +7,7 @@ import type {
 } from '@/lib/db/localDb';
 import {
   createTableSync,
+  hasPulledOnce,
   pullChanges,
   toAfterCursorFilter,
 } from '@/lib/db/sync';
@@ -125,10 +126,48 @@ function sortRows(
 // ── 조회 (기기 사본) ───────────────────────────────────
 
 // 기간 안의 기록 (홈 캘린더·기록 탭 카드). 같은 날짜끼리는 만든 순서로
+// 처음 방문에서 서버를 기다리는 최대 시간. 넘거나 실패하면 기기 사본(아직 비었을 수 있음)으로 답한다
+const FIRST_VISIT_TIMEOUT_MS = 10_000;
+
+// 처음 방문(이 기기에 사본이 아직 없음)에는 보는 기간만 서버에서 바로 받는다 (26단계 성능).
+// 사본을 채우는 전체 동기화는 기록이 많을수록 오래 걸려서(한 달 300개 × 2달 = 213KiB, 1.7초),
+// 그것을 기다린 뒤 그리면 처음 방문이 25 이전(그 달만 받던 때)보다 느려졌다 (6.4초 → 7.2초).
+// 전체 동기화는 뒤에서 하고, 끝나면 LOCAL_DB_CHANGED_EVENT로 화면이 사본 기준으로 다시 그려진다
+async function fetchRangeOnFirstVisit(
+  db: LocalDb,
+  from: string,
+  to: string,
+): Promise<RecordEntry[] | null> {
+  if (await hasPulledOnce(db, 'records')) return null;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return null;
+  }
+  void syncBeforeRead('records', () => syncRecords(db));
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase
+    .from('records')
+    .select('*')
+    .gte('occurred_at', from)
+    .lte('occurred_at', to)
+    .is('deleted_at', null)
+    .order('occurred_at', { ascending: true })
+    .order('created_at', { ascending: true })
+    .order('id', { ascending: true })
+    .abortSignal(AbortSignal.timeout(FIRST_VISIT_TIMEOUT_MS));
+  if (error) return null;
+  return toEntries(data);
+}
+
 export async function listRecords(
   from: string,
   to: string,
 ): Promise<RecordEntry[]> {
+  const firstVisit = await fetchRangeOnFirstVisit(
+    await currentLocalDb(),
+    from,
+    to,
+  );
+  if (firstVisit) return firstVisit;
   const db = await readyLocalDb();
   const rows = await db.records
     .where('occurred_at')
