@@ -50,6 +50,8 @@ function SpeedDialWithPathname() {
       )}
       <DropdownMenu.Trigger
         aria-label={isOpen ? '새 기록 메뉴 닫기' : '새 기록 쓰기'}
+        // 터치 기기에서 글자를 치는 동안 숨긴다 (globals.css)
+        data-hide-while-typing
         // 하단 탭 위 16px (토스트가 있으면 그 위). --tab-bar-height에 홈 막대 여백이 들어 있다
         className={`fixed right-4 z-40 flex size-14 items-center justify-center rounded-full shadow-float transition-[bottom] md:hidden ${
           // 토스트(높이 48 + 간격 16)가 떠 있는 동안 그만큼 위로 비켜선다. 클래스는 통째로 적는다 (Tailwind는 조합된 이름을 못 찾는다)
