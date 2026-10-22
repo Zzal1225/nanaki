@@ -1,5 +1,6 @@
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
-import { openLocalDb, type LocalDb } from './localDb';
+import { openLocalDb, type LocalDb, type SyncedTable } from './localDb';
+import { hasPulledOnce } from './sync';
 
 // 지금 로그인한 계정의 기기 사본. 계정은 getSession으로 안다:
 // 쿠키에 저장된 세션을 읽기만 해서 오프라인에서도 된다 (getUser는 서버에 물어봐서 오프라인이면 실패한다)
@@ -61,4 +62,20 @@ export async function syncBeforeRead(
       }
     });
   }
+}
+
+// 사본으로 읽기 전 동기화. 사본 상태에 따라 기다리는 방식이 다르다:
+// - 한 번이라도 받아 본 사본: syncBeforeRead (실패·느림이면 기다리지 않고 지금 사본으로 그린다)
+// - 한 번도 못 받은 사본(처음 방문): 다 받을 때까지 기다리고, 실패하면 오류를 그대로 던진다.
+//   빈 사본으로 그리면 서버에 기록이 있어도 "기록 없음"으로 보인다. 오류면 화면이 "불러오지 못했어요 · 다시 시도"를 보여 준다
+//   (31단계 실패 상태 E2E를 쓰며 찾음: 서버 조회가 실패한 처음 방문이 빈 홈으로 보였다)
+// - 오프라인 처음 방문은 받을 방법이 없어 기다리지 않는다 (오프라인 배너가 알린다)
+export async function syncForRead(
+  db: LocalDb,
+  table: SyncedTable,
+  sync: () => Promise<void>,
+): Promise<void> {
+  if (await hasPulledOnce(db, table)) return syncBeforeRead(table, sync);
+  if (isKnownOffline()) return;
+  await sync();
 }

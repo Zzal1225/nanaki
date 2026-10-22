@@ -4,7 +4,9 @@ import {
   LOCAL_DB_CHANGED_EVENT,
   SYNC_WAIT_MS,
   syncBeforeRead,
+  syncForRead,
 } from './currentLocalDb';
+import type { LocalDb } from './localDb';
 
 vi.mock('@/lib/supabase/client', () => ({
   createSupabaseBrowserClient: vi.fn(),
@@ -60,5 +62,51 @@ describe('읽기 전 동기화', () => {
     await syncBeforeRead('records', async () => {});
     expect(changed).not.toHaveBeenCalled();
     window.removeEventListener(LOCAL_DB_CHANGED_EVENT, changed);
+  });
+});
+
+// 사본을 받아 본 적이 있는지만 보는 가짜 사본 (hasPulledOnce는 meta 표의 커서 줄로 판단한다)
+function fakeDb(hasPulled: boolean): LocalDb {
+  return {
+    meta: { get: async () => (hasPulled ? { table: 'records' } : undefined) },
+  } as unknown as LocalDb;
+}
+
+describe('사본 상태에 따른 읽기 전 동기화', () => {
+  it('받아 본 사본이면 실패를 삼키고 지금 사본으로 그린다', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await expect(
+      syncForRead(fakeDb(true), 'records', async () => {
+        throw new Error('서버 오류');
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  // 빈 사본을 그리면 서버에 기록이 있어도 "기록 없음"으로 보인다 → 화면이 "불러오지 못했어요 · 다시 시도"를 보이게
+  it('처음 방문이면 실패를 그대로 던진다', async () => {
+    await expect(
+      syncForRead(fakeDb(false), 'records', async () => {
+        throw new Error('서버 오류');
+      }),
+    ).rejects.toThrow('서버 오류');
+  });
+
+  it('처음 방문은 3초를 넘겨도 다 받을 때까지 기다린다', async () => {
+    vi.useFakeTimers();
+    let isDone = false;
+    const job = syncForRead(fakeDb(false), 'records', async () => {
+      await new Promise((resolve) => setTimeout(resolve, SYNC_WAIT_MS * 2));
+      isDone = true;
+    });
+    await vi.advanceTimersByTimeAsync(SYNC_WAIT_MS * 2);
+    await job;
+    expect(isDone).toBe(true);
+  });
+
+  it('오프라인 처음 방문은 받을 방법이 없어 부르지 않는다', async () => {
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    const sync = vi.fn(async () => {});
+    await syncForRead(fakeDb(false), 'records', sync);
+    expect(sync).not.toHaveBeenCalled();
   });
 });
