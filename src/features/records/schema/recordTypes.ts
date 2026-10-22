@@ -27,6 +27,8 @@ export const RECORD_TYPE_CONFIG = {
     // 새로 쓰기 메뉴·폼 제목. 시안: 글을 남기는 타입은 "쓰기", 수치를 재는 타입은 "기록"
     createLabel: '가계부 쓰기',
     fields: EXPENSE_FIELDS,
+    // 검색 필터 시트에 나오는 칸 (2026-10-22 사용자 결정, 시안 14b). 칸 모양은 필드 정의(kind)에서 정해진다
+    filterFields: ['amount', 'category', 'paymentMethod'],
     title: REQUIRED_TITLE,
     // 작성 폼은 id를 보내지 않는다 (createRecord가 만든다)
     formSchema: expenseRecordSchema.omit({ id: true }),
@@ -35,6 +37,7 @@ export const RECORD_TYPE_CONFIG = {
     label: '후기',
     createLabel: '후기 쓰기',
     fields: REVIEW_FIELDS,
+    filterFields: ['rating', 'targetKind'],
     title: REQUIRED_TITLE,
     formSchema: reviewRecordSchema.omit({ id: true }),
   },
@@ -42,6 +45,8 @@ export const RECORD_TYPE_CONFIG = {
     label: '운동',
     createLabel: '운동 기록',
     fields: WORKOUT_FIELDS,
+    // 거리는 넣지 않는다: 거리가 없는 운동(헬스·요가)이 많아 범위로 거르면 대부분 빠진다
+    filterFields: ['activity', 'minutes'],
     // 종목 이름이 제목이 된다 (workoutFormSchema)
     title: HIDDEN_TITLE,
     formSchema: workoutFormSchema,
@@ -50,6 +55,8 @@ export const RECORD_TYPE_CONFIG = {
     label: '체형',
     createLabel: '체형 기록',
     fields: BODY_FIELDS,
+    // 체형·루틴은 기간만 (값으로 거를 일이 드물다)
+    filterFields: [],
     // 잰 항목 이름("체중" / "허리둘레")이 제목이 된다 (bodyFormSchema)
     title: HIDDEN_TITLE,
     formSchema: bodyFormSchema,
@@ -66,6 +73,7 @@ export const RECORD_TYPE_CONFIG = {
     // 체크는 그날 일정에서 그리는 홈 루틴 줄과 루틴 상세에서 본다 (2026-10-22 사용자 결정)
     isScheduleDriven: true,
     fields: ROUTINE_CHECK_FIELDS,
+    filterFields: [],
     title: HIDDEN_TITLE,
     // 폼으로 쓰지 않지만 설정 모양을 맞춰 둔다 (폼 화면은 루틴 만들기로 돌려보낸다)
     formSchema: routineRecordSchema.omit({ id: true }),
@@ -80,6 +88,7 @@ type RecordTypeConfig = {
   isEditable?: boolean;
   isScheduleDriven?: boolean;
   fields: readonly unknown[];
+  filterFields: readonly string[];
   title: { isHidden: boolean; placeholder: string };
   formSchema: unknown;
 };

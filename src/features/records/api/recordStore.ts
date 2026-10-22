@@ -1,5 +1,6 @@
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { recordEntrySchema, type RecordEntry } from '../schema/recordEntry';
+import type { DateRange } from '@/shared/date/monthRange';
 import { SCHEDULE_DRIVEN_TYPES } from '../schema/recordTypes';
 import { toRecordEntry, toRecordInsert, type RecordRow } from './recordMapper';
 import { toKeywordFilter } from './searchQuery';
@@ -264,6 +265,8 @@ export type SearchSort = 'latest' | 'oldest';
 export type SearchRecordsInput = {
   keyword: string;
   sort: SearchSort;
+  // 기간 필터. DB 조건으로 건다: 화면에서 거르면 300개 한도 안의 최근 기록만 남아 "지난달"이 비어 보일 수 있다
+  range: DateRange | null;
 };
 
 export type SearchRecordsResult = {
@@ -272,17 +275,21 @@ export type SearchRecordsResult = {
   isTruncated: boolean;
 };
 
-// 검색어로 모든 타입의 기록을 찾는다. 타입 거르기는 받은 뒤 화면에서 한다 (위 SEARCH_RESULT_LIMIT 설명).
+// 검색어·기간으로 모든 타입의 기록을 찾는다. 타입·칸 필터(분류·금액…)는 받은 뒤 화면에서 거른다 (위 SEARCH_RESULT_LIMIT 설명).
 // 검색어가 비어 있으면 조건 없이 최근(또는 오래된) 기록부터 받는다
 export async function searchRecords({
   keyword,
   sort,
+  range,
 }: SearchRecordsInput): Promise<SearchRecordsResult> {
   const supabase = createSupabaseBrowserClient();
   const ascending = sort === 'oldest';
 
   let query = supabase.from('records').select('*').is('deleted_at', null);
   if (keyword) query = query.or(toKeywordFilter(keyword));
+  if (range) {
+    query = query.gte('occurred_at', range.from).lte('occurred_at', range.to);
+  }
 
   // 하나 더 받아서 한도를 넘었는지 안다 (count 요청을 따로 보내지 않는다)
   const { data, error } = await query

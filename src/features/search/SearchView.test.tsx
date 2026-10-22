@@ -28,6 +28,8 @@ vi.mock('@/features/records/api/recordStore', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   searchRecords: vi.fn(),
 }));
+// 오늘을 고정한다: '이번 달' 같은 기간이 날짜로 바뀌는 기준
+vi.mock('@/shared/date/useToday', () => ({ useToday: () => '2026-10-21' }));
 vi.mock('@/features/settings/api/settingsStore', () => ({
   getUserSettings: vi.fn(),
   updateHiddenTypes: vi.fn(),
@@ -91,6 +93,7 @@ describe('SearchView', () => {
     expect(searchRecords).toHaveBeenCalledWith({
       keyword: '카페',
       sort: 'latest',
+      range: null,
     });
     const chips = screen.getByRole('group', { name: '타입' });
     expect(
@@ -155,5 +158,73 @@ describe('SearchView', () => {
     });
     renderSearch('q=커피');
     expect(await screen.findByText(/최근 300개까지만 보여요/)).toBeDefined();
+  });
+
+  // 시안 14b: 시트에서 고르는 동안은 주소를 바꾸지 않고, "N개 결과 보기"로 한 번에 적용한다
+  it('필터 시트: 분류를 고르면 미리 센 개수를 보여 주고, 적용하면 주소에 남긴다', async () => {
+    const LUNCH: RecordEntry = {
+      ...COFFEE,
+      id: 'lunch',
+      title: '점심',
+      fields: { amount: 9800, category: '식비' },
+    };
+    vi.mocked(searchRecords).mockResolvedValue({
+      entries: [COFFEE, LUNCH, CAFE_REVIEW],
+      isTruncated: false,
+    });
+    renderSearch('q=카페&type=expense');
+    await screen.findByRole('status');
+
+    fireEvent.click(screen.getByRole('button', { name: '필터' }));
+    const sheet = screen.getByRole('dialog', { name: '필터' });
+    // 고른 타입(가계부)의 칸이 필드 정의에서 만들어진다
+    expect(within(sheet).getByText('금액 범위')).toBeDefined();
+    expect(
+      within(sheet).getByRole('button', { name: '2개 결과 보기' }),
+    ).toBeDefined();
+
+    fireEvent.click(within(sheet).getByRole('button', { name: '카페' }));
+    expect(navigation.replace).not.toHaveBeenCalled();
+    fireEvent.click(
+      within(sheet).getByRole('button', { name: '1개 결과 보기' }),
+    );
+
+    expect(decodeURIComponent(navigation.replace.mock.calls[0][0])).toBe(
+      '/records/search?q=카페&type=expense&category=카페',
+    );
+  });
+
+  it('적용된 조건은 칩으로 남고, 칩을 누르면 그 조건만 풀린다 (기간은 DB 조건)', async () => {
+    renderSearch('q=카페&type=expense&period=month&category=카페');
+
+    expect(await screen.findByRole('status')).toHaveProperty(
+      'textContent',
+      '1개',
+    );
+    expect(searchRecords).toHaveBeenCalledWith({
+      keyword: '카페',
+      sort: 'latest',
+      range: { from: '2026-10-01', to: '2026-10-31' },
+    });
+    expect(
+      screen.getByRole('button', { name: '필터, 2개 적용됨' }),
+    ).toBeDefined();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: '기간 이번 달 필터 풀기' }),
+    );
+    expect(decodeURIComponent(navigation.replace.mock.calls[0][0])).toBe(
+      '/records/search?q=카페&type=expense&category=카페',
+    );
+  });
+
+  it('타입을 바꾸면 그 타입의 칸 필터는 버리고 기간은 남긴다', async () => {
+    renderSearch('q=카페&type=expense&period=month&category=카페');
+    await screen.findByRole('status');
+
+    fireEvent.click(screen.getByRole('button', { name: /^후기/ }));
+    expect(decodeURIComponent(navigation.replace.mock.calls[0][0])).toBe(
+      '/records/search?q=카페&type=review&period=month',
+    );
   });
 });

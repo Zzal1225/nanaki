@@ -36,6 +36,19 @@ test('기록 탭 검색창 → 메모·분류로 찾기 → 결과에서 상세 
   const coffee = results.getByRole('link', { name: /\[카페\] 아메리카노/ });
   await expect(coffee).toBeVisible();
 
+  // 가계부를 고르고 필터 시트(PC는 오른쪽 패널)에서 분류 "카페"로 좁힌다
+  await results.getByRole('button', { name: /^가계부/ }).click();
+  await results.getByRole('button', { name: '필터' }).click();
+  const sheet = page.getByRole('dialog', { name: '필터' });
+  await sheet.getByRole('button', { name: '카페', exact: true }).click();
+  await sheet.getByRole('button', { name: /개 결과 보기$/ }).click();
+  await expect(sheet).toBeHidden();
+  await expect(page).toHaveURL(/category=%EC%B9%B4%ED%8E%98/);
+  await expect(
+    results.getByRole('button', { name: '분류 카페 필터 풀기' }),
+  ).toBeVisible();
+  await expect(coffee).toBeVisible();
+
   // 결과를 열면 오른쪽에 상세, 왼쪽에는 결과가 남는다
   await coffee.click();
   await expect(page).toHaveURL(/\/records\/[^/?]+\?q=/);

@@ -29,12 +29,12 @@ async function RecordDetailContent({
 }: Pick<PageProps<'/records/[id]'>, 'params' | 'searchParams'>) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
   // 검색 결과에서 왔으면(?q=카페) 뒤로 버튼이 그 검색 결과로 돌아간다. 아니면 기록 탭으로
-  const search = parseSearchState({
-    get: (name) => {
-      const value = query[name];
-      return typeof value === 'string' ? value : null;
-    },
-  });
+  // 서버의 searchParams는 { 이름: 값 | 값[] } 객체라 URLSearchParams로 바꿔 읽는다 (같은 이름 여러 개 = 배열)
+  const searchQuery = new URLSearchParams();
+  for (const [name, value] of Object.entries(query)) {
+    for (const item of [value ?? []].flat()) searchQuery.append(name, item);
+  }
+  const search = parseSearchState(searchQuery);
   const backHref = hasSearchCondition(search)
     ? toSearchHref(search)
     : '/records';
