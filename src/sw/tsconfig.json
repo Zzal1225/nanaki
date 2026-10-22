@@ -1,0 +1,11 @@
+{
+  // 서비스 워커는 브라우저 창이 아니라 워커에서 돈다. 전역 타입(self, caches, FetchEvent)이 창(dom)과 달라서
+  // 앱 tsconfig에 webworker를 함께 넣으면 같은 이름이 겹친다 → 이 폴더만 따로 검사한다 (npm run typecheck)
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["esnext", "webworker"],
+    "types": []
+  },
+  "include": ["./**/*.ts"],
+  "exclude": []
+}
