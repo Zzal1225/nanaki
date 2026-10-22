@@ -7,6 +7,7 @@ import { formatShortDate } from '@/shared/date/formatDisplayDate';
 import {
   formatMonthLabel,
   getMonthRangeOf,
+  shiftMonth,
   toMonthString,
 } from '@/shared/date/month';
 import { useToday } from '@/shared/date/useToday';
@@ -18,7 +19,10 @@ import { RECORD_TYPE_CONFIG, type RecordType } from '../schema/recordTypes';
 import { getListTitle, getListValue } from '../ui/recordPresentation';
 import { RECORD_TYPE_STYLE } from '../ui/recordTypeStyle';
 import MonthNav from './MonthNav';
-import { renderTypeSummary } from './typeSummaryCards';
+import {
+  comparesWithPreviousMonth,
+  renderTypeSummary,
+} from './typeSummaryCards';
 
 type TypeDetailProps = {
   type: RecordType;
@@ -37,6 +41,13 @@ export default function TypeDetail({
   const month = monthParam ?? currentMonth;
   const range = month ? getMonthRangeOf(month) : null;
   const records = useRecordsOfType(type, range);
+  // 지난달과 비교하는 타입(가계부)만 지난달 전체를 더 불러온다. 달 전체로 부르는 이유: 지난달로 넘어가 볼 때
+  // 같은 쿼리 키라 캐시를 그대로 쓴다. 같은 기간으로 자르는 건 계산 쪽(getSamePeriod)이 한다
+  const previousRange =
+    month && comparesWithPreviousMonth(type)
+      ? getMonthRangeOf(shiftMonth(month, -1))
+      : null;
+  const previousRecords = useRecordsOfType(type, previousRange);
 
   const config = RECORD_TYPE_CONFIG[type];
   const style = RECORD_TYPE_STYLE[type];
@@ -90,7 +101,7 @@ export default function TypeDetail({
             다시 시도
           </Button>
         </div>
-      ) : records.isPending || !month || !currentMonth ? (
+      ) : records.isPending || !month || !currentMonth || !today ? (
         <div aria-busy='true' className='mx-4 mt-2 flex flex-col gap-2 md:mx-6'>
           <div className='h-40 animate-pulse rounded-lg bg-surface-hover' />
           <div className='h-17 animate-pulse rounded-lg bg-surface-hover' />
@@ -101,12 +112,13 @@ export default function TypeDetail({
             aria-label={`${formatMonthLabel(month, currentMonth)} 요약`}
             className='mx-4 mt-2 flex flex-col gap-4 rounded-lg bg-surface p-4 shadow-card md:mx-6'
           >
-            {renderTypeSummary(
-              type,
-              entries,
-              formatMonthLabel(month, currentMonth),
+            {renderTypeSummary(type, entries, {
+              monthLabel: formatMonthLabel(month, currentMonth),
               month,
-            )}
+              today,
+              // 지난달을 못 불러오면 비교 줄만 빠진다 (요약 카드 전체를 오류로 만들지 않는다)
+              previousEntries: previousRecords.data,
+            })}
           </section>
 
           {entries.length === 0 ? (

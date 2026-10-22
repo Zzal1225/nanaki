@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { RecordEntryOf } from '../schema/recordEntry';
 import {
+  compareExpensesWithPreviousMonth,
+  getSamePeriod,
   summarizeBody,
   summarizeExpenses,
   summarizeReviews,
@@ -51,14 +53,13 @@ describe('summarizeExpenses', () => {
 });
 
 describe('summarizeReviews', () => {
-  it('개수, 평균(소수 한 자리), 대상 종류 4개 모두 (0개 포함)', () => {
+  it('개수, 대상 종류 4개 모두 (0개 포함)', () => {
     const summary = summarizeReviews([
       review('1', 5, '장소'),
       review('2', 4, '장소'),
       review('3', 4, '제품'),
     ]);
     expect(summary.count).toBe(3);
-    expect(summary.average).toBe(4.3);
     expect(summary.kinds).toEqual([
       { name: '장소', count: 2 },
       { name: '제품', count: 1 },
@@ -66,8 +67,10 @@ describe('summarizeReviews', () => {
       { name: '경험', count: 0 },
     ]);
   });
-  it('후기가 없으면 평균은 null (0점처럼 보이지 않게)', () => {
-    expect(summarizeReviews([]).average).toBeNull();
+  it('평균 별점은 계산하지 않는다 (사용자 결정)', () => {
+    expect(summarizeReviews([review('1', 5, '장소')])).not.toHaveProperty(
+      'average',
+    );
   });
 });
 
@@ -163,5 +166,61 @@ describe('summarizeBody', () => {
     expect(summary.change).toBeNull();
     expect(summary.points).toEqual([]);
     expect(summary.daysInMonth).toBe(28);
+  });
+});
+
+describe('getSamePeriod (지난달 같은 기간)', () => {
+  it('이번 달: 1일~오늘 vs 지난달 1일~같은 날', () => {
+    expect(getSamePeriod('2026-10', '2026-10-22')).toEqual({
+      current: { from: '2026-10-01', to: '2026-10-22' },
+      previous: { from: '2026-09-01', to: '2026-09-22' },
+    });
+  });
+  it('지난달에 그 날이 없으면 말일까지 (3월 31일 → 2월 28일)', () => {
+    expect(getSamePeriod('2027-03', '2027-03-31')?.previous).toEqual({
+      from: '2027-02-01',
+      to: '2027-02-28',
+    });
+  });
+  it('1월이면 지난해 12월과', () => {
+    expect(getSamePeriod('2027-01', '2027-01-05')?.previous).toEqual({
+      from: '2026-12-01',
+      to: '2026-12-05',
+    });
+  });
+  it('지난 달을 볼 때는 두 달 전체', () => {
+    expect(getSamePeriod('2026-09', '2026-10-22')).toEqual({
+      current: { from: '2026-09-01', to: '2026-09-30' },
+      previous: { from: '2026-08-01', to: '2026-08-31' },
+    });
+  });
+  it('아직 오지 않은 달은 비교하지 않는다', () => {
+    expect(getSamePeriod('2026-11', '2026-10-22')).toBeNull();
+  });
+});
+
+describe('compareExpensesWithPreviousMonth', () => {
+  const period = getSamePeriod('2026-10', '2026-10-22')!;
+  function spent(id: string, occurredAt: string, amount: number) {
+    return { ...expense(id, amount, '식비'), occurredAt };
+  }
+
+  it('같은 기간끼리만 더해서 뺀다 (기간 밖 기록은 빠진다)', () => {
+    const difference = compareExpensesWithPreviousMonth(
+      [spent('1', '2026-10-05', 10000), spent('2', '2026-10-25', 99000)],
+      [spent('3', '2026-09-10', 22000), spent('4', '2026-09-28', 50000)],
+      period,
+    );
+    // 10월 1~22일 10,000원 - 9월 1~22일 22,000원
+    expect(difference).toBe(-12000);
+  });
+  it('지난달 같은 기간에 기록이 없으면 null (비교하지 않음)', () => {
+    expect(
+      compareExpensesWithPreviousMonth(
+        [spent('1', '2026-10-05', 10000)],
+        [spent('3', '2026-09-28', 22000)],
+        period,
+      ),
+    ).toBeNull();
   });
 });

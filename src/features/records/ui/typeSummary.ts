@@ -1,10 +1,15 @@
 import { getMonthGrid } from '@/shared/date/calendar';
+import {
+  getMonthRangeOf,
+  shiftMonth,
+  toMonthString,
+} from '@/shared/date/month';
+import type { DateRange } from '@/shared/date/monthRange';
 import { listBodyMeasurements } from '../schema/body';
 import type { RecordEntryOf } from '../schema/recordEntry';
 import { REVIEW_TARGET_KINDS } from '../schema/review';
 
 const PERCENT = 100;
-const AVERAGE_DECIMALS = 1;
 // 'YYYY-MM-DD'에서 일(DD)이 시작하는 자리
 const DAY_OF_MONTH_START = 'YYYY-MM-'.length;
 
@@ -47,30 +52,23 @@ export function summarizeExpenses(
 
 export type ReviewSummary = {
   count: number;
-  // 후기가 없으면 null (0점 평균처럼 보이지 않게)
-  average: number | null;
   // 고정 선택지 4개를 모두, 0개인 종류도 (시안: 경험 0)
   kinds: { name: string; count: number }[];
 };
 
-// 타입 상세 후기 요약: 개수 + 평균 별점 + 대상 종류별 개수
+// 타입 상세 후기 요약: 개수 + 대상 종류별 개수.
+// 평균 별점은 넣지 않는다 (2026-10-22 사용자 결정): 대상이 장소·제품·콘텐츠로 제각각이라 한데 모은 평균은 뜻이 약하다
 export function summarizeReviews(
   entries: RecordEntryOf<'review'>[],
 ): ReviewSummary {
   const count = entries.length;
-  const ratingSum = entries.reduce(
-    (sum, entry) => sum + entry.fields.rating,
-    0,
-  );
-  const average =
-    count === 0 ? null : Number((ratingSum / count).toFixed(AVERAGE_DECIMALS));
 
   const kinds = REVIEW_TARGET_KINDS.map((name) => ({
     name,
     count: entries.filter((entry) => entry.fields.targetKind === name).length,
   }));
 
-  return { count, average, kinds };
+  return { count, kinds };
 }
 
 export type WeekMinutes = {
@@ -182,4 +180,63 @@ export function summarizeBody(
           .map(({ label, value, unit }) => ({ label, value, unit }))
       : [],
   };
+}
+
+export type SamePeriod = {
+  current: DateRange;
+  previous: DateRange;
+};
+
+// 지난달과 비교할 "같은 기간" (2026-10-22 사용자 결정: "지난달 같은 기간보다").
+// - 이번 달: 1일~오늘 vs 지난달 1일~같은 날. 10월 22일이면 9월 1~22일과 비교해야 공정하다
+//   (지난달 전체와 비교하면 달 초에는 늘 "덜 썼어요"가 된다).
+//   지난달에 그 날이 없으면 말일까지 (3월 31일 → 2월 28일)
+// - 지난 달을 볼 때: 그 달 전체 vs 그 전 달 전체
+// - 아직 오지 않은 달: 비교하지 않는다 (null)
+export function getSamePeriod(month: string, today: string): SamePeriod | null {
+  const currentMonth = toMonthString(today);
+  if (month > currentMonth) return null;
+
+  const previousMonth = shiftMonth(month, -1);
+  const fullCurrent = getMonthRangeOf(month);
+  const fullPrevious = getMonthRangeOf(previousMonth);
+  if (month < currentMonth)
+    return { current: fullCurrent, previous: fullPrevious };
+
+  const day = Number(today.slice(DAY_OF_MONTH_START));
+  const previousLastDay = Number(fullPrevious.to.slice(DAY_OF_MONTH_START));
+  const previousDay = String(Math.min(day, previousLastDay)).padStart(2, '0');
+  return {
+    current: { from: fullCurrent.from, to: today },
+    previous: {
+      from: fullPrevious.from,
+      to: `${previousMonth}-${previousDay}`,
+    },
+  };
+}
+
+function sumAmountsIn(
+  entries: RecordEntryOf<'expense'>[],
+  range: DateRange,
+): { total: number; count: number } {
+  const inRange = entries.filter(
+    (entry) => entry.occurredAt >= range.from && entry.occurredAt <= range.to,
+  );
+  return {
+    total: inRange.reduce((sum, entry) => sum + entry.fields.amount, 0),
+    count: inRange.length,
+  };
+}
+
+// 이 달 지출 - 지난달 같은 기간 지출 (원). 음수면 덜 쓴 것.
+// 지난달 같은 기간에 기록이 하나도 없으면 null: "0원보다 더 썼어요"는 처음 쓰기 시작한 사람에게 뜻이 없다.
+// 두 목록은 달 전체를 받아 여기서 기간으로 자른다: 조회는 타입 상세가 이미 쓰는 "달 전체" 캐시를 그대로 쓰게
+export function compareExpensesWithPreviousMonth(
+  currentEntries: RecordEntryOf<'expense'>[],
+  previousEntries: RecordEntryOf<'expense'>[],
+  period: SamePeriod,
+): number | null {
+  const previous = sumAmountsIn(previousEntries, period.previous);
+  if (previous.count === 0) return null;
+  return sumAmountsIn(currentEntries, period.current).total - previous.total;
 }
