@@ -1,4 +1,4 @@
-import { currentLocalDb, warnSyncFailure } from '@/lib/db/currentLocalDb';
+import { currentLocalDb, syncBeforeRead } from '@/lib/db/currentLocalDb';
 import type { LocalDb, SyncCursor } from '@/lib/db/localDb';
 import {
   createTableSync,
@@ -88,9 +88,7 @@ const syncRoutines = createTableSync((db) =>
 
 async function readyLocalDb(): Promise<LocalDb> {
   const db = await currentLocalDb();
-  await syncRoutines(db).catch((error: unknown) =>
-    warnSyncFailure('routines', error),
-  );
+  await syncBeforeRead('routines', () => syncRoutines(db));
   return db;
 }
 
