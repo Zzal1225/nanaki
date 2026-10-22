@@ -85,14 +85,18 @@ describe('searchRecords', () => {
   it('한도보다 하나 더 받아서, 넘었으면 잘라 내고 알린다', async () => {
     const rows = Array.from({ length: SEARCH_RESULT_LIMIT + 1 }, () => ({}));
     const chain = mockListResult({ data: rows, error: null });
-    const result = await searchRecords({ keyword: '', sort: 'latest' });
+    const result = await searchRecords({
+      keyword: '',
+      sort: 'latest',
+      range: null,
+    });
     expect(chain.limit).toHaveBeenCalledWith(SEARCH_RESULT_LIMIT + 1);
     expect(result.isTruncated).toBe(true);
   });
 
   it('검색어가 없으면 글자 조건을 걸지 않는다', async () => {
     const chain = mockListResult({ data: [], error: null });
-    await searchRecords({ keyword: '', sort: 'oldest' });
+    await searchRecords({ keyword: '', sort: 'oldest', range: null });
     expect(chain.or).not.toHaveBeenCalled();
     expect(chain.order).toHaveBeenCalledWith('occurred_at', {
       ascending: true,

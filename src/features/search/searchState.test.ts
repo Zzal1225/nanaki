@@ -15,6 +15,8 @@ describe('주소 → 검색 상태', () => {
       keyword: '카페',
       type: 'expense',
       sort: 'oldest',
+      period: null,
+      fields: {},
     });
   });
   it('없거나 틀린 값은 기본값 (모르는 타입, 모르는 정렬, 상속 키)', () => {

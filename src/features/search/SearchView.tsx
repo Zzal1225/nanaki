@@ -1,7 +1,13 @@
 'use client';
 
-// 'use client' 이유: 주소(?q=&type=&sort=)를 읽고 바꾸며, 검색 결과를 브라우저에서 불러온다(TanStack Query)
-import { ChevronDown, ChevronLeft, Search, X } from 'lucide-react';
+// 'use client' 이유: 주소(?q=&type=&sort=&period=…)를 읽고 바꾸며, 검색 결과를 브라우저에서 불러온다(TanStack Query)
+import {
+  ChevronDown,
+  ChevronLeft,
+  Search,
+  SlidersHorizontal,
+  X,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useId, useRef, useState } from 'react';
@@ -16,8 +22,16 @@ import {
 } from '@/features/records/ui/recordPresentation';
 import { useVisibleTypes } from '@/features/settings/hooks/useUserSettings';
 import { formatShortDate } from '@/shared/date/formatDisplayDate';
+import { useToday } from '@/shared/date/useToday';
 import Button from '@/shared/ui/Button';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
+import AppliedFilterChips from './AppliedFilterChips';
+import FilterSheet from './FilterSheet';
+import {
+  applyFieldFilters,
+  describeFilters,
+  resolvePeriod,
+} from './searchFilters';
 import { countByType, filterByType } from './searchResults';
 import {
   hasSearchCondition,
@@ -46,19 +60,36 @@ function SearchViewContent() {
   // 설정에서 끈 타입이 주소에 남아 있으면(예전에 저장한 주소) 전체로 본다. 칩이 없는 타입이 골라진 채로 남지 않게
   const type =
     state.type && visibleTypes.includes(state.type) ? state.type : null;
+  // 화면이 보는 상태: 끈 타입이면 그 타입의 칸 필터도 함께 버린다
+  const view: SearchState = {
+    ...state,
+    type,
+    fields: type ? state.fields : {},
+  };
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const isActive = hasSearchCondition({ ...state, type });
+  // "이번 달" 같은 기간은 오늘을 알아야 날짜가 된다. 오늘은 브라우저에서만 알아서, 모르는 동안은 조회를 미룬다
+  const today = useToday();
+  const range = view.period ? resolvePeriod(view.period, today) : null;
+  const isWaitingForToday = view.period !== null && range === null;
+
+  const isActive = hasSearchCondition(view);
   const search = useSearchRecords(
-    isActive ? { keyword: state.keyword, sort: state.sort } : null,
+    isActive && !isWaitingForToday
+      ? { keyword: view.keyword, sort: view.sort, range }
+      : null,
   );
   const entries = search.data?.entries ?? [];
-  const results = filterByType(entries, type, visibleTypes);
-  const detailQuery = toSearchParams({ ...state, type });
+  // 칸 필터(분류·금액…)는 고른 타입에만 걸고, 그다음 타입으로 거른다
+  const narrowed = applyFieldFilters(entries, type, view.fields);
+  const results = filterByType(narrowed, type, visibleTypes);
+  const applied = describeFilters(type, view.period, view.fields);
+  const detailQuery = toSearchParams(view);
 
   // 모든 바꾸기는 replace: 검색어·칩을 바꿀 때마다 방문 기록이 쌓이면 뒤로 가기를 여러 번 눌러야 기록 탭에 돌아간다.
   // scroll: false: 칩을 바꿔도 화면이 맨 위로 튀지 않게
   function update(next: Partial<SearchState>) {
-    router.replace(toSearchHref({ ...state, type, ...next }), {
+    router.replace(toSearchHref({ ...view, ...next }), {
       scroll: false,
     });
   }
@@ -86,15 +117,66 @@ function SearchViewContent() {
           initialKeyword={state.keyword}
           onSubmit={(keyword) => update({ keyword })}
         />
+        <button
+          type='button'
+          aria-label={
+            applied.length > 0 ? `필터, ${applied.length}개 적용됨` : '필터'
+          }
+          onClick={() => setIsFilterOpen(true)}
+          className='relative ml-1 inline-flex size-12 shrink-0 items-center justify-center rounded-md border border-border bg-surface text-fg-primary hover:bg-surface-hover active:bg-surface-pressed'
+        >
+          <SlidersHorizontal
+            aria-hidden='true'
+            size={ICON_SIZE.md}
+            strokeWidth={ICON_STROKE_WIDTH}
+          />
+          {applied.length > 0 && (
+            <span
+              aria-hidden='true'
+              className='absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-caption font-bold text-accent-foreground tabular-nums'
+            >
+              {applied.length}
+            </span>
+          )}
+        </button>
       </div>
 
       <TypeFilterChips
         types={visibleTypes}
         selected={type}
         counts={
-          isActive && search.data ? countByType(entries, visibleTypes) : null
+          isActive && search.data ? countByType(narrowed, visibleTypes) : null
         }
-        onSelect={(next) => update({ type: next })}
+        // 칸 필터는 타입마다 칸이 달라서 타입을 바꾸면 버린다 (기간은 남긴다)
+        onSelect={(next) => update({ type: next, fields: {} })}
+      />
+
+      <AppliedFilterChips
+        filters={applied}
+        onRemove={(id) => {
+          if (id === 'period') {
+            update({ period: null });
+            return;
+          }
+          update({
+            fields: Object.fromEntries(
+              Object.entries(view.fields).filter(([name]) => name !== id),
+            ),
+          });
+        }}
+      />
+
+      <FilterSheet
+        open={isFilterOpen}
+        onOpenChange={setIsFilterOpen}
+        state={view}
+        visibleTypes={visibleTypes}
+        entries={entries}
+        today={today}
+        onApply={(draft) => {
+          update(draft);
+          setIsFilterOpen(false);
+        }}
       />
 
       {!isActive ? (
@@ -167,8 +249,7 @@ function SearchViewContent() {
           {search.data?.isTruncated && (
             <p className='px-4 pt-2 text-caption text-fg-secondary md:px-6'>
               {state.sort === 'latest' ? '최근' : '오래된'}{' '}
-              {SEARCH_RESULT_LIMIT}개까지만 보여요. 검색어를 더 자세히 써
-              보세요.
+              {SEARCH_RESULT_LIMIT}개까지만 보여요. 검색어나 기간을 좁혀 보세요.
             </p>
           )}
         </>

@@ -9,9 +9,10 @@ export const recordKeys = {
   detail: (id: string) => [...recordKeys.all, 'detail', id] as const,
   ofType: (type: string, from: string, to: string) =>
     [...recordKeys.all, 'type', type, from, to] as const,
-  // 검색어·정렬마다 따로 캐시된다. 타입은 키에 넣지 않는다: 받은 결과를 화면에서 거르므로 칩을 바꿔도 같은 캐시
-  search: (keyword: string, sort: string) =>
-    [...recordKeys.all, 'search', keyword, sort] as const,
+  // 검색어·정렬·기간(DB 조건)마다 따로 캐시된다. 타입·칸 필터는 키에 넣지 않는다:
+  // 받은 결과를 화면에서 거르므로 칩·분류를 바꿔도 같은 캐시
+  search: (keyword: string, sort: string, from: string, to: string) =>
+    [...recordKeys.all, 'search', keyword, sort, from, to] as const,
   // 'records' 아래라 기록을 쓰거나 지우면 함께 무효화된다 (새 체중을 쓰면 "최근 체중"도 다시 불러온다)
   latestWithField: (type: string, field: string, limit: number) =>
     [...recordKeys.all, 'latest', type, field, limit] as const,
