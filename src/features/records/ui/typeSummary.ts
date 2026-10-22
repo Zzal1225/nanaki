@@ -4,7 +4,6 @@ import type { RecordEntryOf } from '../schema/recordEntry';
 import { REVIEW_TARGET_KINDS } from '../schema/review';
 
 const PERCENT = 100;
-const AVERAGE_DECIMALS = 1;
 // 'YYYY-MM-DD'에서 일(DD)이 시작하는 자리
 const DAY_OF_MONTH_START = 'YYYY-MM-'.length;
 
@@ -47,30 +46,23 @@ export function summarizeExpenses(
 
 export type ReviewSummary = {
   count: number;
-  // 후기가 없으면 null (0점 평균처럼 보이지 않게)
-  average: number | null;
   // 고정 선택지 4개를 모두, 0개인 종류도 (시안: 경험 0)
   kinds: { name: string; count: number }[];
 };
 
-// 타입 상세 후기 요약: 개수 + 평균 별점 + 대상 종류별 개수
+// 타입 상세 후기 요약: 개수 + 대상 종류별 개수.
+// 평균 별점은 넣지 않는다 (2026-10-22 사용자 결정): 대상이 장소·제품·콘텐츠로 제각각이라 한데 모은 평균은 뜻이 약하다
 export function summarizeReviews(
   entries: RecordEntryOf<'review'>[],
 ): ReviewSummary {
   const count = entries.length;
-  const ratingSum = entries.reduce(
-    (sum, entry) => sum + entry.fields.rating,
-    0,
-  );
-  const average =
-    count === 0 ? null : Number((ratingSum / count).toFixed(AVERAGE_DECIMALS));
 
   const kinds = REVIEW_TARGET_KINDS.map((name) => ({
     name,
     count: entries.filter((entry) => entry.fields.targetKind === name).length,
   }));
 
-  return { count, average, kinds };
+  return { count, kinds };
 }
 
 export type WeekMinutes = {

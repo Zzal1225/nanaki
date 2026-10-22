@@ -21,12 +21,26 @@ describe('buildSampleRecords', () => {
     }
   });
 
-  it('날짜는 오늘부터 2주 안, 미래 날짜는 없다', () => {
+  it('날짜는 오늘부터 2주 안 또는 지난달 1일, 미래 날짜는 없다', () => {
     for (const sample of samples) {
       expect(sample.occurredAt <= TODAY).toBe(true);
-      expect(sample.occurredAt >= SAMPLE_WINDOW_START).toBe(true);
+      expect(
+        sample.occurredAt >= SAMPLE_WINDOW_START ||
+          sample.occurredAt === '2026-09-01',
+      ).toBe(true);
     }
     expect(samples.some((sample) => sample.occurredAt === TODAY)).toBe(true);
+  });
+
+  // 기록 탭 카드의 "지난달 같은 기간보다"가 체험에서도 보이려면 지난달 같은 기간에 모든 타입이 있어야 한다.
+  // 오늘이 1일이어도 "지난달 1일~1일" 안에 들도록 1일에 둔다
+  it('지난달 1일에 모든 타입의 기록이 있다 (오늘이 1일이어도)', () => {
+    const lastMonthFirst = buildSampleRecords('2026-11-01').filter(
+      (sample) => sample.occurredAt === '2026-10-01',
+    );
+    expect(new Set(lastMonthFirst.map((s) => s.type)).size).toBe(
+      RECORD_TYPE_ORDER.length,
+    );
   });
 
   it('구현된 타입이 모두 들어 있다 (체험에서 모든 화면이 채워지게)', () => {

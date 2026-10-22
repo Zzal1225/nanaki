@@ -72,12 +72,12 @@ describe('TypeDetail', () => {
     );
   });
 
-  it('후기: 개수·평균 별점·대상 종류별 개수 (0개 종류도)', async () => {
+  it('후기: 개수·대상 종류별 개수 (0개 종류도), 평균 별점은 없다', async () => {
     vi.mocked(listRecordsOfType).mockResolvedValue([CAFE]);
     renderTypeDetail('review', '2026-09');
 
     expect(await screen.findByText('1건')).toBeTruthy();
-    expect(screen.getByText('4.0')).toBeTruthy();
+    expect(screen.queryByText('평균 별점')).toBeNull();
     const kinds = screen.getByRole('list', { name: '대상 종류별 개수' });
     expect(kinds.textContent).toContain('장소1');
     expect(kinds.textContent).toContain('경험0');

@@ -5,8 +5,9 @@ import {
   formatRating,
   getListTitle,
   getListValue,
-  getMonthMetric,
   getMonthValue,
+  getPreviousMonthComparison,
+  formatPreviousMonthComparison,
   getDayLabel,
   getDayValue,
   getDetailKicker,
@@ -80,7 +81,6 @@ describe('체형 표시', () => {
     expect(getListValue(MORNING)).toBe('68.4kg');
   });
   it('이번 달은 가장 늦은 날짜의 체중 (목록 순서와 상관없이), 없으면 —', () => {
-    expect(getMonthMetric('body')).toBe('최근 체중');
     expect(getMonthValue('body', [MORNING, EARLIER])).toBe('68.4kg');
     expect(getMonthValue('body', [TAXI])).toBe('—');
     expect(getHeadlineField('body')).toBe('weight');
@@ -99,7 +99,6 @@ describe('운동 표시', () => {
     expect(getListValue(LEG_DAY)).toBe('60분');
   });
   it('이번 달은 횟수, 상세 칩은 종목, 크게 보일 값은 시간', () => {
-    expect(getMonthMetric('workout')).toBe('이번 달 운동');
     expect(getMonthValue('workout', [RUN, LEG_DAY, TAXI])).toBe('2회');
     expect(getDetailKicker(LEG_DAY)).toBe('헬스');
     expect(getHeadlineField('workout')).toBe('minutes');
@@ -126,11 +125,9 @@ describe('이번 달 카드', () => {
   const ENTRIES = [TAXI, LUNCH, CAFE];
 
   it('가계부는 그 타입 금액만 더한다 (후기는 섞이지 않는다)', () => {
-    expect(getMonthMetric('expense')).toBe('이번 달 지출');
     expect(getMonthValue('expense', ENTRIES)).toBe('-19,500원');
   });
   it('후기는 개수', () => {
-    expect(getMonthMetric('review')).toBe('이번 달 작성');
     expect(getMonthValue('review', ENTRIES)).toBe('1건');
   });
   it('기록이 없으면 0원 · 0건 (빈 상태에서도 카드는 남긴다)', () => {
@@ -172,5 +169,56 @@ describe('하루 요약 한 줄', () => {
   it('후기 여러 건: 첫 이름 외 N건', () => {
     const BOOK: RecordEntry = { ...CAFE, id: '4', title: '책' };
     expect(getDayValue('review', [CAFE, BOOK])).toBe('동네 로스터리 외 1건');
+  });
+});
+
+describe('지난달과 비교 (기록 탭 카드)', () => {
+  // 카드는 조각을 그리고, 여기서는 한 줄 글자로 바꿔 확인한다 (null은 그대로)
+  const text = (...args: Parameters<typeof getPreviousMonthComparison>) => {
+    const comparison = getPreviousMonthComparison(...args);
+    return comparison && formatPreviousMonthComparison(comparison);
+  };
+
+  // 두 목록은 이미 같은 기간으로 잘려 들어온다 (RecordsOverview가 getSamePeriod로 자름)
+  const withAmount = (id: string, amount: number): RecordEntry => ({
+    ...TAXI,
+    id,
+    fields: { amount, category: '교통' },
+  });
+
+  it('가계부: 금액 차이, 덜/더 썼어요 (금액은 부호 없이)', () => {
+    expect(
+      text('expense', [withAmount('a', 10000)], [withAmount('b', 22000)]),
+    ).toBe('지난달보다 12,000원 덜 썼어요');
+    expect(
+      text('expense', [withAmount('a', 25000)], [withAmount('b', 22000)]),
+    ).toBe('지난달보다 3,000원 더 썼어요');
+  });
+  it('후기는 건수, 운동은 횟수로 (다른 타입은 섞이지 않는다)', () => {
+    expect(text('review', [CAFE, CAFE, TAXI], [CAFE])).toBe(
+      '지난달보다 1건 더 썼어요',
+    );
+    expect(text('workout', [RUN], [RUN, LEG_DAY])).toBe(
+      '지난달보다 1회 덜 했어요',
+    );
+  });
+  it('체형: 두 기간 각각의 마지막 체중 차이 (소수 한 자리)', () => {
+    const before: RecordEntry = {
+      ...EARLIER,
+      id: 'p',
+      occurredAt: '2026-09-15',
+      fields: { weight: 69.2 },
+    };
+    expect(text('body', [MORNING, EARLIER], [before])).toBe(
+      '지난달보다 0.8kg 줄었어요',
+    );
+  });
+  it('같으면 "같아요"', () => {
+    expect(text('review', [CAFE], [CAFE])).toBe('지난달과 같아요');
+  });
+  it('지난달 같은 기간에 그 타입 기록이 없으면 비교하지 않는다 (null)', () => {
+    expect(text('expense', [TAXI], [CAFE])).toBeNull();
+    // 체형은 이번 기간에 잰 적이 없어도 null (지금 체중을 모른다)
+    expect(text('body', [], [MORNING])).toBeNull();
   });
 });

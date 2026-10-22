@@ -51,14 +51,13 @@ describe('summarizeExpenses', () => {
 });
 
 describe('summarizeReviews', () => {
-  it('개수, 평균(소수 한 자리), 대상 종류 4개 모두 (0개 포함)', () => {
+  it('개수, 대상 종류 4개 모두 (0개 포함)', () => {
     const summary = summarizeReviews([
       review('1', 5, '장소'),
       review('2', 4, '장소'),
       review('3', 4, '제품'),
     ]);
     expect(summary.count).toBe(3);
-    expect(summary.average).toBe(4.3);
     expect(summary.kinds).toEqual([
       { name: '장소', count: 2 },
       { name: '제품', count: 1 },
@@ -66,8 +65,10 @@ describe('summarizeReviews', () => {
       { name: '경험', count: 0 },
     ]);
   });
-  it('후기가 없으면 평균은 null (0점처럼 보이지 않게)', () => {
-    expect(summarizeReviews([]).average).toBeNull();
+  it('평균 별점은 계산하지 않는다 (사용자 결정)', () => {
+    expect(summarizeReviews([review('1', 5, '장소')])).not.toHaveProperty(
+      'average',
+    );
   });
 });
 

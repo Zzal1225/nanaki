@@ -5,6 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { listRecentRecords, listRecords } from '../api/recordStore';
 import type { RecordEntry } from '../schema/recordEntry';
 import { getUserSettings } from '@/features/settings/api/settingsStore';
+import { shiftMonth, toMonthString } from '@/shared/date/month';
+import { toLocalDateString } from '@/shared/date/toLocalDateString';
 import RecordsOverview from './RecordsOverview';
 
 // 실제 Supabase 대신 가짜. 이 테스트는 "받은 기록을 어떻게 보여 주는지"만 본다
@@ -111,8 +113,39 @@ describe('RecordsOverview', () => {
     expect(await screen.findByText('점심 · 식비')).toBeTruthy();
     // 설정을 불러오기 전에는 모두 켜진 것으로 그리므로, 후기가 사라질 때까지 기다린다
     await waitFor(() => expect(screen.queryByText('동네 로스터리')).toBeNull());
-    expect(screen.queryByText('이번 달 작성')).toBeNull();
-    expect(screen.getByText('이번 달 지출')).toBeTruthy();
+    // 카드는 타입 이름으로 시작하는 링크 (최근 기록 줄은 기록 제목으로 시작)
+    expect(screen.queryByRole('link', { name: /^후기/ })).toBeNull();
+    expect(screen.getByRole('link', { name: /^가계부/ })).toBeTruthy();
+  });
+
+  it('카드 위 "N월 요약" 제목은 없고, 카드에는 지난달 비교 한 줄 (수치만 굵게)', async () => {
+    const thisMonth = toMonthString(toLocalDateString(new Date()));
+    // 지난달 1일 기록: 오늘이 며칠이든 "지난달 1일~같은 날" 안에 든다
+    const lastMonthLunch: RecordEntry = {
+      ...LUNCH,
+      id: 'prev',
+      occurredAt: `${shiftMonth(thisMonth, -1)}-01`,
+      fields: { amount: 20000, category: '식비' },
+    };
+    const thisMonthLunch: RecordEntry = {
+      ...LUNCH,
+      occurredAt: `${thisMonth}-01`,
+    };
+    vi.mocked(listRecords).mockImplementation(async (from) =>
+      from.startsWith(thisMonth) ? [thisMonthLunch] : [lastMonthLunch],
+    );
+    vi.mocked(listRecentRecords).mockResolvedValue([thisMonthLunch]);
+    renderOverview();
+
+    // 12,500원 - 20,000원
+    const amount = await screen.findByText('7,500원');
+    expect(amount.tagName).toBe('STRONG');
+    expect(amount.parentElement?.textContent).toBe(
+      '지난달보다 7,500원 덜 썼어요',
+    );
+    expect(screen.queryByText(/요약$/)).toBeNull();
+    // 지난달 후기는 없어서 후기 카드에는 비교 줄이 없다
+    expect(screen.getAllByText(/지난달보다/)).toHaveLength(1);
   });
 
   it('불러오지 못하면 안내와 다시 시도 버튼', async () => {
