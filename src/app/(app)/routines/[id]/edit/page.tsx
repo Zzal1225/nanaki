@@ -21,5 +21,5 @@ async function RoutineEditContent({
   params,
 }: Pick<PageProps<'/routines/[id]/edit'>, 'params'>) {
   const { id } = await params;
-  return <RoutineEditForm id={id} doneHref='/' />;
+  return <RoutineEditForm id={id} doneHref='/records/type/routine' />;
 }

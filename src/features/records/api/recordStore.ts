@@ -248,3 +248,78 @@ export async function listLatestRecordsWithField(
     .map(toRecordEntryOrWarn)
     .filter((e): e is RecordEntry => e !== null);
 }
+
+// Postgres 고유 제약 위반 (records_routine_check_unique: 같은 루틴·같은 날 두 줄)
+const UNIQUE_VIOLATION = '23505';
+
+export type RoutineCheckInput = {
+  routineId: string;
+  // 체크한 그날의 루틴 이름 (기록 제목으로 남긴다)
+  routineName: string;
+  date: string;
+  // 0이면 체크를 푼다 (기록을 지운다)
+  count: number;
+  target: number;
+  unit: string;
+};
+
+async function findRoutineCheckId(
+  routineId: string,
+  date: string,
+): Promise<string | null> {
+  const supabase = createSupabaseBrowserClient();
+  // fields->>routineId: jsonb 안의 글자 값을 꺼내 비교한다 (PostgREST 경로 필터)
+  const { data, error } = await supabase
+    .from('records')
+    .select('id')
+    .eq('type', 'routine')
+    .eq('occurred_at', date)
+    .eq('fields->>routineId', routineId)
+    .is('deleted_at', null)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.id ?? null;
+}
+
+// 루틴 체크 저장: 루틴 하나 × 하루 = 기록 한 줄 (2026-10-22 사용자 결정).
+// "있으면 고치고, 없으면 만들고, 0이면 지운다". 두 기기가 동시에 "없음"을 보고 둘 다 만들면
+// DB 고유 색인이 둘째를 막는다(23505) → 그때는 먼저 생긴 줄을 다시 찾아 고친다.
+// upsert(on conflict)를 쓰지 않는 이유: 이 고유 색인은 식(fields->>'routineId')과 조건(where)이 붙은 부분 색인이라
+// PostgREST의 on_conflict(칸 이름 목록)로 가리킬 수 없다
+export async function setRoutineCheck(input: RoutineCheckInput): Promise<void> {
+  const existingId = await findRoutineCheckId(input.routineId, input.date);
+
+  if (input.count === 0) {
+    if (existingId) await deleteRecord(existingId);
+    return;
+  }
+
+  const record = {
+    type: 'routine' as const,
+    occurredAt: input.date,
+    title: input.routineName,
+    memo: null,
+    tags: [],
+    fields: {
+      routineId: input.routineId,
+      count: input.count,
+      target: input.target,
+      unit: input.unit,
+    },
+  };
+
+  if (existingId) {
+    await updateRecord({ ...record, id: existingId });
+    return;
+  }
+
+  try {
+    await createRecord(record);
+  } catch (error) {
+    const code = (error as { code?: unknown } | null)?.code;
+    if (code !== UNIQUE_VIOLATION) throw error;
+    const winnerId = await findRoutineCheckId(input.routineId, input.date);
+    if (!winnerId) throw error;
+    await updateRecord({ ...record, id: winnerId });
+  }
+}

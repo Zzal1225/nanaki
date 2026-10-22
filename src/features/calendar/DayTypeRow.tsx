@@ -1,5 +1,6 @@
 import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import type { RecordType } from '@/features/records/schema/recordTypes';
 import { RECORD_TYPE_STYLE } from '@/features/records/ui/recordTypeStyle';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
@@ -16,6 +17,8 @@ type DayTypeRowProps = {
   label: string;
   value: string;
   items: DayRecordItem[];
+  // 펼친 자리에 기록 링크 대신 그릴 것 (루틴: 그날 할 일 체크 목록). 있으면 items는 쓰지 않는다
+  content?: ReactNode;
   isOpen: boolean;
   onToggle: () => void;
 };
@@ -30,6 +33,7 @@ export default function DayTypeRow({
   label,
   value,
   items,
+  content,
   isOpen,
   onToggle,
 }: DayTypeRowProps) {
@@ -71,7 +75,12 @@ export default function DayTypeRow({
           />
         </span>
       </button>
-      {isOpen && (
+      {isOpen && content && (
+        <div id={listId} className='pr-2 pb-1 pl-14'>
+          {content}
+        </div>
+      )}
+      {isOpen && !content && (
         <ul id={listId} className='pr-4 pb-1 pl-14'>
           {items.map((item) => (
             <li key={item.id} className='border-t border-border'>

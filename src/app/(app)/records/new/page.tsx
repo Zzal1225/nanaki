@@ -3,7 +3,10 @@ import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { toCalendarHref } from '@/features/calendar/calendarState';
 import RecordForm from '@/features/records/form/RecordForm';
-import { parseRecordType } from '@/features/records/schema/recordTypes';
+import {
+  getCreateHref,
+  parseRecordType,
+} from '@/features/records/schema/recordTypes';
 import { isDateString } from '@/shared/date/calendar';
 
 export const metadata: Metadata = {
@@ -30,6 +33,9 @@ async function NewRecordContent({
   const { type, date } = await searchParams;
   const recordType = parseRecordType(type);
   if (!recordType) redirect('/');
+  // 폼으로 쓰지 않는 타입(루틴 체크)은 그 타입의 만들기 화면으로 (?type=routine을 직접 친 경우)
+  const createHref = getCreateHref(recordType);
+  if (createHref) redirect(createHref);
 
   if (!isDateString(date))
     return <RecordForm mode='create' type={recordType} />;

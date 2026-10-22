@@ -21,7 +21,13 @@ describe('getNewRecordMenuItems', () => {
   it('이름은 시안 문구 (글은 "쓰기", 수치는 "기록")', () => {
     expect(
       getNewRecordMenuItems(RECORD_TYPE_ORDER).map((item) => item.label),
-    ).toEqual(['가계부 쓰기', '후기 쓰기', '운동 기록', '체형 기록']);
+    ).toEqual([
+      '가계부 쓰기',
+      '후기 쓰기',
+      '운동 기록',
+      '체형 기록',
+      '루틴 만들기',
+    ]);
   });
   it('받은 타입만 (설정에서 끈 타입은 빠진다)', () => {
     expect(getNewRecordMenuItems(['review']).map((item) => item.type)).toEqual([
@@ -35,7 +41,10 @@ describe('getNewRecordMenuItems', () => {
   });
   // 메뉴가 만든 주소를 작성 화면이 다시 읽었을 때 같은 타입이어야 한다 (홈으로 튕기지 않게)
   it('주소의 type을 작성 화면이 그대로 읽는다 (왕복)', () => {
-    for (const item of getNewRecordMenuItems(RECORD_TYPE_ORDER)) {
+    // 루틴은 폼이 아니라 루틴 만들기 화면으로 간다 (아래 따로 확인)
+    for (const item of getNewRecordMenuItems(RECORD_TYPE_ORDER).filter(
+      (item) => item.type !== 'routine',
+    )) {
       const type = new URL(item.href, 'https://x').searchParams.get('type');
       expect(parseRecordType(type)).toBe(item.type);
     }
@@ -43,6 +52,9 @@ describe('getNewRecordMenuItems', () => {
 });
 
 describe('newRecordHref', () => {
+  it('루틴은 루틴 만들기 화면으로 (날짜를 줘도 붙이지 않는다)', () => {
+    expect(newRecordHref('routine', '2026-10-16')).toBe('/routines/new');
+  });
   it('/records/new?type=타입', () => {
     expect(newRecordHref('review')).toBe('/records/new?type=review');
   });

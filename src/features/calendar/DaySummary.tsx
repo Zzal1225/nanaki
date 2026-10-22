@@ -14,12 +14,18 @@ import Button from '@/shared/ui/Button';
 import DayEmptyState from './DayEmptyState';
 import DayTypeRow from './DayTypeRow';
 import type { DayTypeGroup } from './dayRecords';
+import RoutineChecklist from '@/features/routines/check/RoutineChecklist';
+import type { DayRoutine } from '@/features/routines/progress';
 
 type DaySummaryProps = {
   date: string;
   isToday: boolean;
   // 불러오는 중이면 null
   groups: DayTypeGroup[] | null;
+  // 그날 해야 할 루틴 (기록이 아니라 루틴 규칙에서 나온다). 루틴을 숨겼거나 그날 일정이 없으면 빈 배열
+  routines: DayRoutine[];
+  // 미래 날짜: 루틴 목록은 보여 주되 체크는 막는다
+  isFuture: boolean;
   isError: boolean;
   onRetry: () => void;
 };
@@ -31,6 +37,8 @@ export default function DaySummary({
   date,
   isToday,
   groups,
+  routines,
+  isFuture,
   isError,
   onRetry,
 }: DaySummaryProps) {
@@ -82,7 +90,7 @@ export default function DaySummary({
           aria-busy='true'
           className='h-26 animate-pulse rounded-lg bg-surface-hover'
         />
-      ) : groups.length === 0 ? (
+      ) : groups.length === 0 && routines.length === 0 ? (
         <DayEmptyState date={date} isToday={isToday} />
       ) : (
         <ul className='overflow-hidden rounded-lg bg-surface shadow-card'>
@@ -101,6 +109,25 @@ export default function DaySummary({
               onToggle={() => toggle(type)}
             />
           ))}
+          {/* 루틴 줄은 기록이 아니라 그날 일정으로: 체크가 하나도 없는 날에도 "오늘 할 루틴"이 보인다.
+              스피드 다이얼 순서처럼 마지막 줄 (RECORD_TYPE_ORDER의 끝) */}
+          {routines.length > 0 && (
+            <DayTypeRow
+              type='routine'
+              label='루틴'
+              value={`${routines.filter((item) => item.isDone).length}/${routines.length}`}
+              items={[]}
+              content={
+                <RoutineChecklist
+                  date={date}
+                  items={routines}
+                  isLocked={isFuture}
+                />
+              }
+              isOpen={openTypes.has('routine')}
+              onToggle={() => toggle('routine')}
+            />
+          )}
         </ul>
       )}
     </section>

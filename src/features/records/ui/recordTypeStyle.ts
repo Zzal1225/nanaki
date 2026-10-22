@@ -1,5 +1,6 @@
 import {
   Dumbbell,
+  ListChecks,
   MessageSquareText,
   Ruler,
   Wallet,
@@ -38,6 +39,13 @@ export const RECORD_TYPE_STYLE: Record<RecordType, RecordTypeStyle> = {
     textClass: 'text-type-workout',
     subtleBgClass: 'bg-type-workout-subtle',
     dotClass: 'bg-type-workout',
+  },
+  // 시안 아이콘: listChecks
+  routine: {
+    icon: ListChecks,
+    textClass: 'text-type-routine',
+    subtleBgClass: 'bg-type-routine-subtle',
+    dotClass: 'bg-type-routine',
   },
   // 시안 아이콘: ruler
   body: {

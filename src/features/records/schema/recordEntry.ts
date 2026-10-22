@@ -3,6 +3,7 @@ import { BODY_ONLY_ONE_MESSAGE, bodyFieldsSchema, toBodyTitle } from './body';
 import { expenseFieldsSchema } from './expense';
 import { maxLengthMessage, requiredInputMessage } from './fieldKinds';
 import { reviewFieldsSchema } from './review';
+import { routineCheckFieldsSchema } from './routineCheck';
 import { workoutFieldsSchema } from './workout';
 
 // 메모·제목 상한은 DB check와 같은 값이어야 한다 (supabase/migrations).
@@ -57,6 +58,11 @@ export const workoutRecordSchema = baseRecordSchema.extend({
   fields: workoutFieldsSchema,
 });
 
+export const routineRecordSchema = baseRecordSchema.extend({
+  type: z.literal('routine'),
+  fields: routineCheckFieldsSchema,
+});
+
 export const bodyRecordSchema = baseRecordSchema.extend({
   type: z.literal('body'),
   fields: bodyFieldsSchema,
@@ -101,6 +107,7 @@ export const recordEntrySchema = z.discriminatedUnion('type', [
   reviewRecordSchema,
   workoutRecordSchema,
   bodyRecordSchema,
+  routineRecordSchema,
 ]);
 export type RecordEntry = z.infer<typeof recordEntrySchema>;
 

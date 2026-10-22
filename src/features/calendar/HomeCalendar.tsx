@@ -16,7 +16,10 @@ import {
 import CalendarGrid from './CalendarGrid';
 import CalendarHeader from './CalendarHeader';
 import DaySummary from './DaySummary';
-import { groupByDate, groupByType } from './dayRecords';
+import { groupByDate, groupByType, SCHEDULE_DRIVEN_TYPES } from './dayRecords';
+import { getDayRoutines } from '@/features/routines/progress';
+import { useRoutines } from '@/features/routines/hooks/useRoutines';
+import type { RecordEntryOf } from '@/features/records/schema/recordEntry';
 import { useCalendar } from './useCalendar';
 
 // 홈 = 월 캘린더 + 고른 날 요약. 모바일·태블릿은 위아래, PC(lg)는 좌우 (시안 P1: 오른쪽 400px).
@@ -32,6 +35,8 @@ export default function HomeCalendar() {
   // 설정에서 끈 타입의 기록은 점·요약에서 뺀다 (데이터는 그대로).
   // 날짜별 묶음은 기록이나 켜진 타입이 바뀔 때만 다시 만든다. 방향키로 날짜만 옮길 때는 그대로 쓴다
   const visibleTypes = useVisibleTypes();
+  // 루틴 규칙: 하루 요약의 루틴 줄(그날 할 일)을 만든다. 설정에서 루틴을 끄면 줄도 숨긴다
+  const routines = useRoutines();
   const recordsByDate = useMemo(
     () => groupByDate(filterVisibleEntries(records.data ?? [], visibleTypes)),
     [records.data, visibleTypes],
@@ -58,6 +63,20 @@ export default function HomeCalendar() {
 
   const { date, today } = calendar;
   const dayEntries = recordsByDate.get(date) ?? [];
+  // 기록으로 묶는 줄에서는 루틴 체크를 뺀다: 루틴 줄은 아래 dayRoutines가 그날 일정으로 따로 그린다
+  const dayGroups = groupByType(dayEntries).filter(
+    (group) => !SCHEDULE_DRIVEN_TYPES.includes(group.type),
+  );
+  const dayRoutines = visibleTypes.includes('routine')
+    ? getDayRoutines(
+        routines.data ?? [],
+        dayEntries.filter(
+          (entry): entry is RecordEntryOf<'routine'> =>
+            entry.type === 'routine',
+        ),
+        date,
+      )
+    : [];
 
   return (
     // 모바일 아래 여백: 하단 탭은 main이 비워 두고, 여기서는 스피드 다이얼(56px)에 마지막 줄이 가리지 않게 더 비운다
@@ -96,7 +115,10 @@ export default function HomeCalendar() {
           key={date}
           date={date}
           isToday={date === today}
-          groups={records.isPending ? null : groupByType(dayEntries)}
+          groups={records.isPending || routines.isPending ? null : dayGroups}
+          routines={dayRoutines}
+          // 'YYYY-MM-DD'는 글자 순서 = 날짜 순서
+          isFuture={date > today}
           isError={records.isError}
           onRetry={() => void records.refetch()}
         />

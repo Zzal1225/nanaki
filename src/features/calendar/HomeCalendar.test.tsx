@@ -8,7 +8,11 @@ import {
   within,
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { listRecords } from '@/features/records/api/recordStore';
+import {
+  listRecords,
+  setRoutineCheck,
+} from '@/features/records/api/recordStore';
+import { listRoutines } from '@/features/routines/api/routineStore';
 import type { RecordEntry } from '@/features/records/schema/recordEntry';
 import { getUserSettings } from '@/features/settings/api/settingsStore';
 import HomeCalendar from './HomeCalendar';
@@ -36,7 +40,14 @@ vi.mock('next/navigation', async () => {
 });
 // 오늘을 고정한다. 진짜 오늘을 쓰면 날짜마다 테스트 결과가 달라진다
 vi.mock('@/shared/date/useToday', () => ({ useToday: () => '2026-10-21' }));
-vi.mock('@/features/records/api/recordStore', () => ({ listRecords: vi.fn() }));
+vi.mock('@/features/records/api/recordStore', () => ({
+  listRecords: vi.fn(),
+  setRoutineCheck: vi.fn(),
+}));
+// 루틴 규칙. 기본은 루틴 없음, 루틴 줄 테스트에서만 넣는다
+vi.mock('@/features/routines/api/routineStore', () => ({
+  listRoutines: vi.fn(),
+}));
 // 설정(숨긴 타입)도 가짜. 기본은 아무것도 숨기지 않음
 vi.mock('@/features/settings/api/settingsStore', () => ({
   getUserSettings: vi.fn(),
@@ -82,6 +93,7 @@ describe('HomeCalendar', () => {
     vi.mocked(listRecords).mockReset();
     vi.mocked(listRecords).mockResolvedValue([LUNCH, CAFE]);
     vi.mocked(getUserSettings).mockResolvedValue({ hiddenTypes: [] });
+    vi.mocked(listRoutines).mockResolvedValue([]);
   });
 
   it('설정에서 끈 타입은 칸의 점·하루 요약에서 빠진다', async () => {
@@ -219,5 +231,32 @@ describe('HomeCalendar', () => {
     await vi.waitFor(() =>
       expect(screen.getByRole('grid').getAttribute('aria-busy')).toBe('false'),
     );
+  });
+
+  // 루틴 줄은 기록이 아니라 그날 일정에서 나온다: 체크가 하나도 없는 날에도 "오늘 할 루틴"이 보인다
+  it('루틴 줄: 기록이 없어도 그날 할 루틴이 보이고, 펼쳐서 체크한다', async () => {
+    vi.mocked(listRecords).mockResolvedValue([]);
+    vi.mocked(setRoutineCheck).mockResolvedValue();
+    vi.mocked(listRoutines).mockResolvedValue([
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        name: '스트레칭',
+        startDate: '2026-10-01',
+        schedule: { kind: 'weekly', days: [0, 1, 2, 3, 4, 5, 6] },
+        goal: { kind: 'check' },
+        endedOn: null,
+      },
+    ]);
+    renderCalendar();
+
+    const row = await screen.findByRole('button', { name: /^루틴.*0\/1$/ });
+    expect(screen.queryByText('기록이 없어요')).toBeNull();
+    fireEvent.click(row);
+    fireEvent.click(screen.getByRole('checkbox', { name: '스트레칭 완료' }));
+    await vi.waitFor(() => expect(setRoutineCheck).toHaveBeenCalled());
+    expect(vi.mocked(setRoutineCheck).mock.calls[0][0]).toMatchObject({
+      date: '2026-10-21',
+      count: 1,
+    });
   });
 });

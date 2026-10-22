@@ -4,11 +4,23 @@ import {
   measureOf,
   type BodyMeasure,
 } from '../schema/body';
+import { getAchievement } from '@/features/routines/progress';
+import type { Routine } from '@/features/routines/schema/routine';
+import type { SamePeriod } from '@/shared/date/samePeriod';
 import type { RecordEntry } from '../schema/recordEntry';
 import type { RecordType } from '../schema/recordTypes';
+import { formatCheckProgress } from '../schema/routineCheck';
 
 // 타입 하나의 기록만 꺼낸 타입: EntryOf<'expense'> = 가계부 기록
 type EntryOf<T extends RecordType> = Extract<RecordEntry, { type: T }>;
+
+// 기록 탭 카드 값을 만들 때 기록 말고 더 필요한 것. 지금은 루틴 달성률만 쓴다:
+// 달성률은 "해야 했던 날"(루틴 규칙)과 비교 기간이 있어야 계산된다. 다른 타입은 받기만 하고 쓰지 않는다
+export type MonthContext = {
+  routines: Routine[];
+  // 이번 달 1일~오늘 / 지난달 1일~같은 날. 오늘을 읽기 전이면 null
+  period: SamePeriod | null;
+};
 
 type RecordPresentation<T extends RecordType> = {
   // 목록 한 줄의 제목: "[분류] 제목" 꼴 (2026-10-22 사용자 결정: "[교통] 택시", "[러닝] 5.2km", "[체중]")
@@ -16,12 +28,13 @@ type RecordPresentation<T extends RecordType> = {
   // 목록 오른쪽 값 (시안: "-7,000원", "★ 4.0")
   listValue: (entry: EntryOf<T>) => string;
   // 기록 탭 타입 카드의 이번 달 값 (카드 안 꼬리표 "이번 달 지출"은 없앴다, 2026-10-22 사용자 결정)
-  monthValue: (entries: EntryOf<T>[]) => string;
+  monthValue: (entries: EntryOf<T>[], context: MonthContext) => string;
   // 기록 탭 타입 카드의 "지난달보다 …" 한 줄 (2026-10-22 사용자 결정).
   // 두 목록은 이미 같은 기간(getSamePeriod)으로 잘려 들어온다. 지난달 쪽이 비었으면 비교할 게 없어 null
   comparePreviousMonth: (
     current: EntryOf<T>[],
     previous: EntryOf<T>[],
+    context: MonthContext,
   ) => PreviousMonthComparison | null;
   // 상세에서 제목 아래 크게 보여 준 필드(= 목록 값). 아래 표에서는 빼서 같은 값이 두 번 나오지 않게 한다.
   // 기록마다 다를 수 있어 함수다 (체형: 체중 기록이면 체중, 허리둘레 기록이면 허리둘레).
@@ -98,6 +111,34 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
       entries.length === 1
         ? `${entries[0].fields.activity} ${formatMinutes(entries[0].fields.minutes)}`
         : `총 ${formatMinutes(entries.reduce((sum, e) => sum + e.fields.minutes, 0))}`,
+  },
+  routine: {
+    // "[물 마시기]": 체크한 그날의 루틴 이름(제목에 남겨 둔다). 값은 "완료" / "5/8잔"
+    listTitle: (entry) => `[${entry.title}]`,
+    listValue: (entry) => formatCheckProgress(entry.fields),
+    // 이번 달 달성률 (2026-10-22 사용자 결정, 시안 "달성률 83%"): 1일~오늘 중 해야 했던 날 대비 목표를 채운 날.
+    // 루틴 규칙(context.routines)이 있어야 "해야 했던 날"을 안다. 해야 할 날이 없으면 —
+    monthValue: (entries, { routines, period }) => {
+      if (!period) return '—';
+      const { rate } = getAchievement(routines, entries, period.current);
+      return rate === null ? '—' : `${rate}%`;
+    },
+    // 두 기간의 달성률 차이 (%p). 지난달 같은 기간에 해야 할 날이 없었으면 비교하지 않는다
+    comparePreviousMonth: (current, previous, { routines, period }) => {
+      if (!period) return null;
+      const now = getAchievement(routines, current, period.current).rate;
+      const before = getAchievement(routines, previous, period.previous).rate;
+      if (now === null || before === null) return null;
+      return describeChange(now - before, (points) => `${points}%p`, [
+        '낮아요',
+        '높아요',
+      ]);
+    },
+    headlineField: () => 'count',
+    // 홈 하루 요약의 루틴 줄은 기록이 아니라 그날 일정으로 따로 그린다 (RoutineDayRow). 이 둘은 쓰이지 않을 때를 위한 값
+    dayLabel: () => '루틴',
+    dayValue: (entries) =>
+      `완료 ${entries.filter((entry) => entry.fields.count >= entry.fields.target).length}개`,
   },
   body: {
     // "[체중]" / "[허리둘레]": 한 기록에 하나만 잰다 (둘 다 있는 예전 기록은 체중)
@@ -246,22 +287,28 @@ export function getPreviousMonthComparison(
   type: RecordType,
   currentEntries: RecordEntry[],
   previousEntries: RecordEntry[],
+  context: MonthContext = EMPTY_CONTEXT,
 ): PreviousMonthComparison | null {
   const ofType = (entries: RecordEntry[]) =>
     entries.filter((entry) => entry.type === type);
   return presentationOf(type).comparePreviousMonth(
     ofType(currentEntries) as never,
     ofType(previousEntries) as never,
+    context,
   );
 }
+
+// 루틴을 모르는 곳(테스트, 루틴이 없는 계정)의 기본값
+const EMPTY_CONTEXT: MonthContext = { routines: [], period: null };
 
 // 여러 타입이 섞인 목록에서 그 타입만 골라 이번 달 값을 만든다
 export function getMonthValue(
   type: RecordType,
   entries: RecordEntry[],
+  context: MonthContext = EMPTY_CONTEXT,
 ): string {
   const ofType = entries.filter((entry) => entry.type === type);
-  return presentationOf(type).monthValue(ofType as never);
+  return presentationOf(type).monthValue(ofType as never, context);
 }
 
 export function getHeadlineField(entry: RecordEntry): string {

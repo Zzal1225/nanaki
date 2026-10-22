@@ -6,6 +6,7 @@ import {
   summarizeReviews,
   summarizeWorkouts,
 } from '../ui/typeSummary';
+import RoutineSummarySection from '@/features/routines/RoutineSummarySection';
 import BodySummarySection from './BodySummarySection';
 import ExpenseSummaryCard from './ExpenseSummaryCard';
 import ReviewSummaryCard from './ReviewSummaryCard';
@@ -41,6 +42,14 @@ const SUMMARY_RENDERERS: { [T in RecordType]: SummaryRenderer<T> } = {
   ),
   // 체형은 "최근 체중"을 따로 불러와서(달과 상관없음) 조회가 있는 컴포넌트로 감싼다
   body: (entries) => <BodySummarySection entries={entries} />,
+  // 루틴은 규칙(루틴 목록)을 따로 불러와 달성률·오늘 체크·내 루틴을 그린다
+  routine: (entries, monthLabel, month) => (
+    <RoutineSummarySection
+      entries={entries}
+      monthLabel={monthLabel}
+      month={month}
+    />
+  ),
 };
 
 // entries는 이 type의 기록만 들어온다(listRecordsOfType이 DB에서 거름). TypeScript는 type과 꺼낸 함수의

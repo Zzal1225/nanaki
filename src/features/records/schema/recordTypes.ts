@@ -4,9 +4,11 @@ import {
   bodyFormSchema,
   expenseRecordSchema,
   reviewRecordSchema,
+  routineRecordSchema,
   workoutFormSchema,
 } from './recordEntry';
 import { REVIEW_FIELDS } from './review';
+import { ROUTINE_CHECK_FIELDS } from './routineCheck';
 import { WORKOUT_FIELDS } from './workout';
 
 // 작성 폼의 제목 칸. 타입마다 있고 없음이 달라서 폼이 if (type === ...) 대신 이 값을 읽는다.
@@ -52,7 +54,45 @@ export const RECORD_TYPE_CONFIG = {
     title: HIDDEN_TITLE,
     formSchema: bodyFormSchema,
   },
-} as const;
+  // 루틴 체크 기록. 다른 타입과 달리 작성 폼으로 쓰지 않는다:
+  // "새로 쓰기"는 루틴(규칙) 만들기 화면으로 가고(createHref), 체크는 홈·루틴 상세의 체크 버튼이 만든다.
+  // 그래서 기록 상세에서도 수정 버튼을 두지 않는다(isEditable)
+  routine: {
+    label: '루틴',
+    createLabel: '루틴 만들기',
+    createHref: '/routines/new',
+    isEditable: false,
+    fields: ROUTINE_CHECK_FIELDS,
+    title: HIDDEN_TITLE,
+    // 폼으로 쓰지 않지만 설정 모양을 맞춰 둔다 (폼 화면은 루틴 만들기로 돌려보낸다)
+    formSchema: routineRecordSchema.omit({ id: true }),
+  },
+} as const satisfies Record<string, RecordTypeConfig>;
+
+// 모든 타입 설정이 갖출 모양. createHref·isEditable은 루틴처럼 폼으로 쓰지 않는 타입만 바꾼다
+type RecordTypeConfig = {
+  label: string;
+  createLabel: string;
+  createHref?: string;
+  isEditable?: boolean;
+  fields: readonly unknown[];
+  title: { isHidden: boolean; placeholder: string };
+  formSchema: unknown;
+};
+
+// "새로 쓰기" 주소: 폼이 아닌 곳으로 가는 타입(루틴)은 그 주소를 쓴다.
+// 설정을 넓은 모양(RecordTypeConfig)으로 받아 읽는다: as const 객체는 타입마다 모양이 달라
+// createHref가 없는 타입에서 config.createHref를 읽으면 타입 오류가 난다
+export function getCreateHref(type: RecordType): string | null {
+  const config: RecordTypeConfig = RECORD_TYPE_CONFIG[type];
+  return config.createHref ?? null;
+}
+
+// 기록 상세에서 수정 버튼을 보여 줄지 (루틴 체크는 체크 버튼으로만 바꾼다)
+export function isEditableType(type: RecordType): boolean {
+  const config: RecordTypeConfig = RECORD_TYPE_CONFIG[type];
+  return config.isEditable ?? true;
+}
 
 export type RecordType = keyof typeof RECORD_TYPE_CONFIG;
 

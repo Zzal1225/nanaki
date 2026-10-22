@@ -3,6 +3,7 @@
 // 'use client' 이유: 고칠 기록을 브라우저에서 불러온 뒤 폼에 넣는다
 import Link from 'next/link';
 import RecordForm from '../form/RecordForm';
+import { isEditableType } from '../schema/recordTypes';
 import { useRecord } from '../hooks/useRecord';
 
 type RecordEditFormProps = {
@@ -41,6 +42,23 @@ export default function RecordEditForm({ id }: RecordEditFormProps) {
           className='text-body-sm font-semibold text-accent underline underline-offset-4'
         >
           기록 탭으로
+        </Link>
+      </div>
+    );
+  }
+
+  // 폼으로 고치지 않는 기록(루틴 체크): 수정 버튼은 없지만 주소를 직접 친 경우를 위해 안내한다
+  if (!isEditableType(entry.type)) {
+    return (
+      <div className='flex flex-col items-start gap-3 px-4 py-6 md:px-6'>
+        <p className='text-body text-fg-primary'>
+          루틴 체크는 홈이나 루틴 화면에서 바꿀 수 있어요.
+        </p>
+        <Link
+          href={`/records/${entry.id}`}
+          className='text-body-sm font-semibold text-accent underline underline-offset-4'
+        >
+          기록으로 돌아가기
         </Link>
       </div>
     );

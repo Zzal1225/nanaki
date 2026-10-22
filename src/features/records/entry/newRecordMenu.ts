@@ -1,12 +1,17 @@
-import { RECORD_TYPE_CONFIG, type RecordType } from '../schema/recordTypes';
+import {
+  getCreateHref,
+  RECORD_TYPE_CONFIG,
+  type RecordType,
+} from '../schema/recordTypes';
 
 // 자주 쓰는 순서. 기록 탭 카드도 이 순서. 모바일 스피드 다이얼은 이 순서를 아래에서 위로 쌓아 첫 번째(가계부)가 엄지에 가장 가깝다 (시안 3번).
-// 루틴은 step2에서 여기와 RECORD_TYPE_CONFIG에 함께 추가한다 (시안 순서: 가계부·후기·운동·체형·루틴)
+// 시안 순서: 가계부·후기·운동·체형·루틴
 export const RECORD_TYPE_ORDER: readonly RecordType[] = [
   'expense',
   'review',
   'workout',
   'body',
+  'routine',
 ];
 
 export type NewRecordMenuItem = {
@@ -18,6 +23,9 @@ export type NewRecordMenuItem = {
 // 작성 화면 주소는 이 함수 한 곳에서만 만든다. 주소 모양이 바뀌어도 메뉴·버튼을 하나씩 고치지 않게.
 // date: 홈에서 고른 날에 쓰기 시작하면 그 날짜를 미리 채운다 (없으면 폼이 오늘로)
 export function newRecordHref(type: RecordType, date?: string): string {
+  // 폼으로 쓰지 않는 타입(루틴)은 그 타입의 화면으로 (루틴 만들기). 날짜는 넘기지 않는다: 시작일은 폼이 오늘로 채운다
+  const createHref = getCreateHref(type);
+  if (createHref) return createHref;
   const params = new URLSearchParams({ type });
   if (date) params.set('date', date);
   return `/records/new?${params.toString()}`;
