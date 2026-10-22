@@ -7,7 +7,15 @@ import {
   screen,
   within,
 } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type MockInstance,
+} from 'vitest';
 import { searchRecords } from '@/features/records/api/recordStore';
 import type { RecordEntry } from '@/features/records/schema/recordEntry';
 import { getUserSettings } from '@/features/settings/api/settingsStore';
@@ -64,8 +72,13 @@ function renderSearch(search: string) {
 }
 
 describe('SearchView', () => {
+  // 검색 화면 안에서는 history.replaceState로 주소만 바꾼다 (오프라인에서도 서버에 묻지 않게). 바꾼 주소를 여기서 본다
+  let addressChange: MockInstance<History['replaceState']>;
   beforeEach(() => {
     navigation.replace.mockReset();
+    addressChange = vi
+      .spyOn(window.history, 'replaceState')
+      .mockImplementation(() => {});
     vi.mocked(searchRecords).mockReset();
     vi.mocked(searchRecords).mockResolvedValue({
       entries: [COFFEE, CAFE_REVIEW],
@@ -121,9 +134,10 @@ describe('SearchView', () => {
     expect(screen.queryByRole('link', { name: /커피/ })).toBeNull();
 
     fireEvent.click(screen.getByRole('button', { name: /^전체/ }));
-    expect(navigation.replace).toHaveBeenCalledWith(
+    expect(addressChange).toHaveBeenCalledWith(
+      null,
+      '',
       '/records/search?q=%EC%B9%B4%ED%8E%98',
-      { scroll: false },
     );
   });
 
@@ -134,9 +148,10 @@ describe('SearchView', () => {
     fireEvent.change(input, { target: { value: '  라떼 ' } });
     fireEvent.submit(screen.getByRole('search'));
 
-    expect(navigation.replace).toHaveBeenCalledWith(
+    expect(addressChange).toHaveBeenCalledWith(
+      null,
+      '',
       '/records/search?q=%EB%9D%BC%EB%96%BC',
-      { scroll: false },
     );
   });
 
@@ -184,12 +199,12 @@ describe('SearchView', () => {
     ).toBeDefined();
 
     fireEvent.click(within(sheet).getByRole('button', { name: '카페' }));
-    expect(navigation.replace).not.toHaveBeenCalled();
+    expect(addressChange).not.toHaveBeenCalled();
     fireEvent.click(
       within(sheet).getByRole('button', { name: '1개 결과 보기' }),
     );
 
-    expect(decodeURIComponent(navigation.replace.mock.calls[0][0])).toBe(
+    expect(decodeURIComponent(String(addressChange.mock.calls[0][2]))).toBe(
       '/records/search?q=카페&type=expense&category=카페',
     );
   });
@@ -213,7 +228,7 @@ describe('SearchView', () => {
     fireEvent.click(
       screen.getByRole('button', { name: '기간 이번 달 필터 풀기' }),
     );
-    expect(decodeURIComponent(navigation.replace.mock.calls[0][0])).toBe(
+    expect(decodeURIComponent(String(addressChange.mock.calls[0][2]))).toBe(
       '/records/search?q=카페&type=expense&category=카페',
     );
   });
@@ -223,7 +238,7 @@ describe('SearchView', () => {
     await screen.findByRole('status');
 
     fireEvent.click(screen.getByRole('button', { name: /^후기/ }));
-    expect(decodeURIComponent(navigation.replace.mock.calls[0][0])).toBe(
+    expect(decodeURIComponent(String(addressChange.mock.calls[0][2]))).toBe(
       '/records/search?q=카페&type=review&period=month',
     );
   });

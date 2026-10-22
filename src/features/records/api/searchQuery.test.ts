@@ -1,9 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import {
-  escapeRegex,
-  SEARCHABLE_FIELD_NAMES,
-  toKeywordFilter,
-} from './searchQuery';
+import type { RecordEntry } from '../schema/recordEntry';
+import { matchesKeyword, SEARCHABLE_FIELD_NAMES } from './searchQuery';
+
+const COFFEE: RecordEntry = {
+  id: '1',
+  type: 'expense',
+  occurredAt: '2026-10-19',
+  title: '아메리카노',
+  memo: '회사 앞 Cafe',
+  tags: [],
+  fields: { amount: 4500, category: '카페', paymentMethod: '카드' },
+};
 
 describe('검색 대상 칸', () => {
   it('필드 정의의 선택 칸을 모은다 (숫자·별점 칸은 빠진다)', () => {
@@ -13,27 +20,21 @@ describe('검색 대상 칸', () => {
   });
 });
 
-describe('검색어 → 정규식 글자 그대로', () => {
-  it('한글·영문은 그대로', () => {
-    expect(escapeRegex('카페 latte')).toBe('카페 latte');
+describe('검색어 맞추기 (기기 사본에서)', () => {
+  it('제목·메모·선택 칸에서 찾고, 영문은 대소문자를 가리지 않는다', () => {
+    expect(matchesKeyword(COFFEE, '아메리')).toBe(true);
+    expect(matchesKeyword(COFFEE, 'cafe')).toBe(true);
+    expect(matchesKeyword(COFFEE, '카페')).toBe(true);
+    expect(matchesKeyword(COFFEE, '카드')).toBe(true);
   });
-  it('정규식 특수 글자는 앞에 \\ (특히 *는 PostgREST가 와일드카드로 바꾸는 글자)', () => {
-    expect(escapeRegex('*')).toBe('\\*');
-    expect(escapeRegex('1+1 (2)')).toBe('1\\+1 \\(2\\)');
-    expect(escapeRegex('a.b?')).toBe('a\\.b\\?');
+  it('숫자 칸(금액)은 글자로 찾지 않는다', () => {
+    expect(matchesKeyword(COFFEE, '4500')).toBe(false);
   });
-});
-
-describe('or 필터 글자', () => {
-  it('제목·메모·선택 칸마다 imatch, 쉼표로 잇는다', () => {
-    const filter = toKeywordFilter('카페');
-    expect(filter.split(',')).toContain('title.imatch."카페"');
-    expect(filter.split(',')).toContain('memo.imatch."카페"');
-    expect(filter.split(',')).toContain('fields->>category.imatch."카페"');
+  it('특수 글자도 글자 그대로 (* 는 아무 글자가 아니다)', () => {
+    expect(matchesKeyword(COFFEE, '*')).toBe(false);
+    expect(matchesKeyword({ ...COFFEE, title: '별*표' }, '*')).toBe(true);
   });
-  it('쉼표·괄호·따옴표가 있어도 값은 따옴표 안에 갇힌다', () => {
-    expect(toKeywordFilter('a,"b"')).toContain('title.imatch."a,\\"b\\""');
-    // 정규식 이스케이프 \( 의 \가 PostgREST 따옴표 안에서 한 번 더 막혀 \\( 가 된다
-    expect(toKeywordFilter('(')).toContain('title.imatch."\\\\("');
+  it('검색어가 비면 모두 맞는다', () => {
+    expect(matchesKeyword(COFFEE, '')).toBe(true);
   });
 });
