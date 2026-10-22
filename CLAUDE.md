@@ -68,6 +68,8 @@ src/
                   toast/ = 화면을 옮겨도 남는 알림(Zustand 저장소 + Radix Toast, 앱 틀에 하나),
                   network/ = 연결 상태(useOnlineStatus, 화면 안내용), navigation/ = 주소가 틀렸을 때 다른 화면으로 옮기기(useReplaceRoute), date/ = 날짜 도우미(로컬 YYYY-MM-DD, YYYY-MM 달 계산, date-fns 캘린더 계산(calendar.ts), 브라우저에서만 읽는 오늘 useToday)
   features/       기능 단위 모듈. auth/ = 로그인·로그아웃(authActions), 지금 계정(useCurrentUser). 이후 search, chat ...
+                  budget/ = 가계부 예산(step3, 달마다 따로). api/budgetStore = 예산 저장·조회의 유일한 입구(그 달이 없으면 가장 최근 달을 이어받음),
+                  budgetProgress = 쓴 돈·남은 돈·남은 날·분류별 초과(순수 함수), schema/budget = Zod
                   settings/ = 설정 화면. api/settingsStore = 설정 저장·조회의 유일한 입구(user_settings),
                   typeVisibility = 숨긴 타입 계산(순수 함수), hooks/useUserSettings = 설정 훅 + 켜진 타입(useVisibleTypes)
                   calendar/ = 홈 캘린더. calendarState = 주소(?date=) 해석·만들기와 공통 탐색(이전·다음 달, 키보드 이동),
