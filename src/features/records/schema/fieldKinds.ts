@@ -1,9 +1,12 @@
 import { z } from 'zod';
+// 한국어 문구만 가져온다. z.locales.ko()로 쓰면 z.locales(모든 언어 묶음)를 통째로 참조해서
+// 스페인어·독일어·일본어… 문구가 전부 앱 JS에 들어갔다 (26단계 측정: 가장 큰 JS 파일 안에서 확인)
+import ko from 'zod/v4/locales/ko.js';
 import { withObjectParticle } from '@/shared/text/withObjectParticle';
 
 // 아래에서 문구를 정하지 않은 경우의 대비책. Zod 기본 한국어 문구는 개발자용이라("예상 타입은 number…")
 // 사용자에게 보이는 규칙에는 모두 직접 문구를 붙인다
-z.config(z.locales.ko());
+z.config(ko());
 
 // 사용자에게 보이는 검증 문구. 필드 이름으로 만들어서 새 필드가 생겨도 문구를 따로 쓰지 않는다
 export function requiredInputMessage(label: string): string {

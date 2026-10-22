@@ -5,7 +5,13 @@
 // 1. 홈 첫 표시: 주소 이동 → 캘린더가 이 달 기록을 그릴 때까지 (5회, 가운데 값)
 // 2. 달 넘김: "다음 달" 버튼 → 처음 가는 달의 기록이 그려질 때까지 (네트워크 요청 포함)
 //    / "이전 달" 버튼 → 다시 온 달이 그려질 때까지 (TanStack Query 캐시, 요청 없음)
-// 3. Lighthouse 홈 (lighthouse.mts와 같은 조건: 모바일, 매 측정 전 캐시 비움, 3회 가운데 값) → FCP·LCP·LCP 요소·JS 전송량
+// 3. Lighthouse 홈 (lighthouse.mts와 같은 조건: 모바일, 3회 가운데 값) → FCP·LCP·LCP 요소·JS 전송량
+//
+// 두 가지 방문으로 나눠 잰다 (26단계, 25 오프라인 이후):
+// - 처음 방문: 매 실행 전 HTTP 캐시 + 서비스 워커·그 캐시 + IndexedDB(기기 사본)를 지운다 (쿠키=로그인은 남김).
+//   20b 기준 수치와 같은 조건이라 전후를 비교할 수 있다
+// - 다시 방문: 서비스 워커와 기기 사본을 그대로 둔다 (평소 쓰는 모습). 25에서 새로 생긴 경우
+// 처음 재측정에서는 HTTP 캐시만 비워서 2회째부터 "다시 방문"이 섞였다(가운데 값 933ms, Lighthouse 전송량 0KiB)
 //
 // Lighthouse 점수만으로는 부족해서 1·2를 따로 잰다: Lighthouse는 페이지를 한 번 여는 것만 재서 "달 넘김"을 못 재고,
 // LCP는 "가장 큰 요소가 그려진 때"라 캘린더 점(작은 요소)이 다 찍힌 때와 같다는 보장이 없다.
@@ -48,6 +54,22 @@ const MOBILE_SLOW_4G = {
   cpuSlowdown: 4,
 };
 const KBPS_TO_BYTES_PER_SECOND = 1024 / 8;
+
+type Visit = 'first' | 'return';
+
+const VISIT_LABEL: Record<Visit, string> = {
+  first: '처음 방문 (캐시·서비스 워커·기기 사본 비움)',
+  return: '다시 방문 (서비스 워커·기기 사본 그대로)',
+};
+
+// 처음 방문하는 사용자로 만든다: 받아 둔 파일·화면·기록을 모두 지운다. 쿠키(로그인)는 남긴다
+async function resetToFirstVisit(cdp: CDPSession) {
+  await cdp.send('Network.clearBrowserCache');
+  await cdp.send('Storage.clearDataForOrigin', {
+    origin: BASE_URL,
+    storageTypes: 'service_workers,cache_storage,indexeddb',
+  });
+}
 
 type TimingRun = {
   firstRecordsMs: number;
@@ -225,15 +247,23 @@ async function measureTimings(
   page: Page,
   cdp: CDPSession,
   today: string,
+  visit: Visit,
 ): Promise<TimingRun[]> {
   const month = today.slice(0, 'YYYY-MM'.length);
   const nextMonth = shiftMonth(month, 1);
   const runs: TimingRun[] = [];
 
-  for (let run = 1; run <= TIMING_RUNS; run += 1) {
-    // 처음 방문하는 사용자처럼: JS·CSS를 매번 새로 받는다. TanStack Query 캐시는 페이지를 새로 열면 사라진다
-    await cdp.send('Network.clearBrowserCache');
+  if (visit === 'return') {
+    // 다시 방문의 준비: 한 번 열어 서비스 워커를 깔고 기기 사본을 채운다. 이 열기는 재지 않는다
+    await page.goto(`${BASE_URL}/?date=${today}`);
+    await waitForCalendar(page, toMonthLabel(month));
+  }
 
+  for (let run = 1; run <= TIMING_RUNS; run += 1) {
+    // 처음 방문은 매번 모두 비운다. TanStack Query 캐시(메모리)는 어느 쪽이든 페이지를 새로 열면 사라진다
+    if (visit === 'first') await resetToFirstVisit(cdp);
+
+    // 첫 기록 요청: 처음 방문은 보는 달 바로 받기(26단계, 전체 동기화는 뒤에서), 다시 방문은 바뀐 것만 받는 동기화
     const recordsResponse = page.waitForResponse(
       (response) =>
         response.url().includes('/rest/v1/records') &&
@@ -276,7 +306,7 @@ async function measureTimings(
     };
     runs.push(result);
     console.log(
-      `타이밍 #${run}: 첫 표시 ${Math.round(firstRecordsMs)}ms, 기록 요청 ${Math.round(timing.responseEnd)}ms, 다음 달 ${Math.round(nextMonthMs)}ms, 돌아온 달 ${Math.round(backMonthMs)}ms (칸 ${dotCellCount}개에 점)`,
+      `${visit === 'first' ? '처음' : '다시'} 방문 타이밍 #${run}: 첫 표시 ${Math.round(firstRecordsMs)}ms, 기록 요청 ${Math.round(timing.responseEnd)}ms, 다음 달 ${Math.round(nextMonthMs)}ms, 돌아온 달 ${Math.round(backMonthMs)}ms (칸 ${dotCellCount}개에 점)`,
     );
   }
   return runs;
@@ -285,10 +315,11 @@ async function measureTimings(
 async function measureLighthouse(
   cdp: CDPSession,
   today: string,
+  visit: Visit,
 ): Promise<LighthouseRun[]> {
   const runs: LighthouseRun[] = [];
   for (let run = 1; run <= LIGHTHOUSE_RUNS; run += 1) {
-    await cdp.send('Network.clearBrowserCache');
+    if (visit === 'first') await resetToFirstVisit(cdp);
     const result = await lighthouse(`${BASE_URL}/?date=${today}`, {
       port: DEBUG_PORT,
       output: 'html',
@@ -298,7 +329,7 @@ async function measureLighthouse(
     });
     if (!result) throw new Error('Lighthouse 결과 없음');
     await writeFile(
-      join(OUT_DIR, `home-300-${run}.html`),
+      join(OUT_DIR, `home-300-${visit}-${run}.html`),
       result.report as string,
     );
 
@@ -333,7 +364,7 @@ async function measureLighthouse(
     };
     runs.push(lighthouseRun);
     console.log(
-      `Lighthouse #${run}: 성능 ${lighthouseRun.performance}, LCP ${Math.round(lighthouseRun.lcpMs)}ms, LCP 요소 ${lighthouseRun.lcpElement}`,
+      `Lighthouse ${visit === 'first' ? '처음' : '다시'} 방문 #${run}: 성능 ${lighthouseRun.performance}, LCP ${Math.round(lighthouseRun.lcpMs)}ms, LCP 요소 ${lighthouseRun.lcpElement}`,
     );
   }
   return runs;
@@ -345,6 +376,7 @@ function toKiB(bytes: number): string {
 
 // CI 실행 화면(Summary)에 바로 보이게. 아티팩트를 내려받지 않아도 수치를 docs/performance.md로 옮길 수 있다
 function toMarkdown(
+  visit: Visit,
   timings: TimingRun[],
   lighthouseRun: LighthouseRun,
 ): string {
@@ -352,14 +384,14 @@ function toMarkdown(
   const row = (label: string, values: number[], unit = 'ms') =>
     `| ${label} | ${values.map((v) => Math.round(v)).join(' / ')} | **${Math.round(median(values))}${unit}** |`;
   return [
-    `## 캘린더 성능 (한 달 기록 ${RECORDS_PER_MONTH}개)`,
+    `## 캘린더 성능 (한 달 기록 ${RECORDS_PER_MONTH}개) — ${VISIT_LABEL[visit]}`,
     '',
-    `Playwright, 모바일 화면, 크롬 스로틀링(CPU ${MOBILE_SLOW_4G.cpuSlowdown}배, 지연 ${MOBILE_SLOW_4G.latencyMs}ms, 내려받기 ${MOBILE_SLOW_4G.downloadKbps}Kbps), 매 실행 전 캐시 비움, ${TIMING_RUNS}회`,
+    `Playwright, 모바일 화면, 크롬 스로틀링(CPU ${MOBILE_SLOW_4G.cpuSlowdown}배, 지연 ${MOBILE_SLOW_4G.latencyMs}ms, 내려받기 ${MOBILE_SLOW_4G.downloadKbps}Kbps), ${TIMING_RUNS}회`,
     '',
     '| 항목 | 각 실행 | 가운데 값 |',
     '| --- | --- | --- |',
     row('홈 첫 표시 (기록까지)', pick('firstRecordsMs')),
-    row('└ 그중 기록 요청', pick('recordsRequestMs')),
+    row('└ 그중 첫 기록 요청', pick('recordsRequestMs')),
     row('다음 달 (처음 가는 달)', pick('nextMonthMs')),
     row('돌아온 달 (캐시)', pick('backMonthMs')),
     `| 기록 응답 크기 | | **${toKiB(median(pick('recordsResponseBytes')))}** |`,
@@ -397,19 +429,35 @@ async function main() {
       cookies.map((cookie) => ({ ...cookie, url: BASE_URL })),
     );
 
-    const page = await context.newPage();
-    const cdp = await context.newCDPSession(page);
-    await throttle(cdp);
-    const timings = await measureTimings(page, cdp, today);
-    // 스로틀링은 이 탭에만 걸려 있다. 닫아서 Lighthouse 탭(자체 조건으로 잼)에 섞이지 않게 한다
-    await page.close();
+    const results: Record<
+      Visit,
+      { timings: TimingRun[]; lighthouse: LighthouseRun[] }
+    > = {
+      first: { timings: [], lighthouse: [] },
+      return: { timings: [], lighthouse: [] },
+    };
+    // 처음 방문을 먼저: 다시 방문의 준비(서비스 워커·사본 채우기)가 처음 방문 값에 섞이지 않게
+    for (const visit of ['first', 'return'] as const) {
+      const page = await context.newPage();
+      const cdp = await context.newCDPSession(page);
+      await throttle(cdp);
+      results[visit].timings = await measureTimings(page, cdp, today, visit);
+      // 스로틀링은 이 탭에만 걸려 있다. 닫아서 Lighthouse 탭(자체 조건으로 잼)에 섞이지 않게 한다
+      await page.close();
 
-    const cachePage = await context.newPage();
-    const cacheCdp = await context.newCDPSession(cachePage);
-    const lighthouseRuns = await measureLighthouse(cacheCdp, today);
-    const medianLighthouse = [...lighthouseRuns].sort(
-      (a, b) => a.performance - b.performance,
-    )[Math.floor(lighthouseRuns.length / 2)];
+      const lighthousePage = await context.newPage();
+      const lighthouseCdp = await context.newCDPSession(lighthousePage);
+      results[visit].lighthouse = await measureLighthouse(
+        lighthouseCdp,
+        today,
+        visit,
+      );
+      await lighthousePage.close();
+    }
+    const medianOf = (runs: LighthouseRun[]) =>
+      [...runs].sort((a, b) => a.performance - b.performance)[
+        Math.floor(runs.length / 2)
+      ];
 
     await writeFile(
       join(OUT_DIR, 'summary.json'),
@@ -417,14 +465,21 @@ async function main() {
         {
           recordsPerMonth: RECORDS_PER_MONTH,
           throttling: MOBILE_SLOW_4G,
-          timings,
-          lighthouse: lighthouseRuns,
+          ...results,
         },
         null,
         2,
       ),
     );
-    const markdown = toMarkdown(timings, medianLighthouse);
+    const markdown = (['first', 'return'] as const)
+      .map((visit) =>
+        toMarkdown(
+          visit,
+          results[visit].timings,
+          medianOf(results[visit].lighthouse),
+        ),
+      )
+      .join('\n');
     console.log(markdown);
     if (process.env.GITHUB_STEP_SUMMARY) {
       await appendFile(process.env.GITHUB_STEP_SUMMARY, markdown);

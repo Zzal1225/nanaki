@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { closeLocalDb, openLocalDb } from '@/lib/db/localDb';
+import { hasPulledOnce, NIL_UUID } from '@/lib/db/sync';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { createFakeBrowserClient } from '@/lib/supabase/fakeBrowserClient.testing';
 import { buildSampleRecords } from '../sample/sampleRecords';
@@ -70,14 +71,24 @@ function row(partial: Partial<RecordRow> & { id: string }): RecordRow {
 // 테스트마다 다른 계정 → 다른 기기 사본(IndexedDB)과 다른 동기화 기록으로 시작한다
 let userCount = 0;
 let server: ReturnType<typeof createFakeBrowserClient>;
-beforeEach(() => {
+beforeEach(async () => {
   userCount += 1;
   server = createFakeBrowserClient(`user-${userCount}`);
   vi.mocked(createSupabaseBrowserClient).mockReturnValue(
     server.client as never,
   );
   vi.spyOn(console, 'warn').mockImplementation(() => {});
+  // 대부분의 테스트는 "이미 한 번 받아 본 기기"에서 시작한다 (처음 방문은 아래 describe에서 따로)
+  await markPulledBefore();
 });
+
+// 한 번 동기화한 기기로 만든다: 커서가 있으면 처음 방문(서버에서 기간 바로 받기)으로 가지 않는다
+async function markPulledBefore() {
+  await openLocalDb(`user-${userCount}`).meta.put({
+    table: 'records',
+    cursor: { updatedAt: '2000-01-01T00:00:00.000Z', id: NIL_UUID },
+  });
+}
 afterEach(() => {
   closeLocalDb();
   vi.restoreAllMocks();
@@ -339,5 +350,39 @@ describe('쓰기: 기기 사본에 먼저 쓰고 대기열에 쌓는다 (보내�
   it('스키마에 어긋난 기록은 사본에도 대기열에도 넣지 않는다', async () => {
     await expect(createRecord({ ...LUNCH, title: '' })).rejects.toThrow();
     expect(await db().outbox.count()).toBe(0);
+  });
+});
+
+describe('처음 방문 (이 기기에 사본이 아직 없음)', () => {
+  beforeEach(async () => {
+    await openLocalDb(`user-${userCount}`).meta.clear();
+  });
+
+  // 26단계: 전체 동기화(기록이 많으면 오래 걸림)를 기다리지 않고 보는 기간만 바로 받는다
+  it('보는 기간은 서버에서 바로 받고, 전체 동기화는 뒤에서 해 사본을 채운다', async () => {
+    const lunch = row({ id: 'lunch', title: '점심' });
+    // 기간 조회와 뒤의 전체 동기화가 같은 줄을 받는다 (두 요청의 순서는 정해져 있지 않다)
+    server.respond(
+      { data: [lunch], error: null },
+      { data: [lunch], error: null },
+    );
+
+    const entries = await listRecords('2026-10-01', '2026-10-31');
+    expect(entries.map((e) => e.title)).toEqual(['점심']);
+    expect(server.calls.some((call) => call.method === 'gte')).toBe(true);
+
+    const db = openLocalDb(`user-${userCount}`);
+    await vi.waitFor(async () =>
+      expect(await hasPulledOnce(db, 'records')).toBe(true),
+    );
+    expect(await db.records.count()).toBe(1);
+  });
+
+  it('오프라인이면 서버에 묻지 않고 사본(아직 빈 목록)으로', async () => {
+    vi.stubGlobal('navigator', { onLine: false });
+    const entries = await listRecords('2026-10-01', '2026-10-31');
+    vi.unstubAllGlobals();
+    expect(entries).toEqual([]);
+    expect(server.calls).toEqual([]);
   });
 });
