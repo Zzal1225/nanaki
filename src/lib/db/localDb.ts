@@ -39,11 +39,15 @@ export type OutboxOp = {
   | { kind: 'restore' }
 );
 
+// 설정(숨긴 타입)의 사본. 한 계정에 한 줄이라 키는 늘 'user'
+export type LocalSettings = { key: 'user'; hiddenTypes: string[] };
+
 export class LocalDb extends Dexie {
   records!: Table<LocalRecordRow, string>;
   routines!: Table<LocalRoutineRow, string>;
   meta!: Table<SyncMeta, SyncedTable>;
   outbox!: Table<OutboxOp, number>;
+  settings!: Table<LocalSettings, 'user'>;
 
   constructor(
     name: string,
@@ -65,6 +69,10 @@ export class LocalDb extends Dexie {
     // 2: 오프라인 작성 대기열 (25c). ++seq = 자동 증가 기본 키(보낼 순서), recordId = 그 기록의 대기 중 변경 찾기
     this.version(2).stores({
       outbox: '++seq, recordId',
+    });
+    // 3: 설정 사본 (25c-2). 오프라인에서 새로 고쳐도 숨긴 타입이 숨겨진 채로 보이게
+    this.version(3).stores({
+      settings: 'key',
     });
   }
 }

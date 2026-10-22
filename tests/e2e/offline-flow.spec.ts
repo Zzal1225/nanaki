@@ -1,9 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 
-// 오프라인 보기 (25a 실험 → 25b 기기 사본).
-// 25a에서는 연 화면의 틀만 뜨고 기록은 회색 자리에 멈췄다(TanStack이 오프라인 조회를 멈춤).
-// 25b부터 기록은 기기 사본(IndexedDB)에서 읽어서, 연결이 끊겨도 마지막으로 받은 기록이 그대로 보여야 한다.
-// 아직 안 되는 것: 연 적 없는 화면(특히 기록마다 주소가 다른 상세)은 오프라인 대체 화면 → 25c에서 다룬다
+// 오프라인 (25a 화면 틀 → 25b 기기 사본 → 25c 오프라인 작성 → 25c-2 연 적 없는 화면).
+// - 기록은 기기 사본(IndexedDB)에서 읽어서 연결이 끊겨도 보인다
+// - 로그인 뒤 주요 화면을 미리 받아 두어(OfflineWarmup), 연 적 없는 타입 상세·기록 상세·수정·작성도 열린다
+//   기록 상세·수정은 기록마다 HTML이 같아서 틀 한 장으로 연다 (src/sw/sw.ts)
+// - 미리 받지 않는 화면은 오프라인 대체 화면
 
 // 서비스 워커가 이 페이지를 맡을 때까지 기다린다. 처음 방문에서는 등록만 되고, clientsClaim으로 곧 넘어온다
 async function waitForServiceWorker(page: Page) {
@@ -14,35 +15,69 @@ async function waitForServiceWorker(page: Page) {
   );
 }
 
+// 미리 받기(OfflineWarmup)가 끝날 때까지: 목록 끝의 타입 화면과 수정 틀이 캐시에 들어왔는지 본다
+async function waitForWarmup(page: Page) {
+  await page.waitForFunction(
+    async () =>
+      Boolean(
+        await caches.match(
+          '/records/00000000-0000-0000-0000-000000000000/edit',
+          { ignoreSearch: true },
+        ),
+      ) &&
+      Boolean(await caches.match('/records/type/body', { ignoreSearch: true })),
+    undefined,
+    { timeout: 30_000, polling: 500 },
+  );
+}
+
 // PC 기록 탭은 같은 목록이 두 벌(왼쪽 패널 + 숨은 본문) 있다. 보이는 쪽만 본다
 function visibleText(page: Page, text: string | RegExp) {
   return page.getByText(text).filter({ visible: true }).first();
 }
 
-test('오프라인: 연 화면은 기기 사본의 기록으로 그려지고, 검색도 사본에서 찾는다', async ({
-  page,
-  context,
-}) => {
+async function startAsGuest(page: Page) {
   await page.goto('/login');
   await page.getByRole('button', { name: '로그인 없이 체험하기' }).click();
   await expect(page).toHaveURL('/');
   await waitForServiceWorker(page);
+  await waitForWarmup(page);
+}
 
-  // 온라인에서 기록 탭·검색 화면을 연다 (서비스 워커가 화면을, 기기 사본이 기록을 저장해 둔다)
+test('오프라인: 연 적 없는 화면도 열리고, 기록은 기기 사본으로 그려지고, 검색도 사본에서 찾는다', async ({
+  page,
+  context,
+}) => {
+  await startAsGuest(page);
+  // 기록 탭만 온라인에서 한 번 열어 사본을 채운다 (상세·수정·타입·검색은 한 번도 열지 않는다)
   await page.goto('/records');
   await expect(visibleText(page, '[식비] 점심')).toBeVisible();
-  await page.goto('/records/search');
-  await expect(
-    page.getByRole('searchbox', { name: '검색어' }).filter({ visible: true }),
-  ).toBeVisible();
 
   await context.setOffline(true);
 
-  // (1) 연 적 있는 화면을 새로 고쳐도 기록이 보인다 (서버에 못 물어도 사본으로)
+  // (1) 연 적 있는 화면을 새로 고쳐도 기록이 보인다
   await page.goto('/records');
   await expect(visibleText(page, '[식비] 점심')).toBeVisible();
 
-  // (2) 검색: 주소만 바꾸고(서버에 묻지 않음) 사본에서 찾는다. 메모("원두")로 찾기
+  // (2) 연 적 없는 기록 상세: 틀 한 장으로 열고, 어느 기록인지는 주소에서 읽는다
+  await visibleText(page, '[식비] 점심').click();
+  await expect(page).toHaveURL(/\/records\/[0-9a-f-]{36}$/);
+  await expect(
+    page.getByRole('heading', { name: '점심', level: 1 }),
+  ).toBeVisible();
+  const detailUrl = page.url();
+
+  // (3) 연 적 없는 수정 화면: 그 기록의 값이 폼에 들어 있다
+  await page.goto(`${detailUrl}/edit`);
+  await expect(page.getByLabel('제목')).toHaveValue('점심');
+
+  // (4) 연 적 없는 타입 상세
+  await page.goto('/records/type/workout');
+  await expect(
+    page.getByRole('heading', { name: '운동', level: 1 }),
+  ).toBeVisible();
+
+  // (5) 검색: 주소만 바꾸고(서버에 묻지 않음) 사본에서 찾는다. 메모("원두")로 찾기
   await page.goto('/records/search');
   const searchBox = page
     .getByRole('searchbox', { name: '검색어' })
@@ -51,8 +86,8 @@ test('오프라인: 연 화면은 기기 사본의 기록으로 그려지고, �
   await searchBox.press('Enter');
   await expect(visibleText(page, /동네 로스터리/)).toBeVisible();
 
-  // (3) 연 적 없는 화면은 아직 대체 화면 (25c에서 다룬다)
-  await page.goto('/records/type/expense');
+  // (6) 미리 받지 않는 화면(루틴 만들기, 온라인 전용)은 대체 화면
+  await page.goto('/routines/new');
   await expect(
     page.getByRole('heading', { name: '오프라인이에요' }),
   ).toBeVisible();
@@ -60,28 +95,23 @@ test('오프라인: 연 화면은 기기 사본의 기록으로 그려지고, �
   await context.setOffline(false);
 });
 
-// 25c 오프라인 작성: 저장은 기기 사본과 대기열에 하고(구름 아이콘), 연결이 돌아오면 저절로 보낸다
-test('오프라인 작성: 저장하면 바로 목록에 보이고, 연결되면 보내져 구름이 사라진다', async ({
+// 오프라인 작성: 저장은 기기 사본과 대기열에 하고(구름 아이콘), 연결이 돌아오면 저절로 보낸다
+test('오프라인 작성: 연 적 없는 작성 화면에서 저장하면 바로 목록에 보이고, 연결되면 보내져 구름이 사라진다', async ({
   page,
   context,
 }) => {
-  await page.goto('/login');
-  await page.getByRole('button', { name: '로그인 없이 체험하기' }).click();
-  await expect(page).toHaveURL('/');
-  await waitForServiceWorker(page);
-
-  // 작성 화면·기록 탭을 온라인에서 한 번 연다 (연 적 없는 화면을 오프라인에서 여는 것은 25c-2)
-  await page.goto('/records/new?type=expense');
-  await expect(
-    page.getByRole('heading', { name: '가계부 쓰기' }),
-  ).toBeVisible();
+  await startAsGuest(page);
   await page.goto('/records');
   await expect(visibleText(page, '[식비] 점심')).toBeVisible();
 
   await context.setOffline(true);
+  // 작성 화면은 한 번도 연 적이 없다 (미리 받아 둔 한 장이 모든 타입에 쓰인다)
   await page.goto('/records/new?type=expense');
   await expect(
     page.getByRole('status').filter({ hasText: '오프라인이에요' }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: '가계부 쓰기' }),
   ).toBeVisible();
   await page.getByLabel('금액').fill('5000');
   await page
@@ -106,7 +136,5 @@ test('오프라인 작성: 저장하면 바로 목록에 보이고, 연결되면
   await context.setOffline(false);
   await expect(
     item.getByRole('img', { name: '아직 저장되지 않음' }),
-  ).toHaveCount(0, {
-    timeout: 15_000,
-  });
+  ).toHaveCount(0, { timeout: 15_000 });
 });
