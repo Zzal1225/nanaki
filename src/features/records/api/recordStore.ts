@@ -1,6 +1,8 @@
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { recordEntrySchema, type RecordEntry } from '../schema/recordEntry';
+import { SCHEDULE_DRIVEN_TYPES } from '../schema/recordTypes';
 import { toRecordEntry, toRecordInsert, type RecordRow } from './recordMapper';
+import { toKeywordFilter } from './searchQuery';
 
 // 기록 저장·조회는 이 파일의 함수로만 한다. 훅·컴포넌트는 Supabase를 직접 부르지 않는다.
 // step2에서 이 파일 안쪽만 Dexie + outbox로 바꾸면 위의 훅과 화면은 그대로 둘 수 있다.
@@ -53,13 +55,16 @@ export async function listRecords(
 }
 
 // 날짜와 상관없이 최근 기록 limit개 (기록 탭의 "최근 기록").
-// 일어난 날짜가 최근인 순서, 같은 날은 나중에 만든 것이 먼저
+// 일어난 날짜가 최근인 순서, 같은 날은 나중에 만든 것이 먼저.
+// 루틴 체크(일정으로 그리는 타입)는 DB에서 뺀다: 받아 온 뒤 버리면 매일 쌓인 체크가 limit을 다 차지해
+// 다른 기록이 몇 개 안 남는다
 export async function listRecentRecords(limit: number): Promise<RecordEntry[]> {
   const supabase = createSupabaseBrowserClient();
 
   const { data, error } = await supabase
     .from('records')
     .select('*')
+    .not('type', 'in', `(${SCHEDULE_DRIVEN_TYPES.join(',')})`)
     .is('deleted_at', null)
     .order('occurred_at', { ascending: false })
     .order('created_at', { ascending: false })
@@ -247,6 +252,56 @@ export async function listLatestRecordsWithField(
   return data
     .map(toRecordEntryOrWarn)
     .filter((e): e is RecordEntry => e !== null);
+}
+
+// 검색 한 번에 받는 최대 개수. 개인 기록이라 대부분 이 안에 들고, 넘으면 화면이 "검색어를 좁혀 주세요"라고 알린다.
+// 페이지 나누기 대신 한 번에 받는 이유: 타입 칩의 건수와 타입 거르기를 받은 결과로 바로 계산할 수 있어
+// 칩을 바꿀 때 요청이 다시 가지 않는다 (step2 오프라인에서도 같은 계산을 IndexedDB 결과에 그대로 쓴다)
+export const SEARCH_RESULT_LIMIT = 300;
+
+export type SearchSort = 'latest' | 'oldest';
+
+export type SearchRecordsInput = {
+  keyword: string;
+  sort: SearchSort;
+};
+
+export type SearchRecordsResult = {
+  entries: RecordEntry[];
+  // 한도를 넘어 일부만 받았는지 (최신순이면 오래된 쪽이, 오래된순이면 최근 쪽이 빠진다)
+  isTruncated: boolean;
+};
+
+// 검색어로 모든 타입의 기록을 찾는다. 타입 거르기는 받은 뒤 화면에서 한다 (위 SEARCH_RESULT_LIMIT 설명).
+// 검색어가 비어 있으면 조건 없이 최근(또는 오래된) 기록부터 받는다
+export async function searchRecords({
+  keyword,
+  sort,
+}: SearchRecordsInput): Promise<SearchRecordsResult> {
+  const supabase = createSupabaseBrowserClient();
+  const ascending = sort === 'oldest';
+
+  let query = supabase.from('records').select('*').is('deleted_at', null);
+  if (keyword) query = query.or(toKeywordFilter(keyword));
+
+  // 하나 더 받아서 한도를 넘었는지 안다 (count 요청을 따로 보내지 않는다)
+  const { data, error } = await query
+    .order('occurred_at', { ascending })
+    .order('created_at', { ascending })
+    .order('id', { ascending })
+    .limit(SEARCH_RESULT_LIMIT + 1);
+
+  if (error) {
+    throw error;
+  }
+
+  return {
+    entries: data
+      .slice(0, SEARCH_RESULT_LIMIT)
+      .map(toRecordEntryOrWarn)
+      .filter((e): e is RecordEntry => e !== null),
+    isTruncated: data.length > SEARCH_RESULT_LIMIT,
+  };
 }
 
 // Postgres 고유 제약 위반 (records_routine_check_unique: 같은 루틴·같은 날 두 줄)

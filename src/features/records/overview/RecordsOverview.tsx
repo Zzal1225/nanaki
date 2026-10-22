@@ -17,6 +17,7 @@ import { filterVisibleEntries } from '@/features/settings/typeVisibility';
 import { useRecentRecords } from '../hooks/useRecentRecords';
 import { useRecords } from '../hooks/useRecords';
 import { useRoutines } from '@/features/routines/hooks/useRoutines';
+import SearchBarLink from '@/features/search/SearchBarLink';
 import { RECORD_TYPE_CONFIG } from '../schema/recordTypes';
 import {
   getListTitle,
@@ -100,6 +101,10 @@ function RecordsOverviewView({ pathname }: { pathname: string | null }) {
       <h1 className='px-4 pt-6 pb-2 text-title-lg text-fg-primary md:px-6'>
         기록
       </h1>
+      {/* 기록을 불러오지 못해도 검색은 따로 시도할 수 있게 오류 안내보다 위에 둔다 */}
+      <div className='px-4 pt-2 md:px-6'>
+        <SearchBarLink />
+      </div>
 
       {isError ? (
         <div

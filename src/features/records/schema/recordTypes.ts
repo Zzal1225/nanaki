@@ -62,6 +62,9 @@ export const RECORD_TYPE_CONFIG = {
     createLabel: '루틴 만들기',
     createHref: '/routines/new',
     isEditable: false,
+    // 매일 쌓이는 체크라 "최근 기록"·하루 요약의 기록 줄에 넣으면 다른 기록을 밀어낸다.
+    // 체크는 그날 일정에서 그리는 홈 루틴 줄과 루틴 상세에서 본다 (2026-10-22 사용자 결정)
+    isScheduleDriven: true,
     fields: ROUTINE_CHECK_FIELDS,
     title: HIDDEN_TITLE,
     // 폼으로 쓰지 않지만 설정 모양을 맞춰 둔다 (폼 화면은 루틴 만들기로 돌려보낸다)
@@ -75,6 +78,7 @@ type RecordTypeConfig = {
   createLabel: string;
   createHref?: string;
   isEditable?: boolean;
+  isScheduleDriven?: boolean;
   fields: readonly unknown[];
   title: { isHidden: boolean; placeholder: string };
   formSchema: unknown;
@@ -95,6 +99,15 @@ export function isEditableType(type: RecordType): boolean {
 }
 
 export type RecordType = keyof typeof RECORD_TYPE_CONFIG;
+
+// 기록이 아니라 일정(루틴 규칙)으로 그리는 타입. 홈 하루 요약은 기록 줄에서 빼고 일정 줄로 따로 그리고,
+// 기록 탭 "최근 기록"에서는 뺀다. 캘린더 점·검색·타입 상세에는 그대로 나온다
+export const SCHEDULE_DRIVEN_TYPES: readonly RecordType[] = (
+  Object.keys(RECORD_TYPE_CONFIG) as RecordType[]
+).filter((type) => {
+  const config: RecordTypeConfig = RECORD_TYPE_CONFIG[type];
+  return config.isScheduleDriven ?? false;
+});
 
 // 주소의 ?type= 값은 누구나 고쳐 칠 수 있고 string[](?type=a&type=b)이나 undefined로도 온다
 export function parseRecordType(value: unknown): RecordType | null {

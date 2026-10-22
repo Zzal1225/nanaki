@@ -57,7 +57,7 @@ src/
   app/            라우트 (Next.js App Router). globals.css = 디자인 토큰 CSS 변수 + Tailwind 연결
                   auth/callback/ = 구글 로그인 뒤 code를 세션으로 바꾸는 Route Handler
                   api/account/ = 계정 삭제 Route Handler (DELETE, secret 키로 본인 계정만). API는 proxy가 로그인 화면으로 보내지 않고 스스로 401
-                  (app)/ = 로그인 뒤 화면 묶음(/, /records, /records/new, /records/[id](/edit), /records/type/[type], /settings).
+                  (app)/ = 로그인 뒤 화면 묶음(/, /records, /records/new, /records/[id](/edit), /records/type/[type], /records/search, /settings).
                   records/layout.tsx = PC에서 목록(왼쪽) + 상세·폼(오른쪽) 패널. 주소에 안 나타나는 괄호 폴더
   proxy.ts        모든 요청 앞의 문지기. 세션 갱신 + 로그인 안 했으면 /login으로 (공개 주소는 features/auth)
   shared/         공통 코드. ui/ = 공통 컴포넌트(Radix + Tailwind, 확인 창 ConfirmDialog 포함), theme/ = 다크·라이트 전환,
@@ -80,6 +80,8 @@ src/
                   records/detail/ = 기록 상세(RecordDetail), 수정·삭제 동작(RecordActions), 수정 화면(RecordEditForm)
                   records/type/ = 타입 상세(달 이동, 타입별 요약 카드 registry, 목록)
                   records/sample/ = 체험하기 예시 기록(오늘 기준 최근 2주, 순수 함수) + 넣기(addSampleRecords)
+                  search/ = 검색 화면. searchState = 주소(?q=&type=&sort=) 해석·만들기, searchResults = 타입 칩 건수·거르기·검색어 강조(순수 함수),
+                  SearchView(모바일 페이지 / PC는 records/overview/RecordsSidePanel이 왼쪽 목록 자리에). 검색어 필터 글자는 records/api/searchQuery
   lib/supabase/   Supabase 클라이언트 (client.ts = 브라우저용, server.ts = 서버용, admin.ts = secret 키 관리자용·서버 전용), database.types.ts = DB 타입(자동 생성, 직접 수정 금지)
   lib/sentry/     Sentry 공통 설정(sentryOptions: 켜는 조건, 개인 데이터 수집 끔). instrumentation(-client).ts와 app/global-error.tsx가 쓴다
   lib/db/         Dexie 스키마와 마이그레이션 (예정)

@@ -1,6 +1,11 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import RecordDetail from '@/features/records/detail/RecordDetail';
+import {
+  hasSearchCondition,
+  parseSearchState,
+  toSearchHref,
+} from '@/features/search/searchState';
 
 export const metadata: Metadata = {
   title: '기록 보기',
@@ -9,17 +14,29 @@ export const metadata: Metadata = {
 // cacheComponents에서 요청 때만 알 수 있는 값(params의 id)은 Suspense 안에서 읽어야 빌드된다 (작성 화면과 같은 이유)
 export default function RecordDetailPage({
   params,
+  searchParams,
 }: PageProps<'/records/[id]'>) {
   return (
     <Suspense fallback={<p className='sr-only'>기록을 여는 중</p>}>
-      <RecordDetailContent params={params} />
+      <RecordDetailContent params={params} searchParams={searchParams} />
     </Suspense>
   );
 }
 
 async function RecordDetailContent({
   params,
-}: Pick<PageProps<'/records/[id]'>, 'params'>) {
-  const { id } = await params;
-  return <RecordDetail id={id} />;
+  searchParams,
+}: Pick<PageProps<'/records/[id]'>, 'params' | 'searchParams'>) {
+  const [{ id }, query] = await Promise.all([params, searchParams]);
+  // 검색 결과에서 왔으면(?q=카페) 뒤로 버튼이 그 검색 결과로 돌아간다. 아니면 기록 탭으로
+  const search = parseSearchState({
+    get: (name) => {
+      const value = query[name];
+      return typeof value === 'string' ? value : null;
+    },
+  });
+  const backHref = hasSearchCondition(search)
+    ? toSearchHref(search)
+    : '/records';
+  return <RecordDetail id={id} backHref={backHref} />;
 }

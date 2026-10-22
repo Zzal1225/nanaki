@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { splitByKeyword } from '@/features/search/searchResults';
 import { ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import type { RecordType } from '../schema/recordTypes';
 import { RECORD_TYPE_STYLE } from '../ui/recordTypeStyle';
@@ -15,6 +16,8 @@ type RecentRecordItemProps = {
   href: string;
   // PC에서 오른쪽 패널에 열려 있는 기록 (시안: 캘린더 선택 날짜와 같은 2px fg-primary 테두리)
   isSelected: boolean;
+  // 검색 결과에서 제목 안의 검색어를 타입 옅은 색으로 강조한다 (시안 14a)
+  highlight?: string;
 };
 
 // 기록 객체 전체 대신 화면에 쓰는 값만 받는다 (CLAUDE.md: props는 필요한 것만). 한 줄 전체가 상세로 가는 링크
@@ -25,6 +28,7 @@ export default function RecentRecordItem({
   value,
   href,
   isSelected,
+  highlight = '',
 }: RecentRecordItemProps) {
   const style = RECORD_TYPE_STYLE[type];
   const Icon = style.icon;
@@ -51,7 +55,19 @@ export default function RecentRecordItem({
       <div className='flex min-w-0 flex-1 flex-col gap-1'>
         {/* 제목이 길면 한 줄로 자른다. min-w-0이 없으면 flex 자식이 줄어들지 않아 잘리지 않는다 */}
         <span className='truncate text-body font-semibold text-fg-primary'>
-          {title}
+          {/* <mark>: 화면 읽기 프로그램이 "강조된 글자"로 알 수 있다. 색은 기본 노랑 대신 그 타입의 옅은 색 */}
+          {splitByKeyword(title, highlight).map((part, index) =>
+            part.isMatch ? (
+              <mark
+                key={index}
+                className={`rounded-sm px-0.5 text-inherit ${style.subtleBgClass}`}
+              >
+                {part.text}
+              </mark>
+            ) : (
+              part.text
+            ),
+          )}
         </span>
         <span className='text-caption font-medium text-fg-secondary tabular-nums'>
           {subtitle}

@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
-import { restoreRecord } from './recordStore';
+import {
+  listRecentRecords,
+  restoreRecord,
+  SEARCH_RESULT_LIMIT,
+  searchRecords,
+} from './recordStore';
 
 vi.mock('@/lib/supabase/client', () => ({
   createSupabaseBrowserClient: vi.fn(),
@@ -43,5 +48,54 @@ describe('restoreRecord', () => {
     mockUpdateResult({ data: null, error: dbError });
 
     await expect(restoreRecord('a')).rejects.toBe(dbError);
+  });
+});
+
+// select().not().is().order()...limit() 사슬. 마지막 limit이 결과를 준다
+function mockListResult(result: { data: unknown; error: unknown }) {
+  const chain = {
+    select: vi.fn(() => chain),
+    not: vi.fn(() => chain),
+    is: vi.fn(() => chain),
+    or: vi.fn(() => chain),
+    order: vi.fn(() => chain),
+    limit: vi.fn(async () => result),
+  };
+  vi.mocked(createSupabaseBrowserClient).mockReturnValue({
+    from: () => chain,
+  } as never);
+  return chain;
+}
+
+describe('listRecentRecords', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  // 매일 쌓이는 루틴 체크가 limit을 다 차지하지 않게 DB에서 뺀다 (받아 온 뒤 버리면 다른 기록이 몇 개 안 남는다)
+  it('루틴 체크는 DB 조건으로 뺀다', async () => {
+    const chain = mockListResult({ data: [], error: null });
+    await listRecentRecords(20);
+    expect(chain.not).toHaveBeenCalledWith('type', 'in', '(routine)');
+    expect(chain.limit).toHaveBeenCalledWith(20);
+  });
+});
+
+describe('searchRecords', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('한도보다 하나 더 받아서, 넘었으면 잘라 내고 알린다', async () => {
+    const rows = Array.from({ length: SEARCH_RESULT_LIMIT + 1 }, () => ({}));
+    const chain = mockListResult({ data: rows, error: null });
+    const result = await searchRecords({ keyword: '', sort: 'latest' });
+    expect(chain.limit).toHaveBeenCalledWith(SEARCH_RESULT_LIMIT + 1);
+    expect(result.isTruncated).toBe(true);
+  });
+
+  it('검색어가 없으면 글자 조건을 걸지 않는다', async () => {
+    const chain = mockListResult({ data: [], error: null });
+    await searchRecords({ keyword: '', sort: 'oldest' });
+    expect(chain.or).not.toHaveBeenCalled();
+    expect(chain.order).toHaveBeenCalledWith('occurred_at', {
+      ascending: true,
+    });
   });
 });
