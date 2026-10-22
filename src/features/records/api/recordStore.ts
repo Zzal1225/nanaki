@@ -142,20 +142,25 @@ async function fetchRangeOnFirstVisit(
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
     return null;
   }
-  void syncBeforeRead('records', () => syncRecords(db));
   const supabase = createSupabaseBrowserClient();
-  const { data, error } = await supabase
-    .from('records')
-    .select('*')
-    .gte('occurred_at', from)
-    .lte('occurred_at', to)
-    .is('deleted_at', null)
-    .order('occurred_at', { ascending: true })
-    .order('created_at', { ascending: true })
-    .order('id', { ascending: true })
-    .abortSignal(AbortSignal.timeout(FIRST_VISIT_TIMEOUT_MS));
-  if (error) return null;
-  return toEntries(data);
+  try {
+    const { data, error } = await supabase
+      .from('records')
+      .select('*')
+      .gte('occurred_at', from)
+      .lte('occurred_at', to)
+      .is('deleted_at', null)
+      .order('occurred_at', { ascending: true })
+      .order('created_at', { ascending: true })
+      .order('id', { ascending: true })
+      .abortSignal(AbortSignal.timeout(FIRST_VISIT_TIMEOUT_MS));
+    if (error) return null;
+    return toEntries(data);
+  } finally {
+    // 전체 동기화는 기간 조회가 끝난 뒤에 시작한다. 같이 출발하면 느린 회선을 나눠 써서
+    // 기간 조회도 늦어졌다 (26단계 측정: 받는 양은 213KiB → 106KiB로 줄었는데 요청 시간은 1.7초 그대로)
+    void syncBeforeRead('records', () => syncRecords(db));
+  }
 }
 
 export async function listRecords(
