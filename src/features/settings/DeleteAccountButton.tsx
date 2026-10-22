@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { deleteAccount } from '@/features/auth/authActions';
 import { LOGIN_PATH } from '@/features/auth/getAuthRedirectPath';
+import { prepareDeviceDataCleanup } from '@/lib/db/deviceData';
 import { useToastStore } from '@/shared/toast/toastStore';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 
@@ -21,8 +22,13 @@ export default function DeleteAccountButton() {
 
   async function confirmDelete() {
     setIsPending(true);
+    // 세션이 있을 때 지울 사본을 알아 둔다 (계정을 지우면 세션도 사라진다)
+    const cleanup = await prepareDeviceDataCleanup();
     const result = await deleteAccount();
     if (result === 'deleted') {
+      // 지운 계정의 기기 사본·화면 캐시도 지운다 (서버에서 지운 기록이 이 기기에 남지 않게).
+      // 계정 삭제는 아직 안 보낸 기록을 묻지 않는다: 확인 창이 이미 "모든 기록이 영구적으로 삭제"라고 알린다
+      await cleanup().catch(() => {});
       // 로그아웃과 같은 이유로 페이지를 새로 연다: 메모리 속 캐시(지운 계정의 기록)를 모두 버린다
       window.location.replace(LOGIN_PATH);
       return;
