@@ -59,9 +59,10 @@ describe('TypeDetail', () => {
     expect(await screen.findByText('-20,000원')).toBeTruthy();
     expect(screen.getByText('75%')).toBeTruthy();
     expect(screen.getByText('25%')).toBeTruthy();
+    // 타입 화면에서 연 상세는 뒤로 버튼이 이 화면(같은 달)으로 돌아온다 (detailOrigin)
     expect(
       screen.getByRole('link', { name: /\[식비\] 점심/ }).getAttribute('href'),
-    ).toBe('/records/view?id=1');
+    ).toBe('/records/view?back=type&month=2026-09&id=1');
   });
 
   it('주소의 달(?month=)로 그 달 첫날~말일을 조회한다', async () => {

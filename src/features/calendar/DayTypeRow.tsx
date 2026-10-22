@@ -25,6 +25,8 @@ type DayTypeRowProps = {
   content?: ReactNode;
   isOpen: boolean;
   onToggle: () => void;
+  // 상세 주소에 붙일 "들어온 곳" (홈의 그 날짜). 상세의 뒤로 버튼이 홈의 같은 날로 돌아온다
+  detailQuery?: string;
 };
 
 // 시안 규격: 타입 아이콘 18px
@@ -40,6 +42,7 @@ export default function DayTypeRow({
   content,
   isOpen,
   onToggle,
+  detailQuery = '',
 }: DayTypeRowProps) {
   const style = RECORD_TYPE_STYLE[type];
   const Icon = style.icon;
@@ -90,7 +93,7 @@ export default function DayTypeRow({
             <li key={item.id} className='border-t border-border'>
               {/* 펼친 기록은 상세로 이어진다. 요약에서 바로 고치거나 지우러 갈 수 있게 */}
               <Link
-                href={recordViewHref(item.id)}
+                href={recordViewHref(item.id, detailQuery)}
                 className='flex min-h-11 items-center justify-between gap-3 text-body-sm text-fg-primary hover:underline'
               >
                 <span className='flex min-w-0 items-center gap-2'>

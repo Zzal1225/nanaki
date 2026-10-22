@@ -1,6 +1,7 @@
 'use client';
 
 // 'use client' 이유: 기록을 브라우저에서 불러오고, 오늘(이번 달)도 브라우저에서만 안다
+import { typeOriginQuery } from '../routes/detailOrigin';
 import { recordViewHref } from '../routes/recordRoutes';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -49,7 +50,8 @@ export default function TypeDetail({
 
   return (
     <div className='mx-auto flex w-full max-w-xl flex-col pb-6'>
-      <div className='flex h-14 items-center gap-1 px-1 md:px-3 lg:mt-4'>
+      {/* 스크롤해도 머리 줄(뒤로·닫기)이 맨 위에 붙어 있다 (2026-10-22 사용자 요청: 긴 화면에서 뒤로 가려고 다시 올라가기 불편). bg-bg: 밑으로 지나가는 내용이 비치지 않게, z-20: 떠 있는 + 버튼·메뉴(z-40) 아래 */}
+      <div className='sticky top-0 z-20 flex h-14 items-center gap-1 bg-bg px-1 md:px-3 lg:mt-4'>
         <Link
           href='/records'
           aria-label='기록 탭으로 돌아가기'
@@ -126,7 +128,7 @@ export default function TypeDetail({
                     title={getListTitle(entry)}
                     subtitle={formatShortDate(entry.occurredAt)}
                     value={getListValue(entry)}
-                    href={recordViewHref(entry.id)}
+                    href={recordViewHref(entry.id, typeOriginQuery(month))}
                     isPending={pendingIds.has(entry.id)}
                     isSelected={false}
                   />

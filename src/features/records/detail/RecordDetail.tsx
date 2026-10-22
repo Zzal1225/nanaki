@@ -13,19 +13,25 @@ import { getHeadlineField, getListValue } from '../ui/recordPresentation';
 import { RECORD_TYPE_STYLE } from '../ui/recordTypeStyle';
 import DetailRow from './DetailRow';
 import RecordActions from './RecordActions';
+import { detailBackTarget, type DetailOrigin } from '../routes/detailOrigin';
 
 const RECORDS_PATH = '/records';
 
 type RecordDetailProps = {
   id: string;
-  // 모바일 뒤로 버튼이 갈 곳. 검색 결과에서 왔으면 그 결과(/records/search?q=…), 아니면 기록 탭
-  backHref?: string;
+  // 들어온 곳. 모바일 뒤로 버튼이 그곳으로 간다 (검색 결과·타입 화면·홈·기록 탭, detailOrigin)
+  origin?: DetailOrigin;
+  // 수정 화면으로 넘길 같은 조건 (수정 뒤 돌아와도 뒤로 버튼이 그대로)
+  originQuery?: string;
 };
+
+const DEFAULT_ORIGIN: DetailOrigin = { kind: 'records' };
 
 // 기록 보기 (시안 6번, PC는 목록 옆 패널). 조회는 useRecord, 글자 만들기는 recordPresentation·fieldView, 수정·삭제는 RecordActions가 맡는다
 export default function RecordDetail({
   id,
-  backHref = RECORDS_PATH,
+  origin = DEFAULT_ORIGIN,
+  originQuery = '',
 }: RecordDetailProps) {
   const { data: entry, isPending, isError, refetch } = useRecord(id);
 
@@ -76,18 +82,16 @@ export default function RecordDetail({
   const headlineField = getHeadlineField(entry);
   // 화면에 그리기 위해 이름으로 값을 꺼낸다. 이미 검증을 통과한 기록이라 읽기만 한다
   const fieldValues = entry.fields as Record<string, unknown>;
+  const back = detailBackTarget(origin, entry.type);
 
   return (
     <article className='mx-auto flex w-full max-w-xl flex-col gap-4 px-4 pt-2 pb-6 md:px-6 lg:pt-6'>
-      <div className='flex items-center gap-2'>
+      {/* 스크롤해도 머리 줄(뒤로·닫기)이 맨 위에 붙어 있다 (2026-10-22 사용자 요청: 긴 화면에서 뒤로 가려고 다시 올라가기 불편). bg-bg: 밑으로 지나가는 내용이 비치지 않게, z-20: 떠 있는 + 버튼·메뉴(z-40) 아래 */}
+      <div className='sticky top-0 z-20 -mx-4 flex items-center gap-2 bg-bg px-4 md:-mx-6 md:px-6'>
         {/* PC는 목록이 옆에 있어서 뒤로 버튼이 필요 없다 */}
         <Link
-          href={backHref}
-          aria-label={
-            backHref === RECORDS_PATH
-              ? '기록 탭으로 돌아가기'
-              : '검색 결과로 돌아가기'
-          }
+          href={back.href}
+          aria-label={back.label}
           className='-ml-2 inline-flex size-11 items-center justify-center rounded-md text-fg-primary hover:bg-surface-hover active:bg-surface-pressed lg:hidden'
         >
           <ChevronLeft
@@ -107,7 +111,11 @@ export default function RecordDetail({
           {/* 타입 이름만 (2026-10-22 사용자 결정: "가계부 · 교통"처럼 항목까지 붙이면 어색하다) */}
           {config.label}
         </span>
-        <RecordActions id={entry.id} canEdit={isEditableType(entry.type)} />
+        <RecordActions
+          id={entry.id}
+          canEdit={isEditableType(entry.type)}
+          originQuery={originQuery}
+        />
       </div>
 
       <div className='flex flex-col gap-1'>

@@ -11,7 +11,8 @@ export default function SettingsScreen() {
   return (
     <div className='mx-auto flex w-full max-w-xl flex-col pb-10'>
       {/* 모바일: ‹ 가운데 제목 (홈·기록 탭의 ⚙에서 들어온다, ‹는 들어온 곳으로). 태블릿·PC: 사이드바에서 들어와 뒤로 버튼 없이 왼쪽 큰 제목 */}
-      <div className='flex h-14 items-center px-1 md:h-auto md:px-6 md:pt-6 md:pb-2'>
+      {/* 스크롤해도 머리 줄(뒤로·닫기)이 맨 위에 붙어 있다 (2026-10-22 사용자 요청: 긴 화면에서 뒤로 가려고 다시 올라가기 불편). bg-bg: 밑으로 지나가는 내용이 비치지 않게, z-20: 떠 있는 + 버튼·메뉴(z-40) 아래 */}
+      <div className='sticky top-0 z-20 flex h-14 items-center bg-bg px-1 md:h-auto md:px-6 md:pt-6 md:pb-2'>
         <SettingsBackLink />
         <h1 className='flex-1 text-center text-body font-semibold text-fg-primary md:text-left md:text-title-lg'>
           설정

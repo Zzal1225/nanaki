@@ -11,6 +11,7 @@ import {
 import type { RecordType } from '@/features/records/schema/recordTypes';
 import { formatDayHeading } from '@/shared/date/formatDisplayDate';
 import Button from '@/shared/ui/Button';
+import { homeOriginQuery } from '@/features/records/routes/detailOrigin';
 import DayEmptyState from './DayEmptyState';
 import DayTypeRow from './DayTypeRow';
 import type { DayTypeGroup } from './dayRecords';
@@ -111,6 +112,7 @@ export default function DaySummary({
               }))}
               isOpen={openTypes.has(type)}
               onToggle={() => toggle(type)}
+              detailQuery={homeOriginQuery(date)}
             />
           ))}
           {/* 루틴 줄은 기록이 아니라 그날 일정으로: 체크가 하나도 없는 날에도 "오늘 할 루틴"이 보인다.

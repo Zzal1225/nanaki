@@ -19,8 +19,11 @@ export function recordViewHref(id: string, extraQuery = ''): string {
   return `${RECORD_VIEW_PATH}?${params.toString()}`;
 }
 
-export function recordEditHref(id: string): string {
-  return `${RECORD_EDIT_PATH}?${new URLSearchParams({ [ID_PARAM]: id }).toString()}`;
+// 수정 주소. extraQuery는 상세가 들고 온 "들어온 곳"(detailOrigin): 저장·닫기 뒤 상세로 돌아와도 뒤로 버튼이 그곳으로 간다
+export function recordEditHref(id: string, extraQuery = ''): string {
+  const params = new URLSearchParams(extraQuery);
+  params.set(ID_PARAM, id);
+  return `${RECORD_EDIT_PATH}?${params.toString()}`;
 }
 
 // 지금 화면이 상세·수정이면 그 기록 id (PC 목록에서 "열려 있는 기록" 표시). 아니면 null
