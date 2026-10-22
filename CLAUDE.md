@@ -66,7 +66,7 @@ src/
   shared/         공통 코드. ui/ = 공통 컴포넌트(Radix + Tailwind, 확인 창 ConfirmDialog, 모바일 바텀시트·PC 오른쪽 패널 Sheet 포함), theme/ = 다크·라이트 전환,
                   layout/ = 사이드바·하단 탭(메뉴 목록은 navItems.ts 한 곳), query/ = TanStack Query Provider,
                   toast/ = 화면을 옮겨도 남는 알림(Zustand 저장소 + Radix Toast, 앱 틀에 하나),
-                  date/ = 날짜 도우미(로컬 YYYY-MM-DD, YYYY-MM 달 계산, date-fns 캘린더 계산(calendar.ts), 브라우저에서만 읽는 오늘 useToday)
+                  network/ = 연결 상태(useOnlineStatus, 화면 안내용), date/ = 날짜 도우미(로컬 YYYY-MM-DD, YYYY-MM 달 계산, date-fns 캘린더 계산(calendar.ts), 브라우저에서만 읽는 오늘 useToday)
   features/       기능 단위 모듈. auth/ = 로그인·로그아웃(authActions), 지금 계정(useCurrentUser). 이후 search, chat ...
                   settings/ = 설정 화면. api/settingsStore = 설정 저장·조회의 유일한 입구(user_settings),
                   typeVisibility = 숨긴 타입 계산(순수 함수), hooks/useUserSettings = 설정 훅 + 켜진 타입(useVisibleTypes)
@@ -83,6 +83,8 @@ src/
                   records/detail/ = 기록 상세(RecordDetail), 수정·삭제 동작(RecordActions), 수정 화면(RecordEditForm)
                   records/type/ = 타입 상세(달 이동, 타입별 요약 카드 registry, 목록)
                   records/sample/ = 체험하기 예시 기록(오늘 기준 최근 2주, 순수 함수) + 넣기(addSampleRecords)
+                  records/api/recordOutbox = 오프라인 작성 대기열 보내기(순서대로 id upsert, 서버 거절만 멈춤),
+                  records/sync/ = 앱 틀의 OutboxSync(언제 보낼지·실패 토스트)와 OfflineBanner
                   search/ = 검색 화면. searchState = 주소(?q=&type=&sort=&period=…) 해석·만들기, searchFilters = 필터 시트(타입 설정 filterFields + 필드 정의로 칸 생성·기간·거르기·칩 문구), searchResults = 타입 칩 건수·거르기·검색어 강조(순수 함수),
                   SearchView(모바일 페이지 / PC는 records/overview/RecordsSidePanel이 왼쪽 목록 자리에). 검색어 필터 글자는 records/api/searchQuery
   lib/supabase/   Supabase 클라이언트 (client.ts = 브라우저용, server.ts = 서버용, admin.ts = secret 키 관리자용·서버 전용), database.types.ts = DB 타입(자동 생성, 직접 수정 금지)
