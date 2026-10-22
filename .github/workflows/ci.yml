@@ -42,7 +42,8 @@ jobs:
   # 마이그레이션을 처음부터 전부 적용하므로 "빈 DB에 마이그레이션이 깨끗이 들어가는지"도 함께 확인된다
   integration:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # 보통 7~10분, 느린 날은 13분까지 걸렸다. WebKit E2E(32단계)를 더해 15 → 20분
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -100,6 +101,29 @@ jobs:
       # 기준(lighthouserc.json): 접근성·권장사항은 95 미만이면 실패, 성능은 80 미만이면 경고만.
       # 성능 점수는 CI 서버 상태에 따라 실행마다 몇 점씩 흔들려서, 실패 조건으로 두면 코드와 무관한 빨간불이 뜬다.
       # SEO는 재지 않는다: 로그인 뒤 화면은 robots.txt로 검색을 막아 두어 낮게 나오는 게 정상이다
+      # 32단계: 같은 모바일 E2E를 사파리 엔진(WebKit)으로. 처음에는 경고만(continue-on-error): 흔들림이 없는지 몇 번 본 뒤 실패로 바꾼다.
+      # 결과물은 다른 폴더에 둔다: 위 단계의 보고서·화면 비교 결과를 덮지 않게
+      - run: npx playwright install --with-deps webkit
+      - name: E2E (WebKit, 경고만)
+        id: webkit
+        continue-on-error: true
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ env.SUPABASE_TEST_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ env.SUPABASE_TEST_ANON_KEY }}
+          E2E_WEBKIT: '1'
+          PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-webkit
+        run: npx playwright test --project=mobile-webkit --output=test-results-webkit
+      - name: WebKit 실패 알림
+        if: steps.webkit.outcome == 'failure'
+        run: echo "::warning::WebKit E2E가 실패했습니다 (아직 경고만). webkit-report 아티팩트에서 원인을 확인하세요."
+      - uses: actions/upload-artifact@v4
+        if: steps.webkit.outcome == 'failure'
+        with:
+          name: webkit-report
+          path: |
+            playwright-report-webkit/
+            test-results-webkit/
+          retention-days: 7
       - name: Lighthouse
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ env.SUPABASE_TEST_URL }}

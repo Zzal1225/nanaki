@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const IS_CI = Boolean(process.env.CI);
+// 사파리 엔진(WebKit)으로도 돌릴 때만 켠다 (CI의 별도 단계, 32단계). 평소 실행에는 WebKit 브라우저가 없어도 된다
+const IS_WEBKIT = process.env.E2E_WEBKIT === '1';
 const PORT = 3000;
 const BASE_URL = `http://localhost:${PORT}`;
 
@@ -73,6 +75,19 @@ export default defineConfig({
       // 화면 배율은 1로: 기기 기본값(2.625)이면 이미지가 일곱 배 커지는데 비교에서 더 알 수 있는 건 없다
       use: { ...devices['Pixel 7'], deviceScaleFactor: 1 },
     },
+    // 같은 모바일 흐름을 사파리 엔진(WebKit)으로 (아이폰 13 프리셋의 기본 브라우저가 WebKit이다).
+    // 리눅스 WebKit은 iOS 사파리 그 자체는 아니지만 JS·CSS 엔진 차이(날짜 해석, 지원하지 않는 CSS·API)를 잡는다.
+    // 홈 화면 앱·안전 영역·실제 키보드는 여전히 실기기 체크리스트(docs/real-device-checklist.md)가 맡는다.
+    // 처음에는 CI에서 실패해도 경고만 한다: 흔들림이 없는지 본 뒤 실패로 바꾼다 (Lighthouse 성능 점수와 같은 방식)
+    ...(IS_WEBKIT
+      ? [
+          {
+            name: 'mobile-webkit',
+            testMatch: /.mobile.spec.ts$/,
+            use: { ...devices['iPhone 13'] },
+          },
+        ]
+      : []),
   ],
   // 개발 서버가 아니라 빌드한 앱으로 돌린다: 배포와 같은 결과물(cacheComponents 미리 그리기 포함)을 확인하려고.
   // CI는 앞 단계에서 npm run build를 끝내 두고 여기서는 실행만 한다
