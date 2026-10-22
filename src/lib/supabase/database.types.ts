@@ -81,6 +81,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      routines: {
+        Row: {
+          created_at: string;
+          ended_on: string | null;
+          goal: Json;
+          id: string;
+          name: string;
+          schedule: Json;
+          start_date: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          ended_on?: string | null;
+          goal: Json;
+          id?: string;
+          name: string;
+          schedule: Json;
+          start_date: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          ended_on?: string | null;
+          goal?: Json;
+          id?: string;
+          name?: string;
+          schedule?: Json;
+          start_date?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       user_settings: {
         Row: {
           hidden_types: string[];
