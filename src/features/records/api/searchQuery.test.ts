@@ -27,6 +27,11 @@ describe('검색어 맞추기 (기기 사본에서)', () => {
     expect(matchesKeyword(COFFEE, '카페')).toBe(true);
     expect(matchesKeyword(COFFEE, '카드')).toBe(true);
   });
+  it('태그에서도 찾는다 (태그마다 따로: 두 태그를 이어 붙인 글자로는 맞지 않는다)', () => {
+    const tagged = { ...COFFEE, tags: ['출근길', '단골'] };
+    expect(matchesKeyword(tagged, '단골')).toBe(true);
+    expect(matchesKeyword(tagged, '길단')).toBe(false);
+  });
   it('숫자 칸(금액)은 글자로 찾지 않는다', () => {
     expect(matchesKeyword(COFFEE, '4500')).toBe(false);
   });

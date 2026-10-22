@@ -77,3 +77,7 @@ export function toSearchHref(state: SearchState): string {
 export function hasSearchCondition(state: SearchState): boolean {
   return state.keyword !== '' || state.type !== null || state.period !== null;
 }
+
+// 검색창 안내 문구 (기록 탭 검색창 모양 링크와 검색 화면 입력칸이 같이 쓴다).
+// 찾는 칸은 records/api/searchQuery(matchesKeyword). 그 칸을 바꾸면 이 문구도 맞춘다
+export const SEARCH_PLACEHOLDER = '제목, 메모, 태그, 분류로 검색';

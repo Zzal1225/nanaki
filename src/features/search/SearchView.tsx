@@ -44,6 +44,7 @@ import {
   toSearchHref,
   toSearchParams,
   type SearchState,
+  SEARCH_PLACEHOLDER,
 } from './searchState';
 import TypeFilterChips from './TypeFilterChips';
 
@@ -317,7 +318,7 @@ function SearchForm({ initialKeyword, onSubmit }: SearchFormProps) {
         autoFocus={!initialKeyword}
         maxLength={MAX_SEARCH_KEYWORD_LENGTH}
         value={draft}
-        placeholder='가계부, 후기, 운동… 검색'
+        placeholder={SEARCH_PLACEHOLDER}
         onChange={(event) => setDraft(event.target.value)}
         onKeyDown={(event) => {
           // 한글 조합 중 Enter는 글자 확정용이다. 그대로 두면 조합이 끝난 뒤 한 번 더 제출된다 (CLAUDE.md)
