@@ -10,6 +10,7 @@ type Result = { data: unknown; error: unknown };
 const CHAIN_METHODS = [
   'select',
   'insert',
+  'upsert',
   'update',
   'eq',
   'is',
@@ -21,6 +22,7 @@ const CHAIN_METHODS = [
   'limit',
   'single',
   'maybeSingle',
+  'abortSignal',
 ] as const;
 
 export type FakeCall = { table: string; method: string; args: unknown[] };

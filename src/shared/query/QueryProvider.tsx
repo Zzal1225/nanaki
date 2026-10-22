@@ -25,6 +25,11 @@ export default function QueryProvider({ children }: { children: ReactNode }) {
             // 네트워크가 없어도 끝난다 (동기화는 기다리지 않거나 3초까지만, lib/db/currentLocalDb)
             networkMode: 'always',
           },
+          // 저장(만들기·고치기·지우기)도 오프라인에서 실행한다: 기기 사본과 대기열에 쓰고 끝난다 (25c).
+          // 기본값('online')이면 오프라인에서 저장 버튼이 눌린 채 멈춘다
+          mutations: {
+            networkMode: 'always',
+          },
         },
       }),
   );

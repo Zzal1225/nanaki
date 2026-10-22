@@ -63,6 +63,9 @@ type PullOptions<Row extends SyncedRow> = {
   fetchChanges: FetchChanges<Row>;
   // 사본에서 뺄 줄인지 (지운 기록). 빼 두면 조회마다 deleted_at을 거를 필요가 없다
   isRemoved: (row: Row) => boolean;
+  // 받아도 사본에 반영하지 않을 줄의 id (아직 보내지 않은 내 변경이 있는 기록, 25c).
+  // 반영하면 서버의 예전 내용이 기기에서 방금 고친 내용을 덮어쓴다. 보내고 나면 서버가 돌려준 줄로 맞춘다
+  pendingIds?: () => Promise<Set<string>>;
 };
 
 // 바뀐 줄을 모두 받아 사본에 반영한다. 페이지마다 줄 반영과 커서 저장을 한 트랜잭션으로 묶는다:
@@ -73,6 +76,7 @@ export async function pullChanges<Row extends SyncedRow>({
   target,
   fetchChanges,
   isRemoved,
+  pendingIds,
 }: PullOptions<Row>): Promise<void> {
   let newest = (await db.meta.get(table))?.cursor ?? null;
   let after = rewindCursor(newest);
@@ -87,10 +91,13 @@ export async function pullChanges<Row extends SyncedRow>({
     if (!newest || compareCursor(lastCursor, newest) > 0) newest = lastCursor;
     const cursor = newest;
 
+    // 대기 중인 id는 반영 직전에 읽는다 (받는 사이에 새로 쓴 기록도 지키려고)
+    const skipped = (await pendingIds?.()) ?? new Set<string>();
+    const applied = rows.filter((row) => !skipped.has(row.id));
     await db.transaction('rw', target, db.meta, async () => {
-      await target.bulkPut(rows.filter((row) => !isRemoved(row)));
+      await target.bulkPut(applied.filter((row) => !isRemoved(row)));
       await target.bulkDelete(
-        rows.filter((row) => isRemoved(row)).map((row) => row.id),
+        applied.filter((row) => isRemoved(row)).map((row) => row.id),
       );
       await db.meta.put({ table, cursor });
     });

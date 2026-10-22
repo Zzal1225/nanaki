@@ -13,6 +13,7 @@ import { useToday } from '@/shared/date/useToday';
 import Button from '@/shared/ui/Button';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import { useRecordsOfType } from '../hooks/useRecordsOfType';
+import { usePendingRecordIds } from '../hooks/usePendingRecordIds';
 import RecentRecordItem from '../overview/RecentRecordItem';
 import { RECORD_TYPE_CONFIG, type RecordType } from '../schema/recordTypes';
 import { getListTitle, getListValue } from '../ui/recordPresentation';
@@ -37,6 +38,8 @@ export default function TypeDetail({
   const month = monthParam ?? currentMonth;
   const range = month ? getMonthRangeOf(month) : null;
   const records = useRecordsOfType(type, range);
+  // 아직 서버에 보내지 않은 기록에 구름 아이콘 (시안 15a)
+  const pendingIds = usePendingRecordIds();
 
   const config = RECORD_TYPE_CONFIG[type];
   const style = RECORD_TYPE_STYLE[type];
@@ -123,6 +126,7 @@ export default function TypeDetail({
                     subtitle={formatShortDate(entry.occurredAt)}
                     value={getListValue(entry)}
                     href={`/records/${entry.id}`}
+                    isPending={pendingIds.has(entry.id)}
                     isSelected={false}
                   />
                 </li>

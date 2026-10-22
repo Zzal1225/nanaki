@@ -59,3 +59,54 @@ test('오프라인: 연 화면은 기기 사본의 기록으로 그려지고, �
 
   await context.setOffline(false);
 });
+
+// 25c 오프라인 작성: 저장은 기기 사본과 대기열에 하고(구름 아이콘), 연결이 돌아오면 저절로 보낸다
+test('오프라인 작성: 저장하면 바로 목록에 보이고, 연결되면 보내져 구름이 사라진다', async ({
+  page,
+  context,
+}) => {
+  await page.goto('/login');
+  await page.getByRole('button', { name: '로그인 없이 체험하기' }).click();
+  await expect(page).toHaveURL('/');
+  await waitForServiceWorker(page);
+
+  // 작성 화면·기록 탭을 온라인에서 한 번 연다 (연 적 없는 화면을 오프라인에서 여는 것은 25c-2)
+  await page.goto('/records/new?type=expense');
+  await expect(
+    page.getByRole('heading', { name: '가계부 쓰기' }),
+  ).toBeVisible();
+  await page.goto('/records');
+  await expect(visibleText(page, '[식비] 점심')).toBeVisible();
+
+  await context.setOffline(true);
+  await page.goto('/records/new?type=expense');
+  await expect(
+    page.getByRole('status').filter({ hasText: '오프라인이에요' }),
+  ).toBeVisible();
+  await page.getByLabel('금액').fill('5000');
+  await page
+    .getByRole('radiogroup', { name: '분류' })
+    .getByRole('radio', { name: '식비' })
+    .click();
+  await page.getByLabel('제목').fill('오프라인 김밥');
+  await page.getByRole('button', { name: '저장' }).click();
+
+  // 저장은 서버를 기다리지 않는다: 기록 탭에 바로 보이고, 아직 안 보냈다는 구름이 붙는다
+  await page.goto('/records');
+  const item = page
+    .getByRole('link', { name: /\[식비\] 오프라인 김밥/ })
+    .filter({ visible: true })
+    .first();
+  await expect(item).toBeVisible();
+  await expect(
+    item.getByRole('img', { name: '아직 저장되지 않음' }),
+  ).toBeVisible();
+
+  // 연결이 돌아오면(online 이벤트) 대기열을 보내고 구름이 사라진다
+  await context.setOffline(false);
+  await expect(
+    item.getByRole('img', { name: '아직 저장되지 않음' }),
+  ).toHaveCount(0, {
+    timeout: 15_000,
+  });
+});

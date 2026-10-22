@@ -3,6 +3,8 @@ import { create } from 'zustand';
 export type ToastAction = {
   label: string;
   onAction: () => void;
+  // 버튼 아이콘. 기본은 되돌리기(삭제 토스트). 다시 시도(저장 실패, 시안 15b)는 retry
+  icon?: 'undo' | 'retry';
 };
 
 export type Toast = {
@@ -10,6 +12,8 @@ export type Toast = {
   id: number;
   message: string;
   action?: ToastAction;
+  // 실패 알림은 앞에 경고 아이콘을 붙인다 (시안 15b). 색만으로 구분하지 않는다
+  tone?: 'error';
 };
 
 type ToastState = {

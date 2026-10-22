@@ -2,7 +2,7 @@
 
 // 'use client' 이유: 토스트 상태(Zustand)를 구독하고 5초 타이머가 브라우저에서 돈다
 import { Toast } from 'radix-ui';
-import { Undo2 } from 'lucide-react';
+import { CircleAlert, RotateCw, Undo2 } from 'lucide-react';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import { useToastStore } from './toastStore';
 
@@ -27,6 +27,14 @@ export default function Toaster() {
           }}
           className='flex min-h-12 w-full max-w-md items-center gap-2 rounded-md bg-fg-primary py-1 pr-1 pl-4 text-body-sm text-surface shadow-float'
         >
+          {toast.tone === 'error' && (
+            <CircleAlert
+              aria-hidden='true'
+              size={ICON_SIZE.md}
+              strokeWidth={ICON_STROKE_WIDTH}
+              className='shrink-0'
+            />
+          )}
           <Toast.Description className='flex-1'>
             {toast.message}
           </Toast.Description>
@@ -37,11 +45,19 @@ export default function Toaster() {
               onClick={toast.action.onAction}
               className='inline-flex min-h-11 items-center gap-1 px-3 font-semibold underline underline-offset-3'
             >
-              <Undo2
-                aria-hidden='true'
-                size={ICON_SIZE.sm}
-                strokeWidth={ICON_STROKE_WIDTH}
-              />
+              {toast.action.icon === 'retry' ? (
+                <RotateCw
+                  aria-hidden='true'
+                  size={ICON_SIZE.sm}
+                  strokeWidth={ICON_STROKE_WIDTH}
+                />
+              ) : (
+                <Undo2
+                  aria-hidden='true'
+                  size={ICON_SIZE.sm}
+                  strokeWidth={ICON_STROKE_WIDTH}
+                />
+              )}
               {toast.action.label}
             </Toast.Action>
           )}
