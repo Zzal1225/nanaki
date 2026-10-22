@@ -110,7 +110,7 @@ function TypeRow({ type, isVisible, canToggle, onChange }: TypeRowProps) {
           </span>
         )}
       </div>
-      {/* 스위치 자체는 44×26이라, 둘레를 44px 높이로 잡아 누르는 영역을 맞춘다 */}
+      {/* 스위치 버튼이 44×44(Switch.tsx). 오른쪽 여백을 맞추려고 폭만 조금 넓게 둔다 */}
       <span className='flex h-11 w-14 items-center justify-center'>
         <SwitchControl
           checked={isVisible}
