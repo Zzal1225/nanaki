@@ -15,17 +15,16 @@ async function waitForServiceWorker(page: Page) {
   );
 }
 
-// 미리 받기(OfflineWarmup)가 끝날 때까지: 목록 끝의 타입 화면과 수정 틀이 캐시에 들어왔는지 본다
+// 미리 받기(OfflineWarmup)가 끝날 때까지: 목록 끝의 타입 화면과 수정 틀이 캐시에 들어왔는지 본다.
+// 주소 그대로 찾는다: ?를 무시하면 Next가 미리 받은 화면 조각(?_rsc=)까지 맞아서 미리 받기 전에 통과해 버린다
 async function waitForWarmup(page: Page) {
   await page.waitForFunction(
     async () =>
       Boolean(
         await caches.match(
           '/records/00000000-0000-0000-0000-000000000000/edit',
-          { ignoreSearch: true },
         ),
-      ) &&
-      Boolean(await caches.match('/records/type/body', { ignoreSearch: true })),
+      ) && Boolean(await caches.match('/records/type/body')),
     undefined,
     { timeout: 30_000, polling: 500 },
   );
@@ -106,39 +105,6 @@ test('오프라인 작성: 연 적 없는 작성 화면에서 저장하면 바�
 
   await context.setOffline(true);
   // 작성 화면은 한 번도 연 적이 없다 (미리 받아 둔 한 장이 모든 타입에 쓰인다)
-  // DEBUG(임시): 캐시 상태
-  console.log(
-    '[캐시 진단]',
-    JSON.stringify(
-      await page.evaluate(async () => {
-        const out: Record<string, unknown> = {};
-        for (const name of await caches.keys()) {
-          const cache = await caches.open(name);
-          const keys = await cache.keys();
-          out[name] = await Promise.all(
-            keys
-              .filter((k) => !k.url.includes('/_next/'))
-              .map(async (k) => {
-                const res = await cache.match(k);
-                return `${new URL(k.url).pathname}${new URL(k.url).search} vary=${res?.headers.get('vary')}`;
-              }),
-          );
-        }
-        out.match = Boolean(
-          await caches.match('/records/new?type=expense', {
-            ignoreSearch: true,
-          }),
-        );
-        out.matchIgnoreVary = Boolean(
-          await caches.match('/records/new?type=expense', {
-            ignoreSearch: true,
-            ignoreVary: true,
-          }),
-        );
-        return out;
-      }),
-    ),
-  );
   await page.goto('/records/new?type=expense');
   await expect(
     page.getByRole('status').filter({ hasText: '오프라인이에요' }),
