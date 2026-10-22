@@ -145,3 +145,32 @@ test('오프라인 작성: 연 적 없는 작성 화면에서 저장하면 바�
     item.getByRole('img', { name: '아직 저장되지 않음' }),
   ).toHaveCount(0, { timeout: 15_000 });
 });
+
+// 25d: 로그아웃하면 이 기기에 남은 개인 데이터(기기 사본·저장해 둔 화면)를 지운다. 앱 파일(미리 받기)만 남는다
+test('로그아웃: 기기 사본(IndexedDB)과 저장해 둔 화면 캐시를 지운다', async ({
+  page,
+}) => {
+  await startAsGuest(page);
+  await page.goto('/records');
+  await expect(visibleText(page, '[식비] 점심')).toBeVisible();
+
+  await page.goto('/settings');
+  await page.getByRole('button', { name: '로그아웃' }).click();
+  // 체험 계정은 한 번 묻는다
+  await page
+    .getByRole('alertdialog', { name: '체험을 끝낼까요?' })
+    .getByRole('button', { name: '로그아웃' })
+    .click();
+  await expect(page).toHaveURL('/login');
+
+  const left = await page.evaluate(async () => ({
+    databases: (await indexedDB.databases())
+      .map((db) => db.name ?? '')
+      .filter((name) => name.startsWith('nanaki-')),
+    caches: await caches.keys(),
+  }));
+  expect(left.databases).toEqual([]);
+  expect(left.caches.every((name) => name.startsWith('serwist-precache'))).toBe(
+    true,
+  );
+});
