@@ -1,7 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import Link from 'next/link';
-import { SETTINGS_ITEM } from '@/shared/layout/navItems';
-import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
+import MobileSettingsLink from '@/shared/layout/MobileSettingsLink';
+import { ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import TodayButton from './TodayButton';
 
 type CalendarHeaderProps = {
@@ -34,8 +33,6 @@ export default function CalendarHeader({
   today,
   onToday,
 }: CalendarHeaderProps) {
-  const SettingsIcon = SETTINGS_ITEM.icon;
-
   return (
     <div className='flex h-14 items-center px-2 lg:mb-2 lg:px-0'>
       <button
@@ -74,17 +71,7 @@ export default function CalendarHeader({
       <span className='flex-1' />
       <TodayButton today={today} onClick={onToday} />
       {/* 모바일만. 태블릿·PC는 사이드바 맨 아래에 설정이 있다 (navItems) */}
-      <Link
-        href={SETTINGS_ITEM.href}
-        aria-label={SETTINGS_ITEM.label}
-        className={`${ICON_BUTTON_CLASS} md:hidden`}
-      >
-        <SettingsIcon
-          aria-hidden='true'
-          size={ICON_SIZE.lg}
-          strokeWidth={ICON_STROKE_WIDTH}
-        />
-      </Link>
+      <MobileSettingsLink origin='home' />
     </div>
   );
 }
