@@ -35,8 +35,9 @@ function SpeedDialWithPathname() {
   const dialItems = [...useNewRecordMenuItems()].reverse();
 
   // 작성·수정 중, 설정에서는 숨긴다 (규칙은 speedDialVisibility 한 곳에)
+  // 숨길 때는 표시만 남긴다: globals.css가 본문 끝의 + 버튼 여백(--fab-clearance)을 0으로 (설정·작성 화면에 빈 공간이 생기지 않게)
   if (!shouldShowSpeedDial(pathname)) {
-    return null;
+    return <span data-fab-hidden hidden />;
   }
 
   return (

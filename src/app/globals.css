@@ -122,7 +122,10 @@
    이 변수를 쓰는 본문 아래 여백·저장 버튼 위치가 함께 내려간다. 컴포넌트마다 화면을 따지지 않고 변수 하나로 맞춘다 */
 :root:has([data-tab-bar-hidden]) {
   --tab-bar-height: env(safe-area-inset-bottom);
-  /* 작성 화면에는 + 버튼도 없다 */
+}
+
+/* + 버튼(스피드 다이얼)이 없는 화면(작성·설정)은 그 여백도 없다 (SpeedDial이 표시만 남긴다) */
+:root:has([data-fab-hidden]) {
   --fab-clearance: 0px;
 }
 
