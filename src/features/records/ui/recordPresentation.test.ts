@@ -10,7 +10,6 @@ import {
   formatPreviousMonthComparison,
   getDayLabel,
   getDayValue,
-  getDetailKicker,
   getHeadlineField,
 } from './recordPresentation';
 
@@ -46,10 +45,10 @@ const RUN: RecordEntry = {
   ...BASE,
   id: '4',
   type: 'workout',
-  // 제목을 비워 종목 이름이 제목이 된 기록
   title: '러닝',
   fields: { activity: '러닝', minutes: 30, distance: 5.2 },
 };
+// 예전(제목 칸이 있던 때)에 사용자가 제목을 쓴 기록. 목록은 제목을 쓰지 않는다
 const LEG_DAY: RecordEntry = {
   ...BASE,
   id: '5',
@@ -58,66 +57,62 @@ const LEG_DAY: RecordEntry = {
   fields: { activity: '헬스', minutes: 60 },
 };
 
-const MORNING: RecordEntry = {
+const WEIGHT: RecordEntry = {
   ...BASE,
   id: '6',
   type: 'body',
   occurredAt: '2026-10-19',
-  title: '체중 · 허리',
-  fields: { weight: 68.4, waist: 78, bodyFat: 18.2 },
+  title: '체중',
+  fields: { weight: 68.4 },
+};
+const WAIST: RecordEntry = {
+  ...BASE,
+  id: '7',
+  type: 'body',
+  occurredAt: '2026-10-19',
+  title: '허리둘레',
+  fields: { waist: 78 },
 };
 const EARLIER: RecordEntry = {
   ...BASE,
-  id: '7',
+  id: '8',
   type: 'body',
   occurredAt: '2026-10-12',
   title: '체중',
   fields: { weight: 68.9 },
 };
 
-describe('체형 표시', () => {
-  it('목록: 제목, 값은 체중', () => {
-    expect(getListTitle(MORNING)).toBe('체중 · 허리');
-    expect(getListValue(MORNING)).toBe('68.4kg');
-  });
-  it('이번 달은 가장 늦은 날짜의 체중 (목록 순서와 상관없이), 없으면 —', () => {
-    expect(getMonthValue('body', [MORNING, EARLIER])).toBe('68.4kg');
-    expect(getMonthValue('body', [TAXI])).toBe('—');
-    expect(getHeadlineField('body')).toBe('weight');
-  });
-  it('하루 요약: 체중과 그다음 적은 항목 하나 (시안: 68.4kg · 허리 78cm)', () => {
-    expect(getDayLabel('body', [MORNING])).toBe('체형');
-    expect(getDayValue('body', [MORNING])).toBe('68.4kg · 허리 78cm');
-    expect(getDayValue('body', [EARLIER])).toBe('68.9kg');
-  });
-});
-
-describe('운동 표시', () => {
-  it('목록: 제목이 종목과 같으면 종목만, 다르면 종목 · 제목, 거리가 있으면 붙인다', () => {
-    expect(getListTitle(RUN)).toBe('러닝 5.2km');
-    expect(getListTitle(LEG_DAY)).toBe('헬스 · 하체 데이');
-    expect(getListValue(LEG_DAY)).toBe('60분');
-  });
-  it('이번 달은 횟수, 상세 칩은 종목, 크게 보일 값은 시간', () => {
-    expect(getMonthValue('workout', [RUN, LEG_DAY, TAXI])).toBe('2회');
-    expect(getDetailKicker(LEG_DAY)).toBe('헬스');
-    expect(getHeadlineField('workout')).toBe('minutes');
-  });
-  it('하루 요약: 하나면 종목과 시간, 여럿이면 총 시간', () => {
-    expect(getDayLabel('workout', [RUN])).toBe('운동 1회');
-    expect(getDayValue('workout', [RUN])).toBe('러닝 30분');
-    expect(getDayValue('workout', [RUN, LEG_DAY])).toBe('총 90분');
-  });
-});
-
-describe('목록 한 줄', () => {
-  it('가계부: 제목 · 분류, 값은 마이너스 금액', () => {
-    expect(getListTitle(TAXI)).toBe('택시 · 교통');
+describe('목록 제목: "[분류] 제목" (2026-10-22 사용자 결정)', () => {
+  it('가계부: [분류] 제목, 값은 마이너스 금액', () => {
+    expect(getListTitle(TAXI)).toBe('[교통] 택시');
     expect(getListValue(TAXI)).toBe('-7,000원');
   });
-  it('후기: 제목만, 값은 별점', () => {
-    expect(getListTitle(CAFE)).toBe('동네 로스터리');
+  it('후기: [대상] 제목, 값은 별점', () => {
+    expect(getListTitle(CAFE)).toBe('[장소] 동네 로스터리');
     expect(getListValue(CAFE)).toBe('★ 4.0');
+  });
+  it('운동: [종목] 거리, 거리가 없으면 [종목]만 (예전 제목은 쓰지 않는다)', () => {
+    expect(getListTitle(RUN)).toBe('[러닝] 5.2km');
+    expect(getListTitle(LEG_DAY)).toBe('[헬스]');
+    expect(getListValue(LEG_DAY)).toBe('60분');
+  });
+  it('체형: [체중] / [허리둘레], 값은 그 항목', () => {
+    expect(getListTitle(WEIGHT)).toBe('[체중]');
+    expect(getListValue(WEIGHT)).toBe('68.4kg');
+    expect(getListTitle(WAIST)).toBe('[허리둘레]');
+    expect(getListValue(WAIST)).toBe('78cm');
+  });
+});
+
+describe('상세 화면: 크게 보여 준 필드 (표에서는 뺀다)', () => {
+  it('가계부 금액, 후기 별점, 운동 시간', () => {
+    expect(getHeadlineField(TAXI)).toBe('amount');
+    expect(getHeadlineField(CAFE)).toBe('rating');
+    expect(getHeadlineField(RUN)).toBe('minutes');
+  });
+  it('체형은 기록마다: 체중 기록이면 체중, 허리둘레 기록이면 허리둘레', () => {
+    expect(getHeadlineField(WEIGHT)).toBe('weight');
+    expect(getHeadlineField(WAIST)).toBe('waist');
   });
 });
 
@@ -127,8 +122,13 @@ describe('이번 달 카드', () => {
   it('가계부는 그 타입 금액만 더한다 (후기는 섞이지 않는다)', () => {
     expect(getMonthValue('expense', ENTRIES)).toBe('-19,500원');
   });
-  it('후기는 개수', () => {
+  it('후기는 개수, 운동은 횟수', () => {
     expect(getMonthValue('review', ENTRIES)).toBe('1건');
+    expect(getMonthValue('workout', [RUN, LEG_DAY, TAXI])).toBe('2회');
+  });
+  it('체형은 가장 늦은 체중 (허리둘레 기록은 건너뛴다), 없으면 —', () => {
+    expect(getMonthValue('body', [WEIGHT, EARLIER, WAIST])).toBe('68.4kg');
+    expect(getMonthValue('body', [WAIST])).toBe('—');
   });
   it('기록이 없으면 0원 · 0건 (빈 상태에서도 카드는 남긴다)', () => {
     expect(getMonthValue('expense', [])).toBe('0원');
@@ -146,29 +146,27 @@ describe('표시 형식', () => {
   });
 });
 
-describe('상세 화면', () => {
-  it('칩의 두 번째 말: 가계부는 분류, 후기는 대상 종류', () => {
-    expect(getDetailKicker(TAXI)).toBe('교통');
-    expect(getDetailKicker(CAFE)).toBe('장소');
-  });
-  it('크게 보여 줄 필드: 가계부는 금액, 후기는 별점', () => {
-    expect(getHeadlineField('expense')).toBe('amount');
-    expect(getHeadlineField('review')).toBe('rating');
-  });
-});
-
 describe('하루 요약 한 줄', () => {
   it('가계부: 건수와 그날 합계', () => {
     expect(getDayLabel('expense', [TAXI, LUNCH])).toBe('가계부 2건');
     expect(getDayValue('expense', [TAXI, LUNCH])).toBe('-19,500원');
   });
-  it('후기 1건: 대상 이름과 별점', () => {
+  it('후기 1건: 대상 이름과 별점, 여러 건: 첫 이름 외 N건', () => {
     expect(getDayLabel('review', [CAFE])).toBe('후기 1건');
     expect(getDayValue('review', [CAFE])).toBe('동네 로스터리 ★ 4.0');
-  });
-  it('후기 여러 건: 첫 이름 외 N건', () => {
-    const BOOK: RecordEntry = { ...CAFE, id: '4', title: '책' };
+    const BOOK: RecordEntry = { ...CAFE, id: '9', title: '책' };
     expect(getDayValue('review', [CAFE, BOOK])).toBe('동네 로스터리 외 1건');
+  });
+  it('운동: 하나면 종목과 시간, 여럿이면 총 시간', () => {
+    expect(getDayLabel('workout', [RUN])).toBe('운동 1회');
+    expect(getDayValue('workout', [RUN])).toBe('러닝 30분');
+    expect(getDayValue('workout', [RUN, LEG_DAY])).toBe('총 90분');
+  });
+  it('체형: 그날 체중과 허리둘레를 한 줄에 (따로 잰 두 기록)', () => {
+    expect(getDayLabel('body', [WEIGHT])).toBe('체형');
+    expect(getDayValue('body', [WEIGHT, WAIST])).toBe('68.4kg · 허리둘레 78cm');
+    expect(getDayValue('body', [EARLIER])).toBe('68.9kg');
+    expect(getDayValue('body', [WAIST])).toBe('허리둘레 78cm');
   });
 });
 
@@ -202,14 +200,14 @@ describe('지난달과 비교 (기록 탭 카드)', () => {
       '지난달보다 1회 덜 했어요',
     );
   });
-  it('체형: 두 기간 각각의 마지막 체중 차이 (소수 한 자리)', () => {
+  it('체형: 두 기간 각각의 마지막 체중 차이 (허리둘레 기록은 건너뛴다)', () => {
     const before: RecordEntry = {
       ...EARLIER,
       id: 'p',
       occurredAt: '2026-09-15',
       fields: { weight: 69.2 },
     };
-    expect(text('body', [MORNING, EARLIER], [before])).toBe(
+    expect(text('body', [WEIGHT, EARLIER, WAIST], [before])).toBe(
       '지난달보다 0.8kg 줄었어요',
     );
   });
@@ -218,7 +216,7 @@ describe('지난달과 비교 (기록 탭 카드)', () => {
   });
   it('지난달 같은 기간에 그 타입 기록이 없으면 비교하지 않는다 (null)', () => {
     expect(text('expense', [TAXI], [CAFE])).toBeNull();
-    // 체형은 이번 기간에 잰 적이 없어도 null (지금 체중을 모른다)
-    expect(text('body', [], [MORNING])).toBeNull();
+    // 체형은 이번 기간에 체중을 잰 적이 없어도 null (지금 체중을 모른다)
+    expect(text('body', [WAIST], [WEIGHT])).toBeNull();
   });
 });

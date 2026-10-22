@@ -66,16 +66,26 @@ const SAMPLE_TEMPLATES: readonly SampleTemplate[] = [
       fields: { amount: 32400, category: '생활', paymentMethod: '카드' },
     },
   },
-  // 체형: 2주 동안 체중이 조금씩 줄어 타입 상세 그래프에 선이 그려지게 하고, 둘레를 적은 날과 안 적은 날을 섞는다.
-  // 제목은 폼이 비웠을 때 만드는 것과 같은 "적은 항목 이름"
+  // 체형: 한 기록에 하나만 (체중 또는 허리둘레). 2주 동안 체중이 조금씩 줄어 체중 그래프에 선이 그려지고,
+  // 허리둘레도 두 번 재서 허리둘레 그래프가 따로 그려지게 한다. 제목은 폼이 만드는 것과 같은 잰 항목 이름
   {
     daysAgo: 2,
     record: {
       type: 'body',
-      title: '체중 · 허리 · 체지방률',
+      title: '체중',
       memo: null,
       tags: [],
-      fields: { weight: 68.4, waist: 78, bodyFat: 18.2 },
+      fields: { weight: 68.4 },
+    },
+  },
+  {
+    daysAgo: 2,
+    record: {
+      type: 'body',
+      title: '허리둘레',
+      memo: null,
+      tags: [],
+      fields: { waist: 78 },
     },
   },
   {
@@ -92,13 +102,24 @@ const SAMPLE_TEMPLATES: readonly SampleTemplate[] = [
     daysAgo: 10,
     record: {
       type: 'body',
-      title: '체중 · 허리',
+      title: '체중',
       memo: null,
       tags: [],
-      fields: { weight: 69.3, waist: 79.5 },
+      fields: { weight: 69.3 },
     },
   },
-  // 운동: 제목을 비워 종목 이름이 제목이 된 경우(러닝), 제목을 따로 쓴 경우(하체 데이), 거리 없이 시간만(요가)을 섞는다
+  {
+    daysAgo: 10,
+    record: {
+      type: 'body',
+      title: '허리둘레',
+      memo: null,
+      tags: [],
+      fields: { waist: 79.5 },
+    },
+  },
+  // 운동: 제목은 종목 이름 (운동은 제목 칸이 없다). 거리가 있는 종목(러닝)과 없는 종목(헬스·요가)을 섞고,
+  // "하체 데이" 같은 말은 태그·메모에 둔다 (2026-10-22 사용자 결정)
   {
     daysAgo: 3,
     record: {
@@ -113,9 +134,9 @@ const SAMPLE_TEMPLATES: readonly SampleTemplate[] = [
     daysAgo: 4,
     record: {
       type: 'workout',
-      title: '하체 데이',
+      title: '헬스',
       memo: '스쿼트 무게를 조금 올렸다',
-      tags: [],
+      tags: ['하체'],
       fields: { activity: '헬스', minutes: 60 },
     },
   },

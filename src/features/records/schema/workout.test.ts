@@ -54,21 +54,18 @@ describe('운동 기록 스키마', () => {
   });
 });
 
-describe('운동 작성 폼 스키마 (제목 선택)', () => {
+describe('운동 작성 폼 스키마 (제목 칸 없음)', () => {
   // 작성 폼은 id 없이 받는다
   const input = { ...VALID_WORKOUT, id: undefined };
 
-  it('제목을 비우면 종목 이름이 제목이 된다', () => {
+  it("제목은 늘 종목 이름 (폼에 제목 칸이 없어 ''로 온다)", () => {
     const result = workoutFormSchema.parse({ ...input, title: '' });
     expect(result.title).toBe('러닝');
   });
-  it('공백만 쓴 제목도 비운 것으로 본다', () => {
-    const result = workoutFormSchema.parse({ ...input, title: '   ' });
+  // 예전에 제목 칸이 있던 때 쓴 제목("하체 데이")이 있는 기록을 고쳐 저장하면 종목 이름으로 바뀐다 (감수한 점)
+  it('예전 제목이 들어와도 종목 이름으로 바꾼다', () => {
+    const result = workoutFormSchema.parse({ ...input, title: '하체 데이' });
     expect(result.title).toBe('러닝');
-  });
-  it('제목을 쓰면 그대로 (앞뒤 공백만 정리)', () => {
-    const result = workoutFormSchema.parse({ ...input, title: ' 하체 데이 ' });
-    expect(result.title).toBe('하체 데이');
   });
   it('폼을 통과한 값은 저장된 기록 스키마(제목 필수)도 통과한다', () => {
     const result = workoutFormSchema.parse({ ...input, title: '' });

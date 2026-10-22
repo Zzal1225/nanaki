@@ -67,7 +67,7 @@ describe('RecordsOverview', () => {
     // 카드의 합계와 목록의 금액이 같은 글자라 개수로 확인한다
     expect(await screen.findAllByText('-12,500원')).toHaveLength(2);
     expect(screen.getByText('1건')).toBeTruthy();
-    expect(screen.getByText('점심 · 식비')).toBeTruthy();
+    expect(screen.getByText('[식비] 점심')).toBeTruthy();
     expect(screen.getByText('가계부 · 10.19 (월)')).toBeTruthy();
     expect(screen.getByText('★ 4.0')).toBeTruthy();
   });
@@ -77,7 +77,7 @@ describe('RecordsOverview', () => {
     vi.mocked(listRecentRecords).mockResolvedValue([LUNCH]);
     renderOverview();
 
-    const link = await screen.findByRole('link', { name: /점심 · 식비/ });
+    const link = await screen.findByRole('link', { name: /\[식비\] 점심/ });
     expect(link.getAttribute('href')).toBe('/records/1');
   });
 
@@ -110,7 +110,7 @@ describe('RecordsOverview', () => {
     renderOverview();
 
     // 기록이 그려진 뒤(점심이 보인 뒤)에 확인한다. 그 전에는 후기도 원래 안 보여서 검사가 의미 없다
-    expect(await screen.findByText('점심 · 식비')).toBeTruthy();
+    expect(await screen.findByText('[식비] 점심')).toBeTruthy();
     // 설정을 불러오기 전에는 모두 켜진 것으로 그리므로, 후기가 사라질 때까지 기다린다
     await waitFor(() => expect(screen.queryByText('동네 로스터리')).toBeNull());
     // 카드는 타입 이름으로 시작하는 링크 (최근 기록 줄은 기록 제목으로 시작)

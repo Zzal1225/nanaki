@@ -3,65 +3,69 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import BodySummaryCard from './BodySummaryCard';
 
+const WEIGHTS = [
+  { date: '2026-10-05', value: 69.2 },
+  { date: '2026-10-19', value: 68.4 },
+];
+
 // 체형 요약 카드는 화면 비교(4화면) 대상이 아니라서, 무엇이 보이고 읽히는지만 여기서 확인한다
 describe('BodySummaryCard', () => {
   afterEach(() => cleanup());
 
-  it('마지막 체중·이 달 변화·그래프 설명·다른 항목 칩', () => {
+  it('"최근 체중 68.4kg(-0.4kg)", 체중·허리둘레 그래프를 따로', () => {
     render(
       <BodySummaryCard
-        monthLabel='이번 달'
+        latestWeight={{ weight: 68.4, change: -0.4 }}
         summary={{
-          latestWeight: 68.4,
-          change: -1.2,
-          points: [
-            { day: 1, weight: 69.6 },
-            { day: 19, weight: 68.4 },
-          ],
-          daysInMonth: 31,
-          latestOthers: [{ label: '허리', value: 78, unit: 'cm' }],
+          points: {
+            weight: WEIGHTS,
+            waist: [{ date: '2026-10-12', value: 78 }],
+          },
         }}
       />,
     );
-    expect(screen.getByText('68.4kg')).toBeTruthy();
-    expect(screen.getByText('-1.2kg')).toBeTruthy();
+    expect(screen.getByText('최근 체중')).toBeTruthy();
+    expect(screen.getByText('(-0.4kg)').parentElement?.textContent).toBe(
+      '68.4kg(-0.4kg)',
+    );
     expect(
       screen.getByRole('img', {
-        name: '체중 그래프: 1일 69.6kg에서 19일 68.4kg',
+        name: '체중 그래프: 10.5 69.2kg에서 10.19 68.4kg',
       }),
     ).toBeTruthy();
-    expect(screen.getByRole('listitem').textContent).toBe('허리78cm');
+    expect(
+      screen.getByRole('img', {
+        name: '허리둘레 그래프: 10.12 78cm에서 10.12 78cm',
+      }),
+    ).toBeTruthy();
+    // 예전 문구는 없다
+    expect(screen.queryByText(/마지막 체중|이 달/)).toBeNull();
   });
 
-  it('늘었으면 +, 같으면 "변화 없음"', () => {
-    const base = {
-      latestWeight: 70,
-      points: [{ day: 3, weight: 70 }],
-      daysInMonth: 31,
-      latestOthers: [],
-    };
-    render(
-      <BodySummaryCard monthLabel='10월' summary={{ ...base, change: 0.4 }} />,
-    );
-    expect(screen.getByText('+0.4kg')).toBeTruthy();
-    cleanup();
-    render(
-      <BodySummaryCard monthLabel='10월' summary={{ ...base, change: 0 }} />,
-    );
-    expect(screen.getByText('변화 없음')).toBeTruthy();
-  });
-
-  it('기록이 없는 달은 — 이고 그래프를 그리지 않는다', () => {
+  it('바로 전 체중이 없으면 괄호 없이, 늘었으면 +', () => {
+    const summary = { points: { weight: WEIGHTS, waist: [] } };
     render(
       <BodySummaryCard
-        monthLabel='9월'
-        summary={{
-          latestWeight: null,
-          change: null,
-          points: [],
-          daysInMonth: 30,
-          latestOthers: [],
-        }}
+        latestWeight={{ weight: 70, change: null }}
+        summary={summary}
+      />,
+    );
+    expect(screen.queryByText(/\(/)).toBeNull();
+    cleanup();
+    render(
+      <BodySummaryCard
+        latestWeight={{ weight: 70, change: 0.4 }}
+        summary={summary}
+      />,
+    );
+    expect(screen.getByText('(+0.4kg)')).toBeTruthy();
+  });
+
+  it('체중 기록이 하나도 없으면 —, 그 달에 잰 적 없는 항목은 그래프를 그리지 않는다', () => {
+    render(
+      <BodySummaryCard
+        latestWeight={null}
+        summary={{ points: { weight: [], waist: [] } }}
       />,
     );
     expect(screen.getByText('—')).toBeTruthy();

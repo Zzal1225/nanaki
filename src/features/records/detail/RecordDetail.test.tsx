@@ -56,7 +56,9 @@ describe('RecordDetail', () => {
     renderDetail();
 
     expect(await screen.findByRole('heading', { name: '점심' })).toBeTruthy();
-    expect(screen.getByText('가계부 · 식비')).toBeTruthy();
+    // 배지는 타입 이름만 (분류는 표에 있다)
+    expect(screen.getByText('가계부')).toBeTruthy();
+    expect(screen.queryByText('가계부 · 식비')).toBeNull();
     expect(screen.getByText('-12,500원')).toBeTruthy();
     expect(screen.getByText('2026. 10. 16 (금)')).toBeTruthy();
     expect(screen.getByText('#회사')).toBeTruthy();

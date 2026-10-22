@@ -1,4 +1,9 @@
-import { listBodyMeasurements, toBodyTitle } from '../schema/body';
+import {
+  BODY_MEASURE_LABEL,
+  BODY_MEASURE_UNIT,
+  measureOf,
+  type BodyMeasure,
+} from '../schema/body';
 import type { RecordEntry } from '../schema/recordEntry';
 import type { RecordType } from '../schema/recordTypes';
 
@@ -6,7 +11,7 @@ import type { RecordType } from '../schema/recordTypes';
 type EntryOf<T extends RecordType> = Extract<RecordEntry, { type: T }>;
 
 type RecordPresentation<T extends RecordType> = {
-  // 목록 한 줄의 제목 (시안: "택시 · 교통")
+  // 목록 한 줄의 제목: "[분류] 제목" 꼴 (2026-10-22 사용자 결정: "[교통] 택시", "[러닝] 5.2km", "[체중]")
   listTitle: (entry: EntryOf<T>) => string;
   // 목록 오른쪽 값 (시안: "-7,000원", "★ 4.0")
   listValue: (entry: EntryOf<T>) => string;
@@ -18,10 +23,10 @@ type RecordPresentation<T extends RecordType> = {
     current: EntryOf<T>[],
     previous: EntryOf<T>[],
   ) => PreviousMonthComparison | null;
-  // 상세 위쪽 칩의 두 번째 말 (시안: "가계부 · 식비", "후기 · 장소")
-  detailKicker: (entry: EntryOf<T>) => string;
-  // 상세에서 제목 아래 크게 보여 줄 필드. 아래 표에서는 빼서 같은 값이 두 번 나오지 않게 한다
-  headlineField: keyof EntryOf<T>['fields'];
+  // 상세에서 제목 아래 크게 보여 준 필드(= 목록 값). 아래 표에서는 빼서 같은 값이 두 번 나오지 않게 한다.
+  // 기록마다 다를 수 있어 함수다 (체형: 체중 기록이면 체중, 허리둘레 기록이면 허리둘레).
+  // 상세 위 배지는 타입 이름만 보여 준다 (2026-10-22 사용자 결정: "가계부 · 교통"처럼 항목까지는 어색하다)
+  headlineField: (entry: EntryOf<T>) => string;
   // 홈 하루 요약 한 줄: 이름과 값 (시안: "가계부 3건 · -32,000원", "후기 1건 · 동네 로스터리 ★4")
   dayLabel: (entries: EntryOf<T>[]) => string;
   dayValue: (entries: EntryOf<T>[]) => string;
@@ -31,7 +36,7 @@ type RecordPresentation<T extends RecordType> = {
 // 컴포넌트 안에 if (type === 'expense')가 생기지 않는다 (CLAUDE.md 규칙)
 const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
   expense: {
-    listTitle: (entry) => `${entry.title} · ${entry.fields.category}`,
+    listTitle: (entry) => `[${entry.fields.category}] ${entry.title}`,
     listValue: (entry) => formatExpenseAmount(entry.fields.amount),
     comparePreviousMonth: (current, previous) =>
       previous.length === 0
@@ -41,16 +46,13 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
             (amount) => `${amount.toLocaleString('ko-KR')}원`,
             ['덜 썼어요', '더 썼어요'],
           ),
-    monthValue: (entries) =>
-      formatExpenseAmount(entries.reduce((sum, e) => sum + e.fields.amount, 0)),
-    detailKicker: (entry) => entry.fields.category,
-    headlineField: 'amount',
+    monthValue: (entries) => formatExpenseAmount(sumAmounts(entries)),
+    headlineField: () => 'amount',
     dayLabel: (entries) => `가계부 ${entries.length}건`,
-    dayValue: (entries) =>
-      formatExpenseAmount(entries.reduce((sum, e) => sum + e.fields.amount, 0)),
+    dayValue: (entries) => formatExpenseAmount(sumAmounts(entries)),
   },
   review: {
-    listTitle: (entry) => entry.title,
+    listTitle: (entry) => `[${entry.fields.targetKind}] ${entry.title}`,
     listValue: (entry) => formatRating(entry.fields.rating),
     monthValue: (entries) => `${entries.length}건`,
     comparePreviousMonth: (current, previous) =>
@@ -61,8 +63,7 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
             (count) => `${count}건`,
             ['덜 썼어요', '더 썼어요'],
           ),
-    detailKicker: (entry) => entry.fields.targetKind,
-    headlineField: 'rating',
+    headlineField: () => 'rating',
     dayLabel: (entries) => `후기 ${entries.length}건`,
     // 후기는 더할 값이 없어서 첫 대상의 이름을 보여 주고, 여러 개면 나머지 개수만 붙인다
     dayValue: ([first, ...rest]) =>
@@ -71,14 +72,12 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
         : `${first.title} 외 ${rest.length}건`,
   },
   workout: {
-    // 시안: "헬스 · 하체", "러닝 5km". 제목을 비워 종목 이름이 제목이 된 기록은 "러닝 · 러닝"이 되지 않게 한 번만
+    // "[러닝] 5.2km", 거리가 없으면 "[헬스]". 제목은 쓰지 않는다 (운동은 제목 칸이 없다, 종목이 곧 이름)
     listTitle: (entry) => {
       const { activity, distance } = entry.fields;
-      const name =
-        entry.title === activity ? activity : `${activity} · ${entry.title}`;
       return distance === undefined
-        ? name
-        : `${name} ${formatDistance(distance)}`;
+        ? `[${activity}]`
+        : `[${activity}] ${formatDistance(distance)}`;
     },
     listValue: (entry) => formatMinutes(entry.fields.minutes),
     // 시안: "12회". 운동은 "몇 번 했나"가 먼저라 시간 합계 대신 횟수
@@ -92,8 +91,7 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
             (count) => `${count}회`,
             ['덜 했어요', '더 했어요'],
           ),
-    detailKicker: (entry) => entry.fields.activity,
-    headlineField: 'minutes',
+    headlineField: () => 'minutes',
     dayLabel: (entries) => `운동 ${entries.length}회`,
     // 하나면 "러닝 30분"(시안), 여럿이면 종목 대신 그날 총 시간
     dayValue: (entries) =>
@@ -102,48 +100,64 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
         : `총 ${formatMinutes(entries.reduce((sum, e) => sum + e.fields.minutes, 0))}`,
   },
   body: {
-    // 제목을 비우면 적은 항목 이름("체중 · 허리")이 제목이 되어, 시안의 목록 제목과 같아진다
-    listTitle: (entry) => entry.title,
-    listValue: (entry) => formatMeasurement(entry.fields.weight, 'kg'),
-    // 체형은 더하거나 셀 값이 아니라 "지금 몇 kg인지"가 궁금하다 (시안: 최근 체중 68.4kg)
+    // "[체중]" / "[허리둘레]": 한 기록에 하나만 잰다 (둘 다 있는 예전 기록은 체중)
+    listTitle: (entry) => `[${BODY_MEASURE_LABEL[measureOf(entry.fields)]}]`,
+    listValue: (entry) =>
+      formatBodyMeasure(entry.fields, measureOf(entry.fields)),
+    // 체형은 더하거나 셀 값이 아니라 "지금 몇 kg인지"가 궁금하다. 허리둘레만 잰 기록은 건너뛴다
     monthValue: (entries) => {
-      const latest = latestEntryOf(entries);
-      return latest ? formatMeasurement(latest.fields.weight, 'kg') : '—';
+      const latest = latestEntryOf(withWeight(entries));
+      return latest ? formatBodyMeasure(latest.fields, 'weight') : '—';
     },
     // 체중은 더하는 값이 아니라 상태라, 두 기간의 합이 아니라 "각 기간의 마지막 체중"끼리 비교한다.
     // 이번 기간에 잰 적이 없으면 지금 체중을 몰라 비교하지 않는다
     comparePreviousMonth: (current, previous) => {
-      const now = latestEntryOf(current);
-      const before = latestEntryOf(previous);
-      if (!now || !before) return null;
-      // 68.4 - 69.2 = -0.7999999999999972 (부동소수점) → 소수 한 자리로
-      const difference = Number(
-        (now.fields.weight - before.fields.weight).toFixed(1),
+      const now = latestEntryOf(withWeight(current))?.fields.weight;
+      const before = latestEntryOf(withWeight(previous))?.fields.weight;
+      if (now === undefined || before === undefined) return null;
+      return describeChange(
+        roundToOneDecimal(now - before),
+        (kg) => formatMeasurement(kg, 'kg'),
+        ['줄었어요', '늘었어요'],
       );
-      return describeChange(difference, (kg) => formatMeasurement(kg, 'kg'), [
-        '줄었어요',
-        '늘었어요',
-      ]);
     },
-    detailKicker: (entry) => toBodyTitle(entry.fields),
-    headlineField: 'weight',
+    headlineField: (entry) => measureOf(entry.fields),
     dayLabel: () => '체형',
-    // 시안: "68.4kg · 허리 78cm". 체중과 그다음 적은 항목 하나만 (한 줄에 다 넣으면 잘린다).
-    // 하루에 여러 번 쟀으면 마지막 기록 (펼치면 모두 보인다)
+    // 시안: "68.4kg · 허리둘레 78cm". 그날 마지막 체중과 마지막 허리둘레 (따로 잰 두 기록을 한 줄에)
     dayValue: (entries) => {
-      const latest = latestEntryOf(entries);
-      if (!latest) return '';
-      const [weight, next] = listBodyMeasurements(latest.fields);
-      const weightText = formatMeasurement(weight.value, weight.unit);
-      return next
-        ? `${weightText} · ${next.label} ${formatMeasurement(next.value, next.unit)}`
-        : weightText;
+      const weight = latestEntryOf(withWeight(entries));
+      const waist = latestEntryOf(
+        entries.filter((entry) => entry.fields.waist !== undefined),
+      );
+      return [
+        weight && formatBodyMeasure(weight.fields, 'weight'),
+        waist &&
+          `${BODY_MEASURE_LABEL.waist} ${formatBodyMeasure(waist.fields, 'waist')}`,
+      ]
+        .filter(Boolean)
+        .join(' · ');
     },
   },
 };
 
 function sumAmounts(entries: EntryOf<'expense'>[]): number {
   return entries.reduce((sum, entry) => sum + entry.fields.amount, 0);
+}
+
+function withWeight(entries: EntryOf<'body'>[]): EntryOf<'body'>[] {
+  return entries.filter((entry) => entry.fields.weight !== undefined);
+}
+
+// 68.4 - 69.2 = -0.7999999999999972 (부동소수점) → -0.8
+export function roundToOneDecimal(value: number): number {
+  return Number(value.toFixed(1));
+}
+
+function formatBodyMeasure(
+  fields: EntryOf<'body'>['fields'],
+  measure: BodyMeasure,
+): string {
+  return formatMeasurement(fields[measure] ?? 0, BODY_MEASURE_UNIT[measure]);
 }
 
 // 비교 한 줄을 글자 하나가 아니라 조각으로 넘긴다: 카드가 수치(amount)만 굵게 그려야 해서 (2026-10-22 사용자 결정).
@@ -176,7 +190,7 @@ export function formatPreviousMonthComparison(
     : `지난달보다 ${comparison.amount} ${comparison.word}`;
 }
 
-// 68.4 + 'kg' → '68.4kg'. 체형 측정값은 단위가 항목마다 달라(kg·cm·%) 단위를 받는다
+// 68.4 + 'kg' → '68.4kg'. 체형 측정값은 단위가 항목마다 달라(kg·cm) 단위를 받는다
 export function formatMeasurement(value: number, unit: string): string {
   return `${value.toLocaleString('ko-KR')}${unit}`;
 }
@@ -250,12 +264,8 @@ export function getMonthValue(
   return presentationOf(type).monthValue(ofType as never);
 }
 
-export function getDetailKicker(entry: RecordEntry): string {
-  return presentationOf(entry.type).detailKicker(entry as never);
-}
-
-export function getHeadlineField(type: RecordType): string {
-  return String(RECORD_PRESENTATION[type].headlineField);
+export function getHeadlineField(entry: RecordEntry): string {
+  return presentationOf(entry.type).headlineField(entry as never);
 }
 
 // 홈 하루 요약: 같은 타입의 그날 기록을 받는다. 빈 배열은 넘기지 않는다 (그 타입 줄을 아예 그리지 않으므로)

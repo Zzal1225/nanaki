@@ -218,3 +218,33 @@ export async function listRecordsOfType(
     .map(toRecordEntryOrWarn)
     .filter((e): e is RecordEntry => e !== null);
 }
+
+// 날짜와 상관없이, fields에 그 칸(field)이 있는 그 타입의 최근 기록 limit개 (체형 상세의 "최근 체중"과 바로 전 체중).
+// 체형 기록은 체중·허리둘레가 섞여 있어 "최근 체형 기록 2개"로는 체중 2개를 보장할 수 없다 →
+// DB에서 fields->weight가 있는 줄만 거른다 (PostgREST의 jsonb 경로 필터: fields->weight=not.is.null)
+export async function listLatestRecordsWithField(
+  type: RecordEntry['type'],
+  field: string,
+  limit: number,
+): Promise<RecordEntry[]> {
+  const supabase = createSupabaseBrowserClient();
+
+  const { data, error } = await supabase
+    .from('records')
+    .select('*')
+    .eq('type', type)
+    .not(`fields->${field}`, 'is', null)
+    .is('deleted_at', null)
+    .order('occurred_at', { ascending: false })
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw error;
+  }
+
+  return data
+    .map(toRecordEntryOrWarn)
+    .filter((e): e is RecordEntry => e !== null);
+}

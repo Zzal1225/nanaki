@@ -56,7 +56,7 @@ describe('TypeDetail', () => {
     expect(screen.getByText('75%')).toBeTruthy();
     expect(screen.getByText('25%')).toBeTruthy();
     expect(
-      screen.getByRole('link', { name: /점심 · 식비/ }).getAttribute('href'),
+      screen.getByRole('link', { name: /\[식비\] 점심/ }).getAttribute('href'),
     ).toBe('/records/1');
   });
 

@@ -39,6 +39,6 @@ test('체험하기 → 가계부 쓰기 → 홈 캘린더의 오늘 요약에 �
   // 펼치면 방금 쓴 기록이 목록에 있다
   await daySummary.getByRole('button', { name: /가계부 3건/ }).click();
   await expect(
-    daySummary.getByRole('link', { name: /편의점 · 식비/ }),
+    daySummary.getByRole('link', { name: /\[식비\] 편의점/ }),
   ).toBeVisible();
 });

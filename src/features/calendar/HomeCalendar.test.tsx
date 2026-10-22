@@ -179,7 +179,7 @@ describe('HomeCalendar', () => {
     fireEvent.click(row);
 
     expect(row.getAttribute('aria-expanded')).toBe('true');
-    expect(screen.getByRole('link', { name: /점심 · 식비/ })).toBeDefined();
+    expect(screen.getByRole('link', { name: /\[식비\] 점심/ })).toBeDefined();
   });
 
   it('주소 값이 틀리면 오늘로 (화면이 깨지지 않는다)', () => {

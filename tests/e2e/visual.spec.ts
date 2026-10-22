@@ -36,7 +36,7 @@ async function captureSignedInScreens(page: Page, theme: 'light' | 'dark') {
   // 같은 목록이 PC용(왼쪽 패널)과 모바일용 두 벌 DOM에 있고, 폭에 따라 한쪽은 CSS로 숨는다.
   // first()만 쓰면 숨은 쪽을 집어 영영 기다리므로 보이는 것 중에서 고른다
   await expect(
-    page.getByText('점심 · 식비').filter({ visible: true }).first(),
+    page.getByText('[식비] 점심').filter({ visible: true }).first(),
   ).toBeVisible();
   await capture(page, `records-${theme}`);
 
