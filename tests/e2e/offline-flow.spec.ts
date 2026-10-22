@@ -35,14 +35,18 @@ test('오프라인: 연 화면은 틀이 뜨고, 안 연 화면은 대체 화면
 
   await context.setOffline(true);
 
-  // (1) 연 적 있는 화면: 새로고침해도 화면 틀(제목·검색창)은 뜬다
+  // (1) 연 적 있는 화면: 새로고침해도 화면 틀(검색창)은 뜬다
   const reload = await page.reload();
   test.info().annotations.push({
     type: '기록 탭 새로고침 응답',
     description: `서비스 워커 응답: ${reload?.fromServiceWorker() ?? '응답 없음'}`,
   });
+  // 화면 틀이 떴는지는 보이는 검색창으로 본다 ("기록" 제목은 화면 읽기 프로그램 전용이라 눈에 보이지 않는다)
   await expect(
-    page.getByRole('heading', { name: '기록', level: 1 }).first(),
+    page
+      .getByRole('link', { name: '기록 검색' })
+      .filter({ visible: true })
+      .first(),
   ).toBeVisible();
 
   // 데이터는 서버에서 받으므로 어떻게 보이는지만 기록한다 (불러오는 중 / 오류 / 보임)
