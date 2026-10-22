@@ -87,7 +87,8 @@ src/
                   SearchView(모바일 페이지 / PC는 records/overview/RecordsSidePanel이 왼쪽 목록 자리에). 검색어 필터 글자는 records/api/searchQuery
   lib/supabase/   Supabase 클라이언트 (client.ts = 브라우저용, server.ts = 서버용, admin.ts = secret 키 관리자용·서버 전용), database.types.ts = DB 타입(자동 생성, 직접 수정 금지)
   lib/sentry/     Sentry 공통 설정(sentryOptions: 켜는 조건, 개인 데이터 수집 끔). instrumentation(-client).ts와 app/global-error.tsx가 쓴다
-  lib/db/         Dexie 스키마와 마이그레이션 (예정)
+  lib/db/         기기 사본(Dexie). localDb = 계정마다 IndexedDB(서버 줄 그대로), sync = (updated_at, id) 커서로 바뀐 것만 받기,
+                  currentLocalDb = 지금 계정의 사본. 기록·루틴 조회는 recordStore·routineStore가 이걸 거쳐 사본에서 읽는다
 tests/integration/  진짜 Supabase에 붙는 통합 테스트(RLS 격리 등). npm run test:integration, CI가 로컬 Supabase(Docker)를 띄워 돌린다
 tests/e2e/          Playwright E2E (npm run test:e2e). CI가 같은 로컬 Supabase에 붙인 빌드로 실제 브라우저 흐름을 돌린다
                     visual.spec.ts = 화면 비교, 기준 이미지는 visual.spec.ts-snapshots/ (CI 리눅스에서만 만든다:
