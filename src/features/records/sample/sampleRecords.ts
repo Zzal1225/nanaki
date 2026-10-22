@@ -1,4 +1,5 @@
 import { addDaysTo } from '@/shared/date/calendar';
+import { shiftMonth, toMonthString } from '@/shared/date/month';
 import type { DistributiveOmit, NewRecordInput } from '../api/recordStore';
 
 // "로그인 없이 체험하기"로 들어온 사람이 빈 화면 대신 바로 둘러볼 수 있게 넣는 예시 기록.
@@ -200,11 +201,65 @@ const SAMPLE_TEMPLATES: readonly SampleTemplate[] = [
   },
 ];
 
+// 지난달 1일의 예시 기록: 기록 탭 카드의 "지난달 같은 기간보다 …"가 체험에서도 보이게 (2026-10-22 사용자 요청).
+// 1일에 두는 이유: 비교 기간은 "지난달 1일~오늘과 같은 날"이라, 오늘이 며칠이든(1일이어도) 1일은 늘 그 안에 든다.
+// 네 타입 모두 하나 이상: 지난달 쪽이 비면 그 카드는 비교 줄을 숨긴다
+const PREVIOUS_MONTH_TEMPLATES: readonly SampleTemplate['record'][] = [
+  {
+    type: 'expense',
+    title: '장보기',
+    memo: null,
+    tags: ['마트'],
+    fields: { amount: 64000, category: '생활', paymentMethod: '카드' },
+  },
+  {
+    type: 'expense',
+    title: '가을 재킷',
+    memo: null,
+    tags: [],
+    fields: { amount: 145000, category: '쇼핑', paymentMethod: '카드' },
+  },
+  {
+    type: 'review',
+    title: '동네 빵집',
+    memo: null,
+    tags: [],
+    fields: { rating: 4, targetKind: '장소' },
+  },
+  {
+    type: 'review',
+    title: '추리 소설',
+    memo: null,
+    tags: [],
+    fields: { rating: 3, targetKind: '콘텐츠' },
+  },
+  {
+    type: 'workout',
+    title: '걷기',
+    memo: null,
+    tags: [],
+    fields: { activity: '걷기', minutes: 40, distance: 3.1 },
+  },
+  {
+    type: 'body',
+    title: '체중',
+    memo: null,
+    tags: [],
+    fields: { weight: 69.6 },
+  },
+];
+
 // today('YYYY-MM-DD', 브라우저의 오늘)를 기준으로 날짜를 채운 예시 기록들.
 // 오늘을 받는 이유: 여기서 new Date()를 부르면 테스트마다 결과가 달라진다
 export function buildSampleRecords(today: string): NewRecordInput[] {
-  return SAMPLE_TEMPLATES.map(({ daysAgo, record }) => ({
+  const recent = SAMPLE_TEMPLATES.map(({ daysAgo, record }) => ({
     ...record,
     occurredAt: addDaysTo(today, -daysAgo),
   }));
+  const previousMonthFirst = `${shiftMonth(toMonthString(today), -1)}-01`;
+  const previousMonth = PREVIOUS_MONTH_TEMPLATES.map((record) => ({
+    ...record,
+    occurredAt: previousMonthFirst,
+  }));
+  return [...recent, ...previousMonth];
 }

@@ -2,10 +2,15 @@
 
 // 'use client' 이유: 기록을 브라우저에서 불러온다(TanStack Query). step2에서 오프라인(IndexedDB)으로 바꿀 자리라 클라이언트 중심
 import { usePathname } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, useId } from 'react';
 import { formatShortDate } from '@/shared/date/formatDisplayDate';
-import { getMonthRange } from '@/shared/date/monthRange';
-import { fromLocalDateString } from '@/shared/date/toLocalDateString';
+import {
+  formatMonthLabel,
+  getMonthRangeOf,
+  shiftMonth,
+  toMonthString,
+} from '@/shared/date/month';
+import { filterInRange, getSamePeriod } from '@/shared/date/samePeriod';
 import { useToday } from '@/shared/date/useToday';
 import Button from '@/shared/ui/Button';
 import { useVisibleTypes } from '@/features/settings/hooks/useUserSettings';
@@ -16,8 +21,8 @@ import { RECORD_TYPE_CONFIG } from '../schema/recordTypes';
 import {
   getListTitle,
   getListValue,
-  getMonthMetric,
   getMonthValue,
+  getPreviousMonthComparison,
 } from '../ui/recordPresentation';
 import MonthSummaryCard from './MonthSummaryCard';
 import RecentRecordItem from './RecentRecordItem';
@@ -45,15 +50,38 @@ function RecordsOverviewWithPathname() {
 function RecordsOverviewView({ pathname }: { pathname: string | null }) {
   // 오늘은 브라우저에서만 안다 (미리 그리기에서는 null → 카드 자리만 보이고 조회도 미룬다)
   const today = useToday();
-  const month = today ? getMonthRange(fromLocalDateString(today)) : null;
-  const monthRecords = useRecords(month);
+  const summaryTitleId = useId();
+  const currentMonth = today ? toMonthString(today) : null;
+  const monthRecords = useRecords(
+    currentMonth ? getMonthRangeOf(currentMonth) : null,
+  );
+  // 지난달 같은 기간과 비교하려고 지난달 전체를 더 불러온다 (기록 조회 1번 추가).
+  // 달 전체로 부르는 이유: 홈 캘린더에서 지난달로 넘어갈 때와 같은 쿼리 키라 캐시를 함께 쓴다. 기간 자르기는 아래에서
+  const previousMonthRecords = useRecords(
+    currentMonth ? getMonthRangeOf(shiftMonth(currentMonth, -1)) : null,
+  );
   const recentRecords = useRecentRecords(RECENT_RECORD_LIMIT);
 
-  const isPending = monthRecords.isPending || recentRecords.isPending;
+  // 지난달까지 기다린다: 비교 줄이 나중에 끼어들며 카드 높이가 바뀌지 않게.
+  // 지난달 조회가 실패하면 비교 줄만 빠지고 카드는 그대로 보인다 (isError에 넣지 않는다)
+  const isPending =
+    monthRecords.isPending ||
+    previousMonthRecords.isPending ||
+    recentRecords.isPending;
   const isError = monthRecords.isError || recentRecords.isError;
   // 설정에서 끈 타입은 카드도 기록도 숨긴다 (데이터는 그대로)
   const visibleTypes = useVisibleTypes();
   const monthEntries = monthRecords.data ?? [];
+  // 비교는 같은 기간끼리: 이번 달 1일~오늘 vs 지난달 1일~같은 날 (카드 값은 그대로 이번 달 전체)
+  const period =
+    currentMonth && today ? getSamePeriod(currentMonth, today) : null;
+  const currentPeriodEntries = period
+    ? filterInRange(monthEntries, period.current)
+    : [];
+  const previousPeriodEntries =
+    period && previousMonthRecords.data
+      ? filterInRange(previousMonthRecords.data, period.previous)
+      : [];
   const recentEntries = filterVisibleEntries(
     recentRecords.data ?? [],
     visibleTypes,
@@ -86,8 +114,17 @@ function RecordsOverviewView({ pathname }: { pathname: string | null }) {
         </div>
       ) : (
         <>
+          {/* 카드 안 꼬리표 대신 카드 밖 제목으로 기간을 알린다 (2026-10-22 사용자 결정). 오늘을 읽기 전에는 높이만 잡아 둔다 */}
+          <h2
+            id={summaryTitleId}
+            className='flex h-8 items-center px-4 pt-2 text-body font-semibold text-fg-primary md:px-6'
+          >
+            {currentMonth
+              ? `${formatMonthLabel(currentMonth, currentMonth)} 요약`
+              : ''}
+          </h2>
           <section
-            aria-label='이번 달 요약'
+            aria-labelledby={summaryTitleId}
             // 불러오는 중에는 숫자 대신 회색 자리만. 스크린 리더에는 "불러오는 중"을 알린다
             aria-busy={isPending}
             className='grid grid-cols-2 gap-2 px-4 py-4 md:px-6'
@@ -106,8 +143,12 @@ function RecordsOverviewView({ pathname }: { pathname: string | null }) {
                 <MonthSummaryCard
                   key={type}
                   type={type}
-                  metric={getMonthMetric(type)}
                   value={getMonthValue(type, monthEntries)}
+                  comparison={getPreviousMonthComparison(
+                    type,
+                    currentPeriodEntries,
+                    previousPeriodEntries,
+                  )}
                   isEmpty={monthEntries.every((entry) => entry.type !== type)}
                   isWide={isWide}
                   href={`/records/type/${type}`}

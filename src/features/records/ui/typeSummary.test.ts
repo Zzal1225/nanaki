@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { RecordEntryOf } from '../schema/recordEntry';
 import {
-  compareExpensesWithPreviousMonth,
-  getSamePeriod,
   summarizeBody,
   summarizeExpenses,
   summarizeReviews,
@@ -166,61 +164,5 @@ describe('summarizeBody', () => {
     expect(summary.change).toBeNull();
     expect(summary.points).toEqual([]);
     expect(summary.daysInMonth).toBe(28);
-  });
-});
-
-describe('getSamePeriod (지난달 같은 기간)', () => {
-  it('이번 달: 1일~오늘 vs 지난달 1일~같은 날', () => {
-    expect(getSamePeriod('2026-10', '2026-10-22')).toEqual({
-      current: { from: '2026-10-01', to: '2026-10-22' },
-      previous: { from: '2026-09-01', to: '2026-09-22' },
-    });
-  });
-  it('지난달에 그 날이 없으면 말일까지 (3월 31일 → 2월 28일)', () => {
-    expect(getSamePeriod('2027-03', '2027-03-31')?.previous).toEqual({
-      from: '2027-02-01',
-      to: '2027-02-28',
-    });
-  });
-  it('1월이면 지난해 12월과', () => {
-    expect(getSamePeriod('2027-01', '2027-01-05')?.previous).toEqual({
-      from: '2026-12-01',
-      to: '2026-12-05',
-    });
-  });
-  it('지난 달을 볼 때는 두 달 전체', () => {
-    expect(getSamePeriod('2026-09', '2026-10-22')).toEqual({
-      current: { from: '2026-09-01', to: '2026-09-30' },
-      previous: { from: '2026-08-01', to: '2026-08-31' },
-    });
-  });
-  it('아직 오지 않은 달은 비교하지 않는다', () => {
-    expect(getSamePeriod('2026-11', '2026-10-22')).toBeNull();
-  });
-});
-
-describe('compareExpensesWithPreviousMonth', () => {
-  const period = getSamePeriod('2026-10', '2026-10-22')!;
-  function spent(id: string, occurredAt: string, amount: number) {
-    return { ...expense(id, amount, '식비'), occurredAt };
-  }
-
-  it('같은 기간끼리만 더해서 뺀다 (기간 밖 기록은 빠진다)', () => {
-    const difference = compareExpensesWithPreviousMonth(
-      [spent('1', '2026-10-05', 10000), spent('2', '2026-10-25', 99000)],
-      [spent('3', '2026-09-10', 22000), spent('4', '2026-09-28', 50000)],
-      period,
-    );
-    // 10월 1~22일 10,000원 - 9월 1~22일 22,000원
-    expect(difference).toBe(-12000);
-  });
-  it('지난달 같은 기간에 기록이 없으면 null (비교하지 않음)', () => {
-    expect(
-      compareExpensesWithPreviousMonth(
-        [spent('1', '2026-10-05', 10000)],
-        [spent('3', '2026-09-28', 22000)],
-        period,
-      ),
-    ).toBeNull();
   });
 });

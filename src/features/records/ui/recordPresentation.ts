@@ -10,9 +10,14 @@ type RecordPresentation<T extends RecordType> = {
   listTitle: (entry: EntryOf<T>) => string;
   // 목록 오른쪽 값 (시안: "-7,000원", "★ 4.0")
   listValue: (entry: EntryOf<T>) => string;
-  // 기록 탭 타입 카드의 이름과 이번 달 값
-  monthMetric: string;
+  // 기록 탭 타입 카드의 이번 달 값 (카드 안 꼬리표 "이번 달 지출"은 없앴다: 카드 밖 제목 "10월 요약"이 대신한다)
   monthValue: (entries: EntryOf<T>[]) => string;
+  // 기록 탭 타입 카드의 "지난달 같은 기간보다 …" 한 줄 (2026-10-22 사용자 결정).
+  // 두 목록은 이미 같은 기간(getSamePeriod)으로 잘려 들어온다. 지난달 쪽이 비었으면 비교할 게 없어 null
+  comparePreviousMonth: (
+    current: EntryOf<T>[],
+    previous: EntryOf<T>[],
+  ) => string | null;
   // 상세 위쪽 칩의 두 번째 말 (시안: "가계부 · 식비", "후기 · 장소")
   detailKicker: (entry: EntryOf<T>) => string;
   // 상세에서 제목 아래 크게 보여 줄 필드. 아래 표에서는 빼서 같은 값이 두 번 나오지 않게 한다
@@ -28,7 +33,14 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
   expense: {
     listTitle: (entry) => `${entry.title} · ${entry.fields.category}`,
     listValue: (entry) => formatExpenseAmount(entry.fields.amount),
-    monthMetric: '이번 달 지출',
+    comparePreviousMonth: (current, previous) =>
+      previous.length === 0
+        ? null
+        : describeChange(
+            sumAmounts(current) - sumAmounts(previous),
+            (amount) => `${amount.toLocaleString('ko-KR')}원`,
+            ['덜 썼어요', '더 썼어요'],
+          ),
     monthValue: (entries) =>
       formatExpenseAmount(entries.reduce((sum, e) => sum + e.fields.amount, 0)),
     detailKicker: (entry) => entry.fields.category,
@@ -40,8 +52,15 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
   review: {
     listTitle: (entry) => entry.title,
     listValue: (entry) => formatRating(entry.fields.rating),
-    monthMetric: '이번 달 작성',
     monthValue: (entries) => `${entries.length}건`,
+    comparePreviousMonth: (current, previous) =>
+      previous.length === 0
+        ? null
+        : describeChange(
+            current.length - previous.length,
+            (count) => `${count}건`,
+            ['덜 썼어요', '더 썼어요'],
+          ),
     detailKicker: (entry) => entry.fields.targetKind,
     headlineField: 'rating',
     dayLabel: (entries) => `후기 ${entries.length}건`,
@@ -62,9 +81,17 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
         : `${name} ${formatDistance(distance)}`;
     },
     listValue: (entry) => formatMinutes(entry.fields.minutes),
-    monthMetric: '이번 달 운동',
     // 시안: "12회". 운동은 "몇 번 했나"가 먼저라 시간 합계 대신 횟수
     monthValue: (entries) => `${entries.length}회`,
+    // 카드 값과 같은 기준(횟수)으로 비교한다
+    comparePreviousMonth: (current, previous) =>
+      previous.length === 0
+        ? null
+        : describeChange(
+            current.length - previous.length,
+            (count) => `${count}회`,
+            ['덜 했어요', '더 했어요'],
+          ),
     detailKicker: (entry) => entry.fields.activity,
     headlineField: 'minutes',
     dayLabel: (entries) => `운동 ${entries.length}회`,
@@ -79,10 +106,24 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
     listTitle: (entry) => entry.title,
     listValue: (entry) => formatMeasurement(entry.fields.weight, 'kg'),
     // 체형은 더하거나 셀 값이 아니라 "지금 몇 kg인지"가 궁금하다 (시안: 최근 체중 68.4kg)
-    monthMetric: '최근 체중',
     monthValue: (entries) => {
       const latest = latestEntryOf(entries);
       return latest ? formatMeasurement(latest.fields.weight, 'kg') : '—';
+    },
+    // 체중은 더하는 값이 아니라 상태라, 두 기간의 합이 아니라 "각 기간의 마지막 체중"끼리 비교한다.
+    // 이번 기간에 잰 적이 없으면 지금 체중을 몰라 비교하지 않는다
+    comparePreviousMonth: (current, previous) => {
+      const now = latestEntryOf(current);
+      const before = latestEntryOf(previous);
+      if (!now || !before) return null;
+      // 68.4 - 69.2 = -0.7999999999999972 (부동소수점) → 소수 한 자리로
+      const difference = Number(
+        (now.fields.weight - before.fields.weight).toFixed(1),
+      );
+      return describeChange(difference, (kg) => formatMeasurement(kg, 'kg'), [
+        '줄었어요',
+        '늘었어요',
+      ]);
     },
     detailKicker: (entry) => toBodyTitle(entry.fields),
     headlineField: 'weight',
@@ -100,6 +141,22 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
     },
   },
 };
+
+function sumAmounts(entries: EntryOf<'expense'>[]): number {
+  return entries.reduce((sum, entry) => sum + entry.fields.amount, 0);
+}
+
+// "지난달 같은 기간보다 12,000원 덜 썼어요" / "… 2건 더 썼어요" / "지난달 같은 기간과 같아요".
+// 늘고 준 것을 색으로 칠하지 않는다: 덜 쓴 것·체중이 준 것이 늘 좋은 건 아니다
+function describeChange(
+  difference: number,
+  formatAmount: (absolute: number) => string,
+  [lessWord, moreWord]: readonly [string, string],
+): string {
+  if (difference === 0) return '지난달 같은 기간과 같아요';
+  const word = difference < 0 ? lessWord : moreWord;
+  return `지난달 같은 기간보다 ${formatAmount(Math.abs(difference))} ${word}`;
+}
 
 // 68.4 + 'kg' → '68.4kg'. 체형 측정값은 단위가 항목마다 달라(kg·cm·%) 단위를 받는다
 export function formatMeasurement(value: number, unit: string): string {
@@ -152,8 +209,18 @@ export function getListValue(entry: RecordEntry): string {
   return presentationOf(entry.type).listValue(entry as never);
 }
 
-export function getMonthMetric(type: RecordType): string {
-  return RECORD_PRESENTATION[type].monthMetric;
+// 기록 탭 카드의 비교 한 줄. 여러 타입이 섞인 두 목록(이번 기간·지난달 같은 기간)에서 그 타입만 골라 비교한다
+export function getPreviousMonthComparison(
+  type: RecordType,
+  currentEntries: RecordEntry[],
+  previousEntries: RecordEntry[],
+): string | null {
+  const ofType = (entries: RecordEntry[]) =>
+    entries.filter((entry) => entry.type === type);
+  return presentationOf(type).comparePreviousMonth(
+    ofType(currentEntries) as never,
+    ofType(previousEntries) as never,
+  );
 }
 
 // 여러 타입이 섞인 목록에서 그 타입만 골라 이번 달 값을 만든다

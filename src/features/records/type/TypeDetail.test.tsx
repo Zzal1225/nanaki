@@ -83,37 +83,6 @@ describe('TypeDetail', () => {
     expect(kinds.textContent).toContain('경험0');
   });
 
-  it('가계부: 지난달(지난 달을 볼 때는 그 전 달 전체)과 비교한 한 줄', async () => {
-    const august: RecordEntry = {
-      ...LUNCH,
-      id: '9',
-      occurredAt: '2026-08-20',
-      fields: { amount: 32000, category: '식비' },
-    };
-    vi.mocked(listRecordsOfType).mockImplementation(async (_type, from) =>
-      from === '2026-08-01' ? [august] : [LUNCH, COFFEE],
-    );
-    renderTypeDetail('expense', '2026-09');
-
-    // 9월 20,000원 - 8월 32,000원
-    expect(
-      await screen.findByText('지난달 같은 기간보다 12,000원 덜 썼어요'),
-    ).toBeTruthy();
-    expect(listRecordsOfType).toHaveBeenCalledWith(
-      'expense',
-      '2026-08-01',
-      '2026-08-31',
-    );
-  });
-
-  it('후기는 지난달과 비교하지 않아 지난달 기록을 불러오지 않는다', async () => {
-    vi.mocked(listRecordsOfType).mockResolvedValue([CAFE]);
-    renderTypeDetail('review', '2026-09');
-
-    await screen.findByText('1건');
-    expect(listRecordsOfType).toHaveBeenCalledTimes(1);
-  });
-
   it('달을 안 정하면 이번 달, 다음 달로는 갈 수 없다', async () => {
     vi.mocked(listRecordsOfType).mockResolvedValue([]);
     renderTypeDetail('expense', null);

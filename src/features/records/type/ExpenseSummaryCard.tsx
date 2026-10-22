@@ -4,24 +4,13 @@ import type { ExpenseSummary } from '../ui/typeSummary';
 type ExpenseSummaryCardProps = {
   monthLabel: string;
   summary: ExpenseSummary;
-  // 이 달 - 지난달 같은 기간 (원, 음수면 덜 씀). 비교할 지난달 기록이 없거나 불러오는 중이면 null → 줄을 그리지 않는다
-  differenceFromPreviousMonth: number | null;
 };
-
-// "지난달 같은 기간보다 12,000원 덜 썼어요" (2026-10-22 사용자 결정 문구).
-// 덜 쓴 게 늘 좋은 건 아니라서(필요한 지출도 있다) 초록·빨강으로 칠하지 않고 글자로만 알린다
-export function formatPreviousMonthComparison(difference: number): string {
-  if (difference === 0) return '지난달 같은 기간과 같아요';
-  const amount = `${Math.abs(difference).toLocaleString('ko-KR')}원`;
-  return `지난달 같은 기간보다 ${amount} ${difference < 0 ? '덜' : '더'} 썼어요`;
-}
 
 // 가계부 요약: 이번 달 지출 + 분류별 막대 (시안). 예산 줄은 step3(예산 기능)에서 이 카드에 더한다.
 // 분류마다 색을 늘리지 않고 같은 가계부 색의 막대 길이로만 비교한다 (시안 규칙)
 export default function ExpenseSummaryCard({
   monthLabel,
   summary,
-  differenceFromPreviousMonth,
 }: ExpenseSummaryCardProps) {
   return (
     <>
@@ -32,11 +21,6 @@ export default function ExpenseSummaryCard({
         <span className='text-[28px] leading-[34px] font-bold tracking-[-0.01em] text-fg-primary tabular-nums'>
           {formatExpenseAmount(summary.total)}
         </span>
-        {differenceFromPreviousMonth !== null && (
-          <span className='text-body-sm text-fg-secondary'>
-            {formatPreviousMonthComparison(differenceFromPreviousMonth)}
-          </span>
-        )}
       </div>
       {summary.categories.length > 0 && (
         <div className='flex flex-col gap-2 border-t border-border pt-4'>

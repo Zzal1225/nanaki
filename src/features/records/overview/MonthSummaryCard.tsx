@@ -5,8 +5,9 @@ import { RECORD_TYPE_STYLE } from '../ui/recordTypeStyle';
 
 type MonthSummaryCardProps = {
   type: RecordType;
-  metric: string;
   value: string;
+  // "지난달 같은 기간보다 12,000원 덜 썼어요". 비교할 지난달 기록이 없으면 null → 줄을 그리지 않는다
+  comparison: string | null;
   // 기록이 없을 때는 값을 흐린 색으로 (시안 빈 상태: "어떤 숫자가 쌓일지 미리 보여준다")
   isEmpty: boolean;
   // 그리드 한 줄을 다 차지할지 (첫 카드, 홀수 개일 때 마지막 카드)
@@ -15,11 +16,13 @@ type MonthSummaryCardProps = {
   href: string;
 };
 
-// 표시만 한다. 값 계산은 부르는 쪽(RecordsOverview)과 recordPresentation이 맡는다. 카드 전체가 타입 상세로 가는 링크
+// 표시만 한다. 값 계산은 부르는 쪽(RecordsOverview)과 recordPresentation이 맡는다. 카드 전체가 타입 상세로 가는 링크.
+// 카드 안 꼬리표("이번 달 지출")는 없앴다 (2026-10-22 사용자 결정): 카드 위 제목 "10월 요약"이 기간을 알려 주고,
+// 그 자리에 지난달 같은 기간과의 비교를 둔다
 export default function MonthSummaryCard({
   type,
-  metric,
   value,
+  comparison,
   isEmpty,
   isWide,
   href,
@@ -45,9 +48,6 @@ export default function MonthSummaryCard({
         <span className='text-body-sm font-semibold text-fg-primary'>
           {RECORD_TYPE_CONFIG[type].label}
         </span>
-        <span className='ml-auto text-caption font-medium whitespace-nowrap text-fg-secondary'>
-          {metric}
-        </span>
       </div>
       <span
         className={`text-[28px] leading-[34px] font-bold tracking-[-0.01em] tabular-nums ${
@@ -56,6 +56,12 @@ export default function MonthSummaryCard({
       >
         {value}
       </span>
+      {comparison && (
+        // 반 폭 카드에서는 두 줄로 넘어간다. 단어 중간에서 끊기지 않게(전역 keep-all) 자연스럽게 줄바꿈
+        <span className='text-caption text-pretty text-fg-secondary'>
+          {comparison}
+        </span>
+      )}
     </Link>
   );
 }
