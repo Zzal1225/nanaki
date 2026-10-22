@@ -32,6 +32,15 @@ describe('검색어 맞추기 (기기 사본에서)', () => {
     expect(matchesKeyword(tagged, '단골')).toBe(true);
     expect(matchesKeyword(tagged, '길단')).toBe(false);
   });
+  it('공백을 빼고 비교한다 (검색어·기록 양쪽)', () => {
+    const snack = { ...COFFEE, title: '편의점 간식' };
+    expect(matchesKeyword(snack, '편의점간식')).toBe(true);
+    expect(
+      matchesKeyword({ ...COFFEE, title: '편의점간식' }, '편의점 간식'),
+    ).toBe(true);
+    // 공백만 친 검색어는 빈 검색어와 같다
+    expect(matchesKeyword(COFFEE, '  ')).toBe(true);
+  });
   it('숫자 칸(금액)은 글자로 찾지 않는다', () => {
     expect(matchesKeyword(COFFEE, '4500')).toBe(false);
   });

@@ -1,3 +1,4 @@
+import { removeWhitespace } from '@/shared/text/removeWhitespace';
 import type { FieldDef } from '../schema/fieldKinds';
 import type { RecordEntry } from '../schema/recordEntry';
 import { RECORD_TYPE_CONFIG, type RecordType } from '../schema/recordTypes';
@@ -18,13 +19,20 @@ export const SEARCHABLE_FIELD_NAMES: readonly string[] = [
 // 검색어 길이 상한. 주소에 그대로 실린다
 export const MAX_SEARCH_KEYWORD_LENGTH = 50;
 
-// 기록 하나가 검색어를 포함하는지 (대소문자 무시, 글자 그대로).
+// 기록 하나가 검색어를 포함하는지 (대소문자·공백 무시, 그 밖의 글자는 그대로).
 // 25b부터 검색은 기기 사본(IndexedDB)에서 한다 → 오프라인에서도 찾는다.
 // 예전(24a)에는 서버(PostgREST imatch)에서 찾아서 정규식·따옴표 이스케이프가 필요했는데,
 // 여기서는 includes라 특수 글자(* + , ")를 따로 막을 필요가 없다
+// 공백을 빼고 비교한다 (2026-10-22 사용자 결정): "편의점 간식"을 "편의점간식"으로, "편의점간식"을 "편의점 간식"으로도 찾는다.
+// 정규화한 글자를 저장해 두지 않고 비교할 때 만든다: 검색은 기기 사본에서 하고 기록은 많아야 수천 개라 빠르고,
+// 저장해 두면 오프라인에서 쓴 기록·예전 기록마다 그 칸을 채워야 해서 틀릴 곳이 생긴다
+function normalize(text: string): string {
+  return removeWhitespace(text).toLowerCase();
+}
+
 export function matchesKeyword(entry: RecordEntry, keyword: string): boolean {
-  if (!keyword) return true;
-  const needle = keyword.toLowerCase();
+  const needle = normalize(keyword);
+  if (!needle) return true;
   const fields = entry.fields as Record<string, unknown>;
   // 태그는 사용자가 직접 붙인 "찾기용 단어"라 검색에 넣는다. 태그 하나하나를 따로 비교한다 (이어 붙이면 경계를 넘어 맞는다)
   const texts = [
@@ -34,6 +42,6 @@ export function matchesKeyword(entry: RecordEntry, keyword: string): boolean {
     ...SEARCHABLE_FIELD_NAMES.map((name) => fields[name]),
   ];
   return texts.some(
-    (text) => typeof text === 'string' && text.toLowerCase().includes(needle),
+    (text) => typeof text === 'string' && normalize(text).includes(needle),
   );
 }
