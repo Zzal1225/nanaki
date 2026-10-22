@@ -30,6 +30,12 @@ describe('getAuthRedirectPath', () => {
   it('robots.txt는 로그인 없이 읽을 수 있다 (검색 로봇)', () => {
     expect(getAuthRedirectPath('/robots.txt', false)).toBe(null);
   });
+  // 서비스 워커·설치는 로그인 화면에서 시작된다. 로그인 화면 HTML이 대신 저장되면 안 된다
+  it('서비스 워커 파일·매니페스트·오프라인 화면은 로그인 없이 받을 수 있다', () => {
+    expect(getAuthRedirectPath('/serwist/sw.js', false)).toBe(null);
+    expect(getAuthRedirectPath('/manifest.webmanifest', false)).toBe(null);
+    expect(getAuthRedirectPath('/~offline', false)).toBe(null);
+  });
   // API는 로그인 화면으로 보내지 않는다. 대신 각 API가 401을 준다
   it('API는 로그인 여부와 상관없이 보내지 않는다', () => {
     expect(getAuthRedirectPath('/api/account', false)).toBe(null);

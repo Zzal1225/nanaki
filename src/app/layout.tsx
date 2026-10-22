@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
+import { SerwistProvider } from '@serwist/turbopack/react';
 import ThemeSync from '@/shared/theme/ThemeSync';
 import { THEME_INIT_SCRIPT } from '@/shared/theme/themeInitScript';
 // 동적 서브셋: 글자를 92조각으로 나눠 두고 화면에 나온 글자가 든 조각만 받는다 (전체 파일은 약 2MB).
@@ -11,6 +12,16 @@ export const metadata: Metadata = {
   title: { default: 'nanaki', template: '%s · nanaki' },
   description:
     '가계부·후기·운동·루틴·체형을 하나의 캘린더에 기록하는 자기관리 앱',
+  // 아이폰 "홈 화면에 추가": 주소창 없이 열고, 홈 화면 이름은 nanaki. 매니페스트는 app/manifest.ts를 Next가 자동으로 연결한다
+  appleWebApp: { capable: true, title: 'nanaki', statusBarStyle: 'default' },
+};
+
+// 설치한 앱의 상태 표시줄 색. 다크모드에서는 바탕색과 맞춘다 (tokens.json bg)
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f7f7f8' },
+    { media: '(prefers-color-scheme: dark)', color: '#121214' },
+  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
@@ -26,7 +37,17 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       </head>
       <body className='min-h-full flex flex-col'>
         <ThemeSync />
-        {children}
+        {/* 서비스 워커 등록 (src/sw/sw.ts).
+            - 개발 서버에서는 끈다: 고친 코드가 캐시에 가려 안 보이는 일을 막는다
+            - reloadOnOnline 끔: 기본값은 연결이 돌아오면 페이지를 새로 고쳐, 쓰던 폼 입력이 사라진다
+            - cacheOnNavigation(기본 켬): 앱 안에서 화면을 옮길 때마다 그 주소를 저장해 둔다 → 한 번 연 화면은 오프라인에서 열린다 */}
+        <SerwistProvider
+          swUrl='/serwist/sw.js'
+          disable={process.env.NODE_ENV === 'development'}
+          reloadOnOnline={false}
+        >
+          {children}
+        </SerwistProvider>
       </body>
     </html>
   );

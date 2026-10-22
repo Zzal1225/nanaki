@@ -59,6 +59,9 @@ src/
                   api/account/ = 계정 삭제 Route Handler (DELETE, secret 키로 본인 계정만). API는 proxy가 로그인 화면으로 보내지 않고 스스로 401
                   (app)/ = 로그인 뒤 화면 묶음(/, /records, /records/new, /records/[id](/edit), /records/type/[type], /records/search, /settings).
                   records/layout.tsx = PC에서 목록(왼쪽) + 상세·폼(오른쪽) 패널. 주소에 안 나타나는 괄호 폴더
+                  serwist/sw.js/ = 서비스 워커 파일을 빌드 때 한 번 만드는 Route Handler('use cache'), manifest.ts = 설치 정보,
+                  ~offline/ = 연결도 저장본도 없을 때의 대체 화면
+  sw/             서비스 워커 소스(Serwist). 화면 틀만 저장하고 다른 도메인(Supabase) 응답은 저장하지 않는다. 워커 전용 tsconfig
   proxy.ts        모든 요청 앞의 문지기. 세션 갱신 + 로그인 안 했으면 /login으로 (공개 주소는 features/auth)
   shared/         공통 코드. ui/ = 공통 컴포넌트(Radix + Tailwind, 확인 창 ConfirmDialog, 모바일 바텀시트·PC 오른쪽 패널 Sheet 포함), theme/ = 다크·라이트 전환,
                   layout/ = 사이드바·하단 탭(메뉴 목록은 navItems.ts 한 곳), query/ = TanStack Query Provider,
