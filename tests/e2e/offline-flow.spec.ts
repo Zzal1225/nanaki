@@ -16,18 +16,23 @@ async function waitForServiceWorker(page: Page) {
 }
 
 // 미리 받기(OfflineWarmup)가 끝날 때까지: 목록 끝의 타입 화면과 수정 틀이 캐시에 들어왔는지 본다.
-// 주소 그대로 찾는다: ?를 무시하면 Next가 미리 받은 화면 조각(?_rsc=)까지 맞아서 미리 받기 전에 통과해 버린다
+// - 주소 그대로 찾는다: ?를 무시하면 Next가 미리 받은 화면 조각(?_rsc=)까지 맞아서 미리 받기 전에 통과해 버린다
+// - expect.poll로 기다린다: waitForFunction에 async 함수를 주면 돌려받은 Promise 자체를 "참"으로 보고 바로 넘어간다
+//   (25c-2에서 미리 받기 전에 오프라인으로 바꿔 실패했다)
 async function waitForWarmup(page: Page) {
-  await page.waitForFunction(
-    async () =>
-      Boolean(
-        await caches.match(
-          '/records/00000000-0000-0000-0000-000000000000/edit',
-        ),
-      ) && Boolean(await caches.match('/records/type/body')),
-    undefined,
-    { timeout: 30_000, polling: 500 },
-  );
+  await expect
+    .poll(
+      () =>
+        page.evaluate(async () => {
+          const template = '/records/00000000-0000-0000-0000-000000000000/edit';
+          return Boolean(
+            (await caches.match(template)) &&
+            (await caches.match('/records/type/body')),
+          );
+        }),
+      { timeout: 30_000, intervals: [500] },
+    )
+    .toBe(true);
 }
 
 // PC 기록 탭은 같은 목록이 두 벌(왼쪽 패널 + 숨은 본문) 있다. 보이는 쪽만 본다
@@ -103,23 +108,6 @@ test('오프라인 작성: 연 적 없는 작성 화면에서 저장하면 바�
   await page.goto('/records');
   await expect(visibleText(page, '[식비] 점심')).toBeVisible();
 
-  // DEBUG(임시): 미리 받은 화면이 어느 캐시에 들어갔나
-  console.log(
-    '[캐시 진단]',
-    JSON.stringify(
-      await page.evaluate(async () => {
-        const out: Record<string, string[]> = {};
-        for (const name of await caches.keys()) {
-          const keys = await (await caches.open(name)).keys();
-          out[name] = keys
-            .map((k) => new URL(k.url))
-            .filter((u) => !u.pathname.startsWith('/_next/'))
-            .map((u) => u.pathname + u.search);
-        }
-        return out;
-      }),
-    ),
-  );
   await context.setOffline(true);
   // 작성 화면은 한 번도 연 적이 없다 (미리 받아 둔 한 장이 모든 타입에 쓰인다)
   await page.goto('/records/new?type=expense');
