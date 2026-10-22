@@ -2,7 +2,7 @@ import type { FieldDef } from '../schema/fieldKinds';
 import type { RecordEntry } from '../schema/recordEntry';
 import { RECORD_TYPE_CONFIG, type RecordType } from '../schema/recordTypes';
 
-// 검색어로 찾는 칸: 제목·메모 + 선택 칸(분류·결제수단·대상·종목) (2026-10-22 사용자 결정).
+// 검색어로 찾는 칸: 제목·메모·태그 + 선택 칸(분류·결제수단·대상·종목) (2026-10-22 사용자 결정, 태그는 같은 날 추가).
 // 선택 칸 이름은 손으로 적지 않고 필드 정의에서 모은다 → 새 타입에 선택 칸이 생기면 검색 대상에 저절로 들어간다.
 // 숫자 칸(금액·시간)은 글자 검색으로 찾을 일이 없어 넣지 않는다 (필터 시트의 범위 필터가 맡는다)
 export const SEARCHABLE_FIELD_NAMES: readonly string[] = [
@@ -26,9 +26,11 @@ export function matchesKeyword(entry: RecordEntry, keyword: string): boolean {
   if (!keyword) return true;
   const needle = keyword.toLowerCase();
   const fields = entry.fields as Record<string, unknown>;
+  // 태그는 사용자가 직접 붙인 "찾기용 단어"라 검색에 넣는다. 태그 하나하나를 따로 비교한다 (이어 붙이면 경계를 넘어 맞는다)
   const texts = [
     entry.title,
     entry.memo,
+    ...entry.tags,
     ...SEARCHABLE_FIELD_NAMES.map((name) => fields[name]),
   ];
   return texts.some(
