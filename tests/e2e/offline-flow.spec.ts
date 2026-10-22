@@ -51,9 +51,36 @@ test('오프라인: 연 화면은 기기 사본의 기록으로 그려지고, �
     await expect(visibleText(page, '[식비] 점심')).toBeVisible();
   } catch (error) {
     // 진단: 사본이 있는지, 조회가 실패해 다시 시도하는 중인지(재시도가 끝나면 오류 안내가 뜬다)
-    const databases = await page.evaluate(async () =>
-      (await indexedDB.databases()).map((db) => db.name),
-    );
+    const databases = await page.evaluate(async () => {
+      const names = (await indexedDB.databases()).map((db) => db.name ?? '');
+      const counts = await Promise.all(
+        names
+          .filter((name) => name.startsWith('nanaki-'))
+          .map(
+            (name) =>
+              new Promise<string>((resolve) => {
+                const open = indexedDB.open(name);
+                open.onsuccess = () => {
+                  const request = open.result
+                    .transaction('records')
+                    .objectStore('records')
+                    .count();
+                  request.onsuccess = () =>
+                    resolve(`${name} records=${request.result}`);
+                  request.onerror = () => resolve(`${name} count 실패`);
+                };
+                open.onerror = () => resolve(`${name} 열기 실패`);
+              }),
+          ),
+      );
+      // 인증 라이브러리가 브라우저 잠금(navigator.locks)을 쥔 채 멈췄는지
+      const locks = await navigator.locks.query();
+      return [
+        ...counts,
+        `held=${(locks.held ?? []).map((lock) => lock.name).join('|')}`,
+        `pending=${(locks.pending ?? []).map((lock) => lock.name).join('|')}`,
+      ];
+    });
     await page.waitForTimeout(10_000);
     const hasErrorNotice =
       (await page
