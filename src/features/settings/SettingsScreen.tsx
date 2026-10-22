@@ -1,6 +1,5 @@
 import ThemeToggle from '@/shared/theme/ThemeToggle';
 import AccountSection from './AccountSection';
-import DeviceScreenInfo from './DeviceScreenInfo';
 import SettingsBackLink from './SettingsBackLink';
 import SettingsSection from './SettingsSection';
 import TypeVisibilitySection from './TypeVisibilitySection';
@@ -30,7 +29,6 @@ export default function SettingsScreen() {
           </div>
         </SettingsSection>
         <AccountSection />
-        <DeviceScreenInfo />
       </div>
     </div>
   );
