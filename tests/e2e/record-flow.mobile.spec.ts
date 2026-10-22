@@ -5,6 +5,11 @@ import { expect, test, type Page } from '@playwright/test';
 // 실기기에서 찾은 "다시 연 화면이 튕김"(PR #74)은 앱 안에서 화면을 오갈 때만 생겼고, goto로 매번 새로 연 테스트는 놓쳤다.
 // 체험 예시 기록 중 오늘 것은 가계부 2건(점심 9,800 + 택시 7,000 = 16,800원)이다 (src/features/records/sample)
 
+// 토스트 문구. Radix Toast는 화면 읽기 프로그램에 알리려고 같은 글자를 한 벌 더 그려서(숨은 알림 영역) 두 개가 잡힌다 → 첫 번째
+function toastText(page: Page, text: string) {
+  return page.getByText(text).first();
+}
+
 function bottomTab(page: Page, name: string) {
   return page
     .getByRole('navigation', { name: '주요 메뉴' })
@@ -69,10 +74,10 @@ test('+ → 가계부 쓰기 → 홈 요약 → 상세 → 수정 → 삭제·�
   await page.getByRole('button', { name: '더보기' }).click();
   await page.getByRole('menuitem', { name: '삭제' }).click();
   await expect(page).toHaveURL('/');
-  await expect(page.getByText('기록을 삭제했어요')).toBeVisible();
+  await expect(toastText(page, '기록을 삭제했어요')).toBeVisible();
   await expect(daySummary.getByText('가계부 2건')).toBeVisible();
   await page.getByRole('button', { name: '되돌리기' }).click();
-  await expect(page.getByText('기록을 되돌렸어요')).toBeVisible();
+  await expect(toastText(page, '기록을 되돌렸어요')).toBeVisible();
   await expect(daySummary.getByText('가계부 3건')).toBeVisible();
 
   // 하단 탭 → 기록 탭: 고친 제목이 최근 기록에 있다
