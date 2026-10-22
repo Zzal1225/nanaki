@@ -1,4 +1,4 @@
-import { currentLocalDb, syncBeforeRead } from '@/lib/db/currentLocalDb';
+import { currentLocalDb, syncForRead } from '@/lib/db/currentLocalDb';
 import type { LocalDb, SyncCursor } from '@/lib/db/localDb';
 import {
   createTableSync,
@@ -88,7 +88,8 @@ const syncRoutines = createTableSync((db) =>
 
 async function readyLocalDb(): Promise<LocalDb> {
   const db = await currentLocalDb();
-  await syncBeforeRead('routines', () => syncRoutines(db));
+  // 처음 방문이면 다 받을 때까지 기다리고 실패하면 오류로 (빈 사본을 "기록 없음"으로 그리지 않게, syncForRead)
+  await syncForRead(db, 'routines', () => syncRoutines(db));
   return db;
 }
 
