@@ -7,6 +7,7 @@ import {
   getListValue,
   getMonthValue,
   getPreviousMonthComparison,
+  formatPreviousMonthComparison,
   getDayLabel,
   getDayValue,
   getDetailKicker,
@@ -171,7 +172,13 @@ describe('하루 요약 한 줄', () => {
   });
 });
 
-describe('지난달 같은 기간과 비교 (기록 탭 카드)', () => {
+describe('지난달과 비교 (기록 탭 카드)', () => {
+  // 카드는 조각을 그리고, 여기서는 한 줄 글자로 바꿔 확인한다 (null은 그대로)
+  const text = (...args: Parameters<typeof getPreviousMonthComparison>) => {
+    const comparison = getPreviousMonthComparison(...args);
+    return comparison && formatPreviousMonthComparison(comparison);
+  };
+
   // 두 목록은 이미 같은 기간으로 잘려 들어온다 (RecordsOverview가 getSamePeriod로 자름)
   const withAmount = (id: string, amount: number): RecordEntry => ({
     ...TAXI,
@@ -181,26 +188,18 @@ describe('지난달 같은 기간과 비교 (기록 탭 카드)', () => {
 
   it('가계부: 금액 차이, 덜/더 썼어요 (금액은 부호 없이)', () => {
     expect(
-      getPreviousMonthComparison(
-        'expense',
-        [withAmount('a', 10000)],
-        [withAmount('b', 22000)],
-      ),
-    ).toBe('지난달 같은 기간보다 12,000원 덜 썼어요');
+      text('expense', [withAmount('a', 10000)], [withAmount('b', 22000)]),
+    ).toBe('지난달보다 12,000원 덜 썼어요');
     expect(
-      getPreviousMonthComparison(
-        'expense',
-        [withAmount('a', 25000)],
-        [withAmount('b', 22000)],
-      ),
-    ).toBe('지난달 같은 기간보다 3,000원 더 썼어요');
+      text('expense', [withAmount('a', 25000)], [withAmount('b', 22000)]),
+    ).toBe('지난달보다 3,000원 더 썼어요');
   });
   it('후기는 건수, 운동은 횟수로 (다른 타입은 섞이지 않는다)', () => {
-    expect(
-      getPreviousMonthComparison('review', [CAFE, CAFE, TAXI], [CAFE]),
-    ).toBe('지난달 같은 기간보다 1건 더 썼어요');
-    expect(getPreviousMonthComparison('workout', [RUN], [RUN, LEG_DAY])).toBe(
-      '지난달 같은 기간보다 1회 덜 했어요',
+    expect(text('review', [CAFE, CAFE, TAXI], [CAFE])).toBe(
+      '지난달보다 1건 더 썼어요',
+    );
+    expect(text('workout', [RUN], [RUN, LEG_DAY])).toBe(
+      '지난달보다 1회 덜 했어요',
     );
   });
   it('체형: 두 기간 각각의 마지막 체중 차이 (소수 한 자리)', () => {
@@ -210,18 +209,16 @@ describe('지난달 같은 기간과 비교 (기록 탭 카드)', () => {
       occurredAt: '2026-09-15',
       fields: { weight: 69.2 },
     };
-    expect(
-      getPreviousMonthComparison('body', [MORNING, EARLIER], [before]),
-    ).toBe('지난달 같은 기간보다 0.8kg 줄었어요');
-  });
-  it('같으면 "같아요"', () => {
-    expect(getPreviousMonthComparison('review', [CAFE], [CAFE])).toBe(
-      '지난달 같은 기간과 같아요',
+    expect(text('body', [MORNING, EARLIER], [before])).toBe(
+      '지난달보다 0.8kg 줄었어요',
     );
   });
+  it('같으면 "같아요"', () => {
+    expect(text('review', [CAFE], [CAFE])).toBe('지난달과 같아요');
+  });
   it('지난달 같은 기간에 그 타입 기록이 없으면 비교하지 않는다 (null)', () => {
-    expect(getPreviousMonthComparison('expense', [TAXI], [CAFE])).toBeNull();
+    expect(text('expense', [TAXI], [CAFE])).toBeNull();
     // 체형은 이번 기간에 잰 적이 없어도 null (지금 체중을 모른다)
-    expect(getPreviousMonthComparison('body', [], [MORNING])).toBeNull();
+    expect(text('body', [], [MORNING])).toBeNull();
   });
 });

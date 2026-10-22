@@ -10,14 +10,14 @@ type RecordPresentation<T extends RecordType> = {
   listTitle: (entry: EntryOf<T>) => string;
   // 목록 오른쪽 값 (시안: "-7,000원", "★ 4.0")
   listValue: (entry: EntryOf<T>) => string;
-  // 기록 탭 타입 카드의 이번 달 값 (카드 안 꼬리표 "이번 달 지출"은 없앴다: 카드 밖 제목 "10월 요약"이 대신한다)
+  // 기록 탭 타입 카드의 이번 달 값 (카드 안 꼬리표 "이번 달 지출"은 없앴다, 2026-10-22 사용자 결정)
   monthValue: (entries: EntryOf<T>[]) => string;
-  // 기록 탭 타입 카드의 "지난달 같은 기간보다 …" 한 줄 (2026-10-22 사용자 결정).
+  // 기록 탭 타입 카드의 "지난달보다 …" 한 줄 (2026-10-22 사용자 결정).
   // 두 목록은 이미 같은 기간(getSamePeriod)으로 잘려 들어온다. 지난달 쪽이 비었으면 비교할 게 없어 null
   comparePreviousMonth: (
     current: EntryOf<T>[],
     previous: EntryOf<T>[],
-  ) => string | null;
+  ) => PreviousMonthComparison | null;
   // 상세 위쪽 칩의 두 번째 말 (시안: "가계부 · 식비", "후기 · 장소")
   detailKicker: (entry: EntryOf<T>) => string;
   // 상세에서 제목 아래 크게 보여 줄 필드. 아래 표에서는 빼서 같은 값이 두 번 나오지 않게 한다
@@ -146,16 +146,34 @@ function sumAmounts(entries: EntryOf<'expense'>[]): number {
   return entries.reduce((sum, entry) => sum + entry.fields.amount, 0);
 }
 
-// "지난달 같은 기간보다 12,000원 덜 썼어요" / "… 2건 더 썼어요" / "지난달 같은 기간과 같아요".
+// 비교 한 줄을 글자 하나가 아니라 조각으로 넘긴다: 카드가 수치(amount)만 굵게 그려야 해서 (2026-10-22 사용자 결정).
+// 같으면 수치가 없다
+export type PreviousMonthComparison =
+  { kind: 'same' } | { kind: 'changed'; amount: string; word: string };
+
+// "지난달보다 12,000원 덜 썼어요" / "지난달보다 2건 더 썼어요" / "지난달과 같아요".
+// 비교 기간은 같은 기간(1일~오늘 vs 지난달 1일~같은 날)이지만, 문구는 짧게 "지난달보다"로 (사용자 결정).
 // 늘고 준 것을 색으로 칠하지 않는다: 덜 쓴 것·체중이 준 것이 늘 좋은 건 아니다
 function describeChange(
   difference: number,
   formatAmount: (absolute: number) => string,
   [lessWord, moreWord]: readonly [string, string],
+): PreviousMonthComparison {
+  if (difference === 0) return { kind: 'same' };
+  return {
+    kind: 'changed',
+    amount: formatAmount(Math.abs(difference)),
+    word: difference < 0 ? lessWord : moreWord,
+  };
+}
+
+// 화면 읽기·테스트용 한 줄 글자 (카드는 조각을 따로 그린다)
+export function formatPreviousMonthComparison(
+  comparison: PreviousMonthComparison,
 ): string {
-  if (difference === 0) return '지난달 같은 기간과 같아요';
-  const word = difference < 0 ? lessWord : moreWord;
-  return `지난달 같은 기간보다 ${formatAmount(Math.abs(difference))} ${word}`;
+  return comparison.kind === 'same'
+    ? '지난달과 같아요'
+    : `지난달보다 ${comparison.amount} ${comparison.word}`;
 }
 
 // 68.4 + 'kg' → '68.4kg'. 체형 측정값은 단위가 항목마다 달라(kg·cm·%) 단위를 받는다
@@ -214,7 +232,7 @@ export function getPreviousMonthComparison(
   type: RecordType,
   currentEntries: RecordEntry[],
   previousEntries: RecordEntry[],
-): string | null {
+): PreviousMonthComparison | null {
   const ofType = (entries: RecordEntry[]) =>
     entries.filter((entry) => entry.type === type);
   return presentationOf(type).comparePreviousMonth(

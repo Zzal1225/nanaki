@@ -118,7 +118,7 @@ describe('RecordsOverview', () => {
     expect(screen.getByRole('link', { name: /^가계부/ })).toBeTruthy();
   });
 
-  it('카드 위 제목은 "N월 요약", 카드에는 지난달 같은 기간과의 비교 한 줄', async () => {
+  it('카드 위 "N월 요약" 제목은 없고, 카드에는 지난달 비교 한 줄 (수치만 굵게)', async () => {
     const thisMonth = toMonthString(toLocalDateString(new Date()));
     // 지난달 1일 기록: 오늘이 며칠이든 "지난달 1일~같은 날" 안에 든다
     const lastMonthLunch: RecordEntry = {
@@ -137,16 +137,15 @@ describe('RecordsOverview', () => {
     vi.mocked(listRecentRecords).mockResolvedValue([thisMonthLunch]);
     renderOverview();
 
-    const monthNumber = Number(thisMonth.slice(5));
-    expect(
-      await screen.findByRole('heading', { name: `${monthNumber}월 요약` }),
-    ).toBeTruthy();
     // 12,500원 - 20,000원
-    expect(
-      await screen.findByText('지난달 같은 기간보다 7,500원 덜 썼어요'),
-    ).toBeTruthy();
+    const amount = await screen.findByText('7,500원');
+    expect(amount.tagName).toBe('STRONG');
+    expect(amount.parentElement?.textContent).toBe(
+      '지난달보다 7,500원 덜 썼어요',
+    );
+    expect(screen.queryByText(/요약$/)).toBeNull();
     // 지난달 후기는 없어서 후기 카드에는 비교 줄이 없다
-    expect(screen.getAllByText(/지난달 같은 기간/)).toHaveLength(1);
+    expect(screen.getAllByText(/지난달보다/)).toHaveLength(1);
   });
 
   it('불러오지 못하면 안내와 다시 시도 버튼', async () => {

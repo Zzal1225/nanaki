@@ -2,10 +2,9 @@
 
 // 'use client' 이유: 기록을 브라우저에서 불러온다(TanStack Query). step2에서 오프라인(IndexedDB)으로 바꿀 자리라 클라이언트 중심
 import { usePathname } from 'next/navigation';
-import { Suspense, useId } from 'react';
+import { Suspense } from 'react';
 import { formatShortDate } from '@/shared/date/formatDisplayDate';
 import {
-  formatMonthLabel,
   getMonthRangeOf,
   shiftMonth,
   toMonthString,
@@ -50,7 +49,6 @@ function RecordsOverviewWithPathname() {
 function RecordsOverviewView({ pathname }: { pathname: string | null }) {
   // 오늘은 브라우저에서만 안다 (미리 그리기에서는 null → 카드 자리만 보이고 조회도 미룬다)
   const today = useToday();
-  const summaryTitleId = useId();
   const currentMonth = today ? toMonthString(today) : null;
   const monthRecords = useRecords(
     currentMonth ? getMonthRangeOf(currentMonth) : null,
@@ -114,17 +112,9 @@ function RecordsOverviewView({ pathname }: { pathname: string | null }) {
         </div>
       ) : (
         <>
-          {/* 카드 안 꼬리표 대신 카드 밖 제목으로 기간을 알린다 (2026-10-22 사용자 결정). 오늘을 읽기 전에는 높이만 잡아 둔다 */}
-          <h2
-            id={summaryTitleId}
-            className='flex h-8 items-center px-4 pt-2 text-body font-semibold text-fg-primary md:px-6'
-          >
-            {currentMonth
-              ? `${formatMonthLabel(currentMonth, currentMonth)} 요약`
-              : ''}
-          </h2>
+          {/* 카드 위 "10월 요약" 제목은 두지 않는다 (2026-10-22 사용자 결정). 화면 읽기 프로그램에는 이름만 알린다 */}
           <section
-            aria-labelledby={summaryTitleId}
+            aria-label='이번 달 요약'
             // 불러오는 중에는 숫자 대신 회색 자리만. 스크린 리더에는 "불러오는 중"을 알린다
             aria-busy={isPending}
             className='grid grid-cols-2 gap-2 px-4 py-4 md:px-6'
