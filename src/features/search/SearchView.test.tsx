@@ -121,7 +121,7 @@ describe('SearchView', () => {
     // 검색 조건을 달고 상세로 간다 (PC는 왼쪽 결과가 남고, 모바일 뒤로 버튼은 결과로 돌아온다)
     expect(
       screen.getByRole('link', { name: /동네 카페/ }).getAttribute('href'),
-    ).toBe('/records/review?q=%EC%B9%B4%ED%8E%98');
+    ).toBe('/records/view?q=%EC%B9%B4%ED%8E%98&id=review');
   });
 
   it('타입 칩은 받은 결과를 거르고, 주소에 타입을 남긴다', async () => {

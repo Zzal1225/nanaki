@@ -3,12 +3,11 @@
 // 'use client' 이유: 브라우저 캐시(Cache Storage)에 무엇이 있는지 보고, 없는 화면을 받아 둔다
 import { useEffect } from 'react';
 import { RECORD_TYPE_ORDER } from '@/features/records/entry/newRecordMenu';
-import { RECORD_TEMPLATE_ID } from '@/lib/offlinePages';
 
 // 로그인 뒤 미리 받아 둘 화면 (25c-2). 연 적 없는 화면도 오프라인에서 열리게:
 // - 고정 화면: 홈·기록 탭·검색·작성·설정
 // - 타입 상세 5개 (타입 이름이 HTML에 들어가서 타입마다 한 장)
-// - 기록 상세·수정의 틀 한 장씩 (기록마다 HTML이 같아서 틀 하나로 모든 기록을 연다, src/sw/sw.ts)
+// - 기록 상세·수정 (기록 id가 ?id=라 HTML이 기록마다 같다 → 한 장으로 모든 기록을 연다, features/records/routes)
 // 로그인 화면에서 서비스 워커가 설치될 때 받으면 세션이 없어 로그인 화면이 저장되므로, 로그인 뒤 앱 틀에서 받는다
 export const WARMUP_PATHS: readonly string[] = [
   '/',
@@ -17,8 +16,8 @@ export const WARMUP_PATHS: readonly string[] = [
   '/records/new',
   '/settings',
   ...RECORD_TYPE_ORDER.map((type) => `/records/type/${type}`),
-  `/records/${RECORD_TEMPLATE_ID}`,
-  `/records/${RECORD_TEMPLATE_ID}/edit`,
+  '/records/view',
+  '/records/edit',
 ];
 
 // 앱을 연 직후에는 첫 화면 요청과 겹치지 않게 조금 미룬다

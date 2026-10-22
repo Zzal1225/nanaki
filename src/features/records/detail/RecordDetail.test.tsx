@@ -80,7 +80,7 @@ describe('RecordDetail', () => {
     renderDetail();
 
     const edit = await screen.findByRole('link', { name: '수정' });
-    expect(edit.getAttribute('href')).toBe('/records/lunch-id/edit');
+    expect(edit.getAttribute('href')).toBe('/records/edit?id=lunch-id');
   });
 
   it('없는 기록(지웠거나 남의 기록)이면 안내', async () => {

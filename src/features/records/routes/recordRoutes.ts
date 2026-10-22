@@ -1,19 +1,44 @@
 import { parseRecordType, type RecordType } from '../schema/recordTypes';
 
-// 기록 화면 주소에서 값을 꺼내는 순수 함수 (25c-2).
-// 상세·수정·타입 화면은 주소의 값을 서버가 아니라 브라우저에서 읽는다:
-// 서버 HTML이 주소 값과 상관없이 같아야 서비스 워커가 저장해 둔 한 장(틀)을 다른 기록에도 내줄 수 있다 → 연 적 없는 기록도 오프라인에서 열린다.
-// useParams 대신 주소(pathname)를 읽는 이유: 틀로 쓴 HTML의 params는 "그 틀을 받은 기록"의 값이라 다르다. 주소창은 지금 기록이다
+// 기록 화면 주소를 만들고 읽는 곳 (25c-2). 주소 모양은 여기에만 둔다.
+//
+// 상세·수정은 기록 id를 경로가 아니라 ?id=로 싣는다 (2026-10-22 사용자 결정: /records/<id> → /records/view?id=<id>).
+// 이유: 화면 HTML이 기록과 상관없이 한 장(정적 ○)이어야 서비스 워커가 저장해 둔 그 한 장으로
+// 연 적 없는 기록도 오프라인에서 연다. 경로에 id가 있으면 Next가 HTML 안에 "그린 경로 값"을 남겨서,
+// 다른 기록에 같은 HTML을 쓰면 화면이 불러오는 중에 멈췄다 (25c-2 E2E로 확인). ?뒤는 HTML에 들어가지 않는다.
+// 예전 주소(/records/<id>, /records/<id>/edit)는 next.config.ts의 redirects가 새 주소로 넘긴다
 
-// 상세 /records/<id>, 수정 /records/<id>/edit 의 id. 다른 모양이면 null
-const RECORD_PATH = /^\/records\/([^/]+)(?:\/edit)?$/;
-// 기록 화면이 아닌 /records/<이름> (같은 자리를 쓰는 다른 화면)
-const NOT_RECORD_IDS = new Set(['new', 'search', 'type']);
+export const RECORD_VIEW_PATH = '/records/view';
+export const RECORD_EDIT_PATH = '/records/edit';
+const ID_PARAM = 'id';
 
-export function recordIdFromPath(pathname: string): string | null {
-  const id = RECORD_PATH.exec(pathname)?.[1];
-  if (!id || NOT_RECORD_IDS.has(id)) return null;
-  return decodeURIComponent(id);
+// 상세 주소. extraQuery는 함께 실을 조건 (검색 결과에서 연 상세: q=카페 → 뒤로 가기·PC 왼쪽 결과 유지)
+export function recordViewHref(id: string, extraQuery = ''): string {
+  const params = new URLSearchParams(extraQuery);
+  params.set(ID_PARAM, id);
+  return `${RECORD_VIEW_PATH}?${params.toString()}`;
+}
+
+export function recordEditHref(id: string): string {
+  return `${RECORD_EDIT_PATH}?${new URLSearchParams({ [ID_PARAM]: id }).toString()}`;
+}
+
+// 지금 화면이 상세·수정이면 그 기록 id (PC 목록에서 "열려 있는 기록" 표시). 아니면 null
+export function openRecordId(
+  pathname: string | null,
+  params: Pick<URLSearchParams, 'get'> | null,
+): string | null {
+  if (pathname !== RECORD_VIEW_PATH && pathname !== RECORD_EDIT_PATH) {
+    return null;
+  }
+  return params?.get(ID_PARAM) || null;
+}
+
+// 주소의 id (상세·수정 화면이 읽는다). 비었으면 null
+export function recordIdFromParams(
+  params: Pick<URLSearchParams, 'get'>,
+): string | null {
+  return params.get(ID_PARAM) || null;
 }
 
 // 타입 상세 /records/type/<type> 의 타입. 모르는 타입이면 null

@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 // 오프라인 (25a 화면 틀 → 25b 기기 사본 → 25c 오프라인 작성 → 25c-2 연 적 없는 화면).
 // - 기록은 기기 사본(IndexedDB)에서 읽어서 연결이 끊겨도 보인다
 // - 로그인 뒤 주요 화면을 미리 받아 두어(OfflineWarmup), 연 적 없는 타입 상세·기록 상세·수정·작성도 열린다
-//   기록 상세·수정은 기록마다 HTML이 같아서 틀 한 장으로 연다 (src/sw/sw.ts)
+//   기록 상세·수정은 id가 ?id=라 기록마다 HTML이 같아서 한 장으로 모든 기록을 연다 (features/records/routes)
 // - 미리 받지 않는 화면은 오프라인 대체 화면
 
 // 서비스 워커가 이 페이지를 맡을 때까지 기다린다. 처음 방문에서는 등록만 되고, clientsClaim으로 곧 넘어온다
@@ -15,7 +15,7 @@ async function waitForServiceWorker(page: Page) {
   );
 }
 
-// 미리 받기(OfflineWarmup)가 끝날 때까지: 목록 끝의 타입 화면과 수정 틀이 캐시에 들어왔는지 본다.
+// 미리 받기(OfflineWarmup)가 끝날 때까지: 목록 끝의 타입 화면과 수정 화면이 캐시에 들어왔는지 본다.
 // - 주소 그대로 찾는다: ?를 무시하면 Next가 미리 받은 화면 조각(?_rsc=)까지 맞아서 미리 받기 전에 통과해 버린다
 // - expect.poll로 기다린다: waitForFunction에 async 함수를 주면 돌려받은 Promise 자체를 "참"으로 보고 바로 넘어간다
 //   (25c-2에서 미리 받기 전에 오프라인으로 바꿔 실패했다)
@@ -24,9 +24,9 @@ async function waitForWarmup(page: Page) {
     .poll(
       () =>
         page.evaluate(async () => {
-          const template = '/records/00000000-0000-0000-0000-000000000000/edit';
+          const edit = '/records/edit';
           return Boolean(
-            (await caches.match(template)) &&
+            (await caches.match(edit)) &&
             (await caches.match('/records/type/body')),
           );
         }),
@@ -63,16 +63,16 @@ test('오프라인: 연 적 없는 화면도 열리고, 기록은 기기 사본�
   await page.goto('/records');
   await expect(visibleText(page, '[식비] 점심')).toBeVisible();
 
-  // (2) 연 적 없는 기록 상세: 틀 한 장으로 열고, 어느 기록인지는 주소에서 읽는다
+  // (2) 연 적 없는 기록 상세: 미리 받은 한 장(/records/view)으로 열고, 어느 기록인지는 주소(?id=)에서 읽는다
   await visibleText(page, '[식비] 점심').click();
-  await expect(page).toHaveURL(/\/records\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/records\/view\?id=[0-9a-f-]{36}$/);
   await expect(
     page.getByRole('heading', { name: '점심', level: 1 }),
   ).toBeVisible();
-  const detailUrl = page.url();
+  const recordId = new URL(page.url()).searchParams.get('id');
 
   // (3) 연 적 없는 수정 화면: 그 기록의 값이 폼에 들어 있다
-  await page.goto(`${detailUrl}/edit`);
+  await page.goto(`/records/edit?id=${recordId}`);
   await expect(page.getByLabel('제목')).toHaveValue('점심');
 
   // (4) 연 적 없는 타입 상세

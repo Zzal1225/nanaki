@@ -1,14 +1,14 @@
 'use client';
 
-// 'use client' 이유: 고칠 기록 id를 주소에서 브라우저가 읽는다 (서버 HTML을 기록마다 같게, recordRoutes 설명)
-import { usePathname } from 'next/navigation';
+// 'use client' 이유: 고칠 기록 id(?id=)를 주소에서 브라우저가 읽는다 (화면 HTML을 기록마다 같게, recordRoutes 설명)
+import { useSearchParams } from 'next/navigation';
 import RecordEditForm from '../detail/RecordEditForm';
-import { recordIdFromPath } from './recordRoutes';
+import { recordIdFromParams } from './recordRoutes';
 
-// /records/<id>/edit
+// /records/edit?id=…
 export default function RecordEditFromUrl() {
-  const id = recordIdFromPath(usePathname());
-  if (!id) return null;
-  // key: 폼의 처음 값은 처음 그릴 때 한 번만 읽힌다. 다른 기록으로 옮겨 가면 폼을 새로 만든다
+  const id = recordIdFromParams(useSearchParams()) ?? '';
+  // key: 폼의 처음 값은 처음 그릴 때 한 번만 읽힌다. 다른 기록으로 옮겨 가면 폼을 새로 만든다.
+  // id가 비면 사본에서 찾지 못해 "기록을 찾을 수 없어요"가 뜬다
   return <RecordEditForm key={id} id={id} />;
 }

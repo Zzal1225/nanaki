@@ -1,4 +1,5 @@
 import { ChevronDown } from 'lucide-react';
+import { recordViewHref } from '@/features/records/routes/recordRoutes';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { RecordType } from '@/features/records/schema/recordTypes';
@@ -86,7 +87,7 @@ export default function DayTypeRow({
             <li key={item.id} className='border-t border-border'>
               {/* 펼친 기록은 상세로 이어진다. 요약에서 바로 고치거나 지우러 갈 수 있게 */}
               <Link
-                href={`/records/${item.id}`}
+                href={recordViewHref(item.id)}
                 className='flex min-h-11 items-center justify-between gap-3 text-body-sm text-fg-primary hover:underline'
               >
                 <span className='min-w-0 truncate'>{item.title}</span>

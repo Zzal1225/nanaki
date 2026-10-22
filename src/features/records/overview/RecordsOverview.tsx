@@ -1,7 +1,8 @@
 'use client';
 
 // 'use client' 이유: 기록을 브라우저에서 불러온다(TanStack Query). step2에서 오프라인(IndexedDB)으로 바꿀 자리라 클라이언트 중심
-import { usePathname } from 'next/navigation';
+import { openRecordId, recordViewHref } from '../routes/recordRoutes';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { formatShortDate } from '@/shared/date/formatDisplayDate';
 import {
@@ -35,21 +36,26 @@ export const RECENT_RECORD_LIMIT = 20;
 
 // 기록 탭 첫 화면: 이번 달 타입 카드 + 최근 기록 (시안 7번).
 // 조회는 훅이, 값 계산은 recordPresentation이, 모양은 카드·목록 컴포넌트가 맡는다
-// cacheComponents: 아래에 id 같은 동적 주소가 있는 화면(/records/[id])에서는 미리 그릴 때 주소를 몰라 usePathname이 기다린다.
-// Suspense로 감싸서 앱 틀은 미리 그리고, 기다리는 동안은 선택 표시 없는 같은 모양(pathname = null)을 먼저 보여 준다
+// cacheComponents: 열린 기록(?id=)은 미리 그릴 때 알 수 없어서 주소를 읽는 부분이 기다린다.
+// Suspense로 감싸서 앱 틀은 미리 그리고, 기다리는 동안은 선택 표시 없는 같은 모양(openId = null)을 먼저 보여 준다
 export default function RecordsOverview() {
   return (
-    <Suspense fallback={<RecordsOverviewView pathname={null} />}>
+    <Suspense fallback={<RecordsOverviewView openId={null} />}>
       <RecordsOverviewWithPathname />
     </Suspense>
   );
 }
 
 function RecordsOverviewWithPathname() {
-  return <RecordsOverviewView pathname={usePathname()} />;
+  return (
+    <RecordsOverviewView
+      openId={openRecordId(usePathname(), useSearchParams())}
+    />
+  );
 }
 
-function RecordsOverviewView({ pathname }: { pathname: string | null }) {
+// openId: PC에서 오른쪽 패널에 열린 기록 (상세·수정 모두 선택된 것으로 본다)
+function RecordsOverviewView({ openId }: { openId: string | null }) {
   // 오늘은 브라우저에서만 안다 (미리 그리기에서는 null → 카드 자리만 보이고 조회도 미룬다)
   const today = useToday();
   const currentMonth = today ? toMonthString(today) : null;
@@ -182,13 +188,9 @@ function RecordsOverviewView({ pathname }: { pathname: string | null }) {
                     title={getListTitle(entry)}
                     subtitle={`${RECORD_TYPE_CONFIG[entry.type].label} · ${formatShortDate(entry.occurredAt)}`}
                     value={getListValue(entry)}
-                    href={`/records/${entry.id}`}
-                    // 상세와 그 수정 화면 모두 선택된 것으로 본다
+                    href={recordViewHref(entry.id)}
                     isPending={pendingIds.has(entry.id)}
-                    isSelected={
-                      pathname !== null &&
-                      pathname.startsWith(`/records/${entry.id}`)
-                    }
+                    isSelected={openId === entry.id}
                   />
                 </li>
               ))}

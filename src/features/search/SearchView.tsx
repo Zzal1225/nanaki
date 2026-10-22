@@ -2,6 +2,10 @@
 
 // 'use client' 이유: 주소(?q=&type=&sort=&period=…)를 읽고 바꾸며, 검색 결과를 브라우저에서 불러온다(TanStack Query)
 import {
+  openRecordId,
+  recordViewHref,
+} from '@/features/records/routes/recordRoutes';
+import {
   ChevronDown,
   ChevronLeft,
   Search,
@@ -56,7 +60,10 @@ export default function SearchView() {
 function SearchViewContent() {
   const router = useRouter();
   const pathname = usePathname();
-  const state = parseSearchState(useSearchParams());
+  const searchParams = useSearchParams();
+  // PC: 오른쪽에 열린 기록 (상세·수정 화면의 ?id=)
+  const openId = openRecordId(pathname, searchParams);
+  const state = parseSearchState(searchParams);
   const visibleTypes = useVisibleTypes();
   // 아직 서버에 보내지 않은 기록에 구름 아이콘 (시안 15a)
   const pendingIds = usePendingRecordIds();
@@ -246,9 +253,9 @@ function SearchViewContent() {
                     subtitle={`${RECORD_TYPE_CONFIG[entry.type].label} · ${formatShortDate(entry.occurredAt)}`}
                     value={getListValue(entry)}
                     // 검색 조건을 달고 간다: PC는 왼쪽에 결과가 남고, 모바일 상세의 뒤로 버튼은 이 결과로 돌아온다
-                    href={`/records/${entry.id}?${detailQuery}`}
+                    href={recordViewHref(entry.id, detailQuery)}
                     isPending={pendingIds.has(entry.id)}
-                    isSelected={pathname === `/records/${entry.id}`}
+                    isSelected={openId === entry.id}
                     highlight={state.keyword}
                   />
                 </li>

@@ -5,11 +5,7 @@ import type {
   SerwistPlugin,
 } from 'serwist';
 import { ExpirationPlugin, NetworkFirst, NetworkOnly, Serwist } from 'serwist';
-import {
-  isPagePath,
-  PAGE_CACHE_PREFIX,
-  templatePathFor,
-} from '../lib/offlinePages';
+import { isPagePath, PAGE_CACHE_PREFIX } from '../lib/offlinePages';
 
 // 서비스 워커: 브라우저와 네트워크 사이에서 요청을 가로채, 연결이 없어도 화면 틀(HTML·JS·CSS)을 내준다.
 // 기록 데이터는 여기서 저장하지 않는다 (IndexedDB 사본, src/lib/db). 여기는 "화면을 여는 것"만 맡는다.
@@ -52,23 +48,6 @@ const pagePlugins: SerwistPlugin[] = [
     cacheWillUpdate: async ({ response }) =>
       response.status === 200 && !response.redirected ? response : null,
   },
-  // 연결도 저장본도 없을 때:
-  // 1) 기록의 상세·수정이면 미리 받아 둔 틀로. 틀의 HTML은 기록마다 같고, 어느 기록인지는 브라우저가 주소에서 읽는다
-  // 2) 아니면(또는 틀도 없으면) 오프라인 대체 화면
-  // 대체 화면도 여기서 직접 낸다: Serwist는 handlerDidError가 이미 있는 규칙에는 fallbacks(대체 화면)를 붙이지 않는다
-  // (node_modules/serwist: plugins.some(p => "handlerDidError" in p)면 건너뜀)
-  {
-    handlerDidError: async ({ request }) => {
-      const template = templatePathFor(new URL(request.url).pathname);
-      const templateResponse = template
-        ? await caches.match(template, {
-            cacheName: PAGE_CACHE,
-            ignoreSearch: true,
-          })
-        : undefined;
-      return templateResponse ?? serwist.matchPrecache(OFFLINE_FALLBACK_PATH);
-    },
-  },
   new ExpirationPlugin({
     maxEntries: PAGE_MAX_ENTRIES,
     maxAgeSeconds: PAGE_MAX_AGE_SECONDS,
@@ -90,8 +69,9 @@ const serwist = new Serwist({
       matcher: ({ sameOrigin }) => !sameOrigin,
       handler: new NetworkOnly(),
     },
-    // 화면 HTML (화면 조각 RSC 요청은 아래 기본 규칙). 네트워크 먼저, 안 되면 저장본.
-    // ignoreSearch: 화면 HTML은 주소의 ?뒤(검색어·달·타입)와 상관없이 같다 → ?type=review도 ?type=expense 때 저장한 화면으로 연다
+    // 화면 HTML (화면 조각 RSC 요청은 아래 기본 규칙). 네트워크 먼저, 안 되면 저장본, 그것도 없으면 오프라인 대체 화면.
+    // ignoreSearch: 화면 HTML은 주소의 ?뒤(기록 id·검색어·달·타입)와 상관없이 같다 →
+    // /records/view?id=B도 ?id=A 때 저장한 화면으로, ?type=review도 ?type=expense 때 저장한 화면으로 연다
     {
       matcher: ({ request, sameOrigin, url }) =>
         sameOrigin &&

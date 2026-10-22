@@ -30,11 +30,11 @@ describe('PC 왼쪽 목록', () => {
     expect(screen.getByText('검색 화면')).toBeDefined();
   });
   it('검색 결과에서 연 상세(?q=)도 검색을 남긴다', () => {
-    renderAt('/records/abc', 'q=카페');
+    renderAt('/records/view', 'id=abc&q=카페');
     expect(screen.getByText('검색 화면')).toBeDefined();
   });
   it('그냥 연 상세, 작성 화면의 ?type=은 기록 탭 첫 화면', () => {
-    renderAt('/records/abc');
+    renderAt('/records/view', 'id=abc');
     expect(screen.getByText('기록 탭 첫 화면')).toBeDefined();
     cleanup();
     renderAt('/records/new', 'type=expense');

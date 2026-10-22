@@ -1,6 +1,7 @@
 'use client';
 
 // 'use client' 이유: 기록을 브라우저에서 불러오고, 오늘(이번 달)도 브라우저에서만 안다
+import { recordViewHref } from '../routes/recordRoutes';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { formatShortDate } from '@/shared/date/formatDisplayDate';
@@ -125,7 +126,7 @@ export default function TypeDetail({
                     title={getListTitle(entry)}
                     subtitle={formatShortDate(entry.occurredAt)}
                     value={getListValue(entry)}
-                    href={`/records/${entry.id}`}
+                    href={recordViewHref(entry.id)}
                     isPending={pendingIds.has(entry.id)}
                     isSelected={false}
                   />

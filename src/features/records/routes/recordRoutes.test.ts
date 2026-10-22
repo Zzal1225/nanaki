@@ -1,22 +1,35 @@
 import { describe, expect, it } from 'vitest';
-import { recordIdFromPath, recordTypeFromPath } from './recordRoutes';
+import {
+  openRecordId,
+  recordEditHref,
+  recordIdFromParams,
+  recordTypeFromPath,
+  recordViewHref,
+} from './recordRoutes';
 
-describe('주소에서 기록 id', () => {
-  it('상세와 수정 주소', () => {
-    expect(recordIdFromPath('/records/abc')).toBe('abc');
-    expect(recordIdFromPath('/records/abc/edit')).toBe('abc');
+const params = (query: string) => new URLSearchParams(query);
+
+describe('기록 주소 만들기', () => {
+  it('상세·수정은 ?id=', () => {
+    expect(recordViewHref('abc')).toBe('/records/view?id=abc');
+    expect(recordEditHref('abc')).toBe('/records/edit?id=abc');
   });
-  it('같은 자리의 다른 화면·다른 모양은 null', () => {
-    expect(recordIdFromPath('/records/new')).toBeNull();
-    expect(recordIdFromPath('/records/search')).toBeNull();
-    expect(recordIdFromPath('/records/type/expense')).toBeNull();
-    expect(recordIdFromPath('/records')).toBeNull();
-    expect(recordIdFromPath('/records/abc/edit/more')).toBeNull();
+  it('검색 조건을 함께 싣는다 (뒤로 가기·PC 왼쪽 결과)', () => {
+    expect(recordViewHref('abc', 'q=%EC%B9%B4%ED%8E%98')).toBe(
+      '/records/view?q=%EC%B9%B4%ED%8E%98&id=abc',
+    );
   });
 });
 
-describe('주소에서 타입', () => {
-  it('아는 타입만', () => {
+describe('주소에서 읽기', () => {
+  it('상세·수정 화면이면 열린 기록 id, 다른 화면이면 null', () => {
+    expect(openRecordId('/records/view', params('id=abc&q=x'))).toBe('abc');
+    expect(openRecordId('/records/edit', params('id=abc'))).toBe('abc');
+    expect(openRecordId('/records', params('id=abc'))).toBeNull();
+    expect(openRecordId(null, null)).toBeNull();
+    expect(recordIdFromParams(params(''))).toBeNull();
+  });
+  it('타입 상세는 아는 타입만', () => {
     expect(recordTypeFromPath('/records/type/review')).toBe('review');
     expect(recordTypeFromPath('/records/type/toString')).toBeNull();
     expect(recordTypeFromPath('/records/review')).toBeNull();

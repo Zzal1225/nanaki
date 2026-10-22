@@ -16,13 +16,31 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  // 예전 기록 주소 → 새 주소 (2026-10-22: 상세·수정의 id를 경로에서 ?id=로 옮김, features/records/routes).
+  // 저장해 둔 링크·방문 기록이 깨지지 않게. 같은 자리를 쓰는 다른 화면(new·search·view·edit·type)은 빼고 넘긴다.
+  // permanent(308): 브라우저·검색 엔진이 새 주소를 기억해 다음부터는 바로 간다
+  async redirects() {
+    const notRecordId = '(?!new$|search$|view$|edit$|type$)[^/]+';
+    return [
+      {
+        source: `/records/:id(${notRecordId})`,
+        destination: '/records/view?id=:id',
+        permanent: true,
+      },
+      {
+        source: `/records/:id(${notRecordId})/edit`,
+        destination: '/records/edit?id=:id',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 // Sentry 빌드 설정: 빌드가 끝나면 소스맵을 Sentry에 올려, 오류 위치를 압축된 코드가 아니라 원래 소스 줄로 보이게 한다.
 // 올리려면 SENTRY_AUTH_TOKEN(비밀, Vercel 환경 변수에만)이 필요하다. 토큰이 없는 곳(CI, 로컬)은 올리기만 건너뛰고 빌드는 성공한다.
 // 오류를 보내는 설정(DSN, 개인정보)은 여기가 아니라 src/lib/sentry/sentryOptions.ts
 // withSerwist: 서비스 워커를 묶는 esbuild를 서버 번들에 넣지 않고 node_modules에서 그대로 쓰게 한다 (serverExternalPackages).
-// 서비스 워커 파일 자체는 src/app/serwist/[path]/route.ts가 빌드 때 만든다
+// 서비스 워커 파일 자체는 src/app/serwist/sw.js/route.ts가 빌드 때 만든다
 export default withSentryConfig(withSerwist(nextConfig), {
   org: 'nanaki',
   project: 'javascript-nextjs',
