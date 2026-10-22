@@ -1,8 +1,7 @@
-import { ChevronLeft } from 'lucide-react';
-import Link from 'next/link';
-import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import ThemeToggle from '@/shared/theme/ThemeToggle';
 import AccountSection from './AccountSection';
+import DeviceScreenInfo from './DeviceScreenInfo';
+import SettingsBackLink from './SettingsBackLink';
 import SettingsSection from './SettingsSection';
 import TypeVisibilitySection from './TypeVisibilitySection';
 
@@ -12,19 +11,9 @@ import TypeVisibilitySection from './TypeVisibilitySection';
 export default function SettingsScreen() {
   return (
     <div className='mx-auto flex w-full max-w-xl flex-col pb-10'>
-      {/* 모바일: ‹ 가운데 제목 (홈의 ⚙에서 들어온다). 태블릿·PC: 사이드바에서 들어와 뒤로 버튼 없이 왼쪽 큰 제목 */}
+      {/* 모바일: ‹ 가운데 제목 (홈·기록 탭의 ⚙에서 들어온다, ‹는 들어온 곳으로). 태블릿·PC: 사이드바에서 들어와 뒤로 버튼 없이 왼쪽 큰 제목 */}
       <div className='flex h-14 items-center px-1 md:h-auto md:px-6 md:pt-6 md:pb-2'>
-        <Link
-          href='/'
-          aria-label='홈으로'
-          className='inline-flex size-11 items-center justify-center rounded-md text-fg-primary hover:bg-surface-hover active:bg-surface-pressed md:hidden'
-        >
-          <ChevronLeft
-            aria-hidden='true'
-            size={ICON_SIZE.lg}
-            strokeWidth={ICON_STROKE_WIDTH}
-          />
-        </Link>
+        <SettingsBackLink />
         <h1 className='flex-1 text-center text-body font-semibold text-fg-primary md:text-left md:text-title-lg'>
           설정
         </h1>
@@ -41,6 +30,7 @@ export default function SettingsScreen() {
           </div>
         </SettingsSection>
         <AccountSection />
+        <DeviceScreenInfo />
       </div>
     </div>
   );
