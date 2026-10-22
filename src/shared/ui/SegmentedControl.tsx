@@ -16,6 +16,8 @@ type SegmentedControlProps = Omit<
   'aria-label': string;
 };
 
+// 높이: 버튼 하나가 44px(CLAUDE.md 터치 영역)이 되게 묶음은 54px = 44 + 안쪽 여백 4×2 + 테두리 1×2.
+// 예전에는 묶음을 44px로 두어 버튼이 34px였다 (2026-10-22 모바일 E2E 함정 검사에서 찾음, tests/e2e/helpers/mobileChecks)
 export default function SegmentedControl({
   options,
   className = '',
@@ -24,7 +26,7 @@ export default function SegmentedControl({
   return (
     <RadioGroup.Root
       orientation='horizontal'
-      className={`inline-flex h-11 rounded-md border border-border bg-surface p-1 text-body-sm font-semibold ${className}`}
+      className={`inline-flex h-13.5 rounded-md border border-border bg-surface p-1 text-body-sm font-semibold ${className}`}
       {...rest}
     >
       {options.map((option) => (
