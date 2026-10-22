@@ -49,6 +49,14 @@ export default defineConfig({
       testMatch: /-flow\.spec\.ts$/,
       use: { ...devices['Desktop Chrome'] },
     },
+    // 기능 흐름: 아이폰 크기·터치 (*.mobile.spec.ts). 실기기에서 찾은 문제의 절반은 크롬 흉내로도 재현됐다 (2026-10-22 분석):
+    // 하단 탭·스피드 다이얼·바텀시트를 실제로 누르는 흐름과, 아이폰 단골 함정(입력칸 16px, 가로 넘침, 터치 44px) 검사.
+    // 브라우저는 아직 크로미움: 아이폰 프리셋의 기본은 WebKit인데, WebKit은 흔들림을 먼저 본 뒤 따로 더한다 (다음 단계 B)
+    {
+      name: 'mobile',
+      testMatch: /\.mobile\.spec\.ts$/,
+      use: { ...devices['iPhone 13'], browserName: 'chromium' },
+    },
     // 화면 비교는 다시 시도하지 않는다: 시계·데이터를 고정해 늘 같아야 하는 화면이라, 재시도는 흔들림을 숨기기만 한다.
     // 화면 비교: CLAUDE.md의 크기들. 모바일 375 / 태블릿 768 / PC 경계 1024 / 1280 / 1440 / 낮은 노트북 1280×700 / 터치 기기
     ...VISUAL_VIEWPORTS.map(({ name, width, height }) => ({
