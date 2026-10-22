@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
-import { deleteAccount } from './authActions';
+import { deleteAccount, signOut as signOutAction } from './authActions';
 
 vi.mock('@/lib/supabase/client', () => ({
   createSupabaseBrowserClient: vi.fn(),
@@ -51,5 +51,33 @@ describe('deleteAccount', () => {
   it('네트워크 오류도 실패', async () => {
     fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
     expect(await deleteAccount()).toBe('failed');
+  });
+});
+
+describe('signOut', () => {
+  const getSession = vi.fn();
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(createSupabaseBrowserClient).mockReturnValue({
+      auth: { signOut, getSession },
+    } as never);
+  });
+
+  it('오류가 없으면 로그아웃됨', async () => {
+    signOut.mockResolvedValue({ error: null });
+    expect(await signOutAction()).toBe('signedOut');
+  });
+
+  // supabase-js는 서버 요청이 네트워크로 실패해도 이 브라우저의 세션은 지운다 → 실제로는 로그아웃됐다
+  it('오류가 와도 세션이 지워졌으면 로그아웃됨', async () => {
+    signOut.mockResolvedValue({ error: new Error('Failed to fetch') });
+    getSession.mockResolvedValue({ data: { session: null } });
+    expect(await signOutAction()).toBe('signedOut');
+  });
+
+  it('오류가 오고 세션이 남았으면 실패', async () => {
+    signOut.mockResolvedValue({ error: new Error('서버 오류') });
+    getSession.mockResolvedValue({ data: { session: { user: { id: 'u' } } } });
+    expect(await signOutAction()).toBe('failed');
   });
 });
