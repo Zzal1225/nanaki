@@ -98,11 +98,11 @@ function RecordsOverviewView({ pathname }: { pathname: string | null }) {
 
   return (
     <div className='mx-auto flex w-full max-w-xl flex-col pb-6'>
-      <h1 className='px-4 pt-6 pb-2 text-title-lg text-fg-primary md:px-6'>
-        기록
-      </h1>
+      {/* 보이는 "기록" 제목은 두지 않는다 (2026-10-22 사용자 결정: 하단 탭 이름과 겹친다).
+          화면 읽기 프로그램에는 이 화면의 제목이 있어야 해서 sr-only로 남긴다 */}
+      <h1 className='sr-only'>기록</h1>
       {/* 기록을 불러오지 못해도 검색은 따로 시도할 수 있게 오류 안내보다 위에 둔다 */}
-      <div className='px-4 pt-2 md:px-6'>
+      <div className='px-4 pt-6 md:px-6'>
         <SearchBarLink />
       </div>
 

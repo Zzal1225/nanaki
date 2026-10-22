@@ -20,6 +20,10 @@ export const metadata: Metadata = {
 
 // 설치한 앱의 상태 표시줄 색. 다크모드에서는 바탕색과 맞춘다 (tokens.json bg)
 export const viewport: Viewport = {
+  // cover: 화면을 아이폰 홈 막대 영역까지 쓰겠다고 알린다. 이게 있어야 env(safe-area-inset-bottom)이 0이 아닌
+  // 실제 홈 막대 높이가 되고, 하단 탭·스피드 다이얼·토스트·저장 버튼이 그만큼 올라간다 (--tab-bar-height).
+  // 없을 때는 여백이 0이라 홈 화면에 추가한 앱에서 하단 탭이 홈 막대에 가려졌다 (2026-10-22 사용자 확인)
+  viewportFit: 'cover',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#f7f7f8' },
     { media: '(prefers-color-scheme: dark)', color: '#121214' },
