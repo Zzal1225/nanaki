@@ -32,7 +32,7 @@ let reportIndex = 0;
 
 async function measure(page: Measurement, clearCache: () => Promise<void>) {
   for (let run = 1; run <= RUNS_PER_PAGE; run += 1) {
-    // 쿠키(로그인)는 두고 캐시만 비운다: 처음 방문하는 사용자처럼 JS·CSS를 매번 새로 내려받게.
+    // 쿠키(로그인)는 두고 캐시·서비스 워커·기기 사본을 비운다: 처음 방문하는 사용자처럼 JS·CSS·기록을 매번 새로 받게.
     // 비우지 않으면 앞 실행이 받아 둔 파일을 캐시에서 꺼내 "재방문" 점수가 된다 (첫 측정에서 전송량 0KiB로 발견)
     await clearCache();
     const result = await lighthouse(`${BASE_URL}${page.path}`, {
@@ -82,11 +82,18 @@ async function main() {
     args: [`--remote-debugging-port=${DEBUG_PORT}`],
   });
 
-  // 크롬 개발자 도구 프로토콜(CDP)로 브라우저 캐시를 비운다. 캐시는 브라우저 전체가 같이 쓰므로 아무 탭에서 비워도 된다
+  // 크롬 개발자 도구 프로토콜(CDP)로 "처음 방문"을 만든다. 캐시는 브라우저 전체가 같이 쓰므로 아무 탭에서 비워도 된다.
+  // HTTP 캐시만 비우면 부족하다(25 오프라인 이후): 서비스 워커가 저장해 둔 화면·JS로 답하고 기기 사본(IndexedDB)에서
+  // 기록을 읽어서, 두 번째 측정부터 "다시 방문" 값이 된다 (첫 재측정에서 전송량 0KiB로 발견, 26단계).
+  // 그래서 서비스 워커·그 캐시·IndexedDB도 지운다. 쿠키(로그인)는 남긴다
   const cdpPage = await context.newPage();
   const cdp = await context.newCDPSession(cdpPage);
   const clearCache = async () => {
     await cdp.send('Network.clearBrowserCache');
+    await cdp.send('Storage.clearDataForOrigin', {
+      origin: BASE_URL,
+      storageTypes: 'service_workers,cache_storage,indexeddb',
+    });
   };
 
   try {
