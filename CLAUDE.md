@@ -36,7 +36,7 @@
 | 백엔드             | Supabase (Postgres + RLS, Auth, Storage 비공개 버킷, Edge Function, pg_cron)                                                                                                          |
 | AI                 | 무료 티어 모델, Next.js Route Handler에서 호출, 어댑터 파일 하나로 감싼다. 질문과 필드 정의(이름·종류·기본 선택지)만 보내고 필터 JSON을 받아 Zod로 검증 후 RLS 권한으로 Supabase 조회 |
 | 알림               | pg_cron + Edge Function + Web Push                                                                                                                                                    |
-| 테스트             | Vitest, Testing Library (+ jsdom: 훅·컴포넌트 테스트용 가짜 브라우저 환경), MSW, Playwright (E2E + 375/768/1024/1280/1440 + 1280×700 + 터치 기기 프리셋 화면 비교)                    |
+| 테스트             | Vitest, Testing Library (+ jsdom: 훅·컴포넌트 테스트용 가짜 브라우저 환경), Playwright (E2E + 375/768/1024/1280/1440 + 1280×700 + 터치 기기 프리셋 화면 비교)                         |
 | CI/CD·운영         | GitHub Actions, Lighthouse CI, Vercel (기본 도메인), Sentry (step2)                                                                                                                   |
 
 - 위 목록에 없는 라이브러리를 추가하려면 먼저 사용자에게 **이유와 대안**을 제시하고 승인을 받는다.
@@ -95,10 +95,13 @@ src/
                   deviceData = 로그아웃·계정 삭제 때 사본과 화면 캐시 지우기 (로그아웃 성공 뒤에만, 앱 파일 캐시는 남김)
 tests/integration/  진짜 Supabase에 붙는 통합 테스트(RLS 격리 등). npm run test:integration, CI가 로컬 Supabase(Docker)를 띄워 돌린다
 tests/e2e/          Playwright E2E (npm run test:e2e). CI가 같은 로컬 Supabase에 붙인 빌드로 실제 브라우저 흐름을 돌린다
+                    *-flow.spec.ts = PC, *.mobile.spec.ts = 아이폰 크기·터치(helpers/mobileChecks = 입력칸 16px·가로 넘침·터치 44px 검사).
+                    새 E2E는 로그인 화면 말고는 page.goto 대신 앱 안을 눌러 이동한다 (화면을 오갈 때만 생기는 문제를 잡으려고)
                     visual.spec.ts = 화면 비교, 기준 이미지는 visual.spec.ts-snapshots/ (CI 리눅스에서만 만든다:
                     화면을 바꾸면 CI가 실패하며 visual-snapshots 아티팩트를 올린다 → 내려받아 확인 → 바뀐 이미지만 커밋)
 supabase/migrations/ DB 구조(SQL). 새 파일은 npm run db:new, 적용은 npm run db:push, 타입은 npm run db:types
 tokens/tokens.json   디자인 토큰의 유일한 원본. 바꾸면 src/app/globals.css를 맞춘다
+docs/real-device-checklist.md  아이폰 실기기에서만 확인할 것 (자동화 못 하는 것만, 레이아웃·입력·서비스 워커·로그인 PR 뒤)
 design/              시안 참고용. 앱 코드에서 import하지 않고 ESLint 대상도 아님 (README.md 참고)
 private/             개인 기록(면접 질문, 트러블슈팅·설계 결정 초안, learning/ = 학습 노트). .gitignore 대상
 public/              정적 파일
