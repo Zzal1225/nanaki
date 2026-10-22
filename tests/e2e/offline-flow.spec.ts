@@ -163,14 +163,18 @@ test('로그아웃: 기기 사본(IndexedDB)과 저장해 둔 화면 캐시를 �
     .click();
   await expect(page).toHaveURL('/login');
 
+  // 캐시 목록이 비었는지는 보지 않는다: 지운 직후 로그인 화면으로 가면 서비스 워커가 그 화면을 새로 저장한다.
+  // 로그인 뒤에 저장했던 화면(기록 탭·설정)이 남아 있지 않은지를 본다
   const left = await page.evaluate(async () => ({
     databases: (await indexedDB.databases())
       .map((db) => db.name ?? '')
       .filter((name) => name.startsWith('nanaki-')),
-    caches: await caches.keys(),
+    hasRecordsPage: Boolean(await caches.match('/records')),
+    hasSettingsPage: Boolean(await caches.match('/settings')),
   }));
-  expect(left.databases).toEqual([]);
-  expect(left.caches.every((name) => name.startsWith('serwist-precache'))).toBe(
-    true,
-  );
+  expect(left).toEqual({
+    databases: [],
+    hasRecordsPage: false,
+    hasSettingsPage: false,
+  });
 });
