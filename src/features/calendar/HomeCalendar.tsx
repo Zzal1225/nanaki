@@ -2,6 +2,7 @@
 
 // 'use client' 이유: 오늘 날짜·주소(?date=)·기록을 모두 브라우저에서 읽고, 키보드로 칸을 옮긴다
 import { useId, useMemo } from 'react';
+import { usePendingRecordIds } from '@/features/records/hooks/usePendingRecordIds';
 import { useRecords } from '@/features/records/hooks/useRecords';
 import {
   SCHEDULE_DRIVEN_TYPES,
@@ -34,6 +35,7 @@ export default function HomeCalendar() {
   const month = calendar ? toMonthString(calendar.date) : null;
   // 달 안에서 날짜를 옮기면 같은 기간이라 쿼리 키가 그대로 → 다시 불러오지 않는다
   const records = useRecords(month ? getMonthRangeOf(month) : null);
+  const pendingIds = usePendingRecordIds();
 
   // 설정에서 끈 타입의 기록은 점·요약에서 뺀다 (데이터는 그대로).
   // 날짜별 묶음은 기록이나 켜진 타입이 바뀔 때만 다시 만든다. 방향키로 날짜만 옮길 때는 그대로 쓴다
@@ -124,6 +126,7 @@ export default function HomeCalendar() {
           isFuture={date > today}
           isError={records.isError}
           onRetry={() => void records.refetch()}
+          pendingIds={pendingIds}
         />
       </div>
     </div>

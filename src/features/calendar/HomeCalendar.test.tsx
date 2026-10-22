@@ -9,6 +9,7 @@ import {
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  listPendingRecordIds,
   listRecords,
   setRoutineCheck,
 } from '@/features/records/api/recordStore';
@@ -43,6 +44,7 @@ vi.mock('@/shared/date/useToday', () => ({ useToday: () => '2026-10-21' }));
 vi.mock('@/features/records/api/recordStore', () => ({
   listRecords: vi.fn(),
   setRoutineCheck: vi.fn(),
+  listPendingRecordIds: vi.fn(async () => []),
 }));
 // 루틴 규칙. 기본은 루틴 없음, 루틴 줄 테스트에서만 넣는다
 vi.mock('@/features/routines/api/routineStore', () => ({
@@ -94,6 +96,7 @@ describe('HomeCalendar', () => {
     vi.mocked(listRecords).mockResolvedValue([LUNCH, CAFE]);
     vi.mocked(getUserSettings).mockResolvedValue({ hiddenTypes: [] });
     vi.mocked(listRoutines).mockResolvedValue([]);
+    vi.mocked(listPendingRecordIds).mockResolvedValue([]);
   });
 
   it('설정에서 끈 타입은 칸의 점·하루 요약에서 빠진다', async () => {
@@ -126,6 +129,22 @@ describe('HomeCalendar', () => {
     expect(screen.getByText('가계부 1건')).toBeDefined();
     expect(screen.getByText('동네 로스터리 ★ 4.0')).toBeDefined();
     expect(listRecords).toHaveBeenCalledWith('2026-10-01', '2026-10-31');
+  });
+
+  // 오프라인에서 쓴 기록은 대개 홈에서 바로 확인한다 (2026-10-22 아이폰 확인 6번: 기록 탭에만 표시가 있어 찾지 못했다)
+  it('펼친 목록에서 아직 보내지 않은 기록에 "저장 대기"', async () => {
+    vi.mocked(listPendingRecordIds).mockResolvedValue(['1']);
+    renderCalendar();
+
+    fireEvent.click(await screen.findByRole('button', { name: /가계부 1건/ }));
+    const lunch = await screen.findByRole('link', { name: /점심/ });
+    expect(await within(lunch).findByText('저장 대기')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: /후기 1건/ }));
+    expect(
+      within(screen.getByRole('link', { name: /동네 로스터리/ })).queryByText(
+        '저장 대기',
+      ),
+    ).toBeNull();
   });
 
   it('칸을 누르면 주소의 날짜가 바뀌고, 기록이 없는 날은 빈 상태', async () => {
