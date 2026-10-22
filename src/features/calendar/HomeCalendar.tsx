@@ -3,7 +3,10 @@
 // 'use client' 이유: 오늘 날짜·주소(?date=)·기록을 모두 브라우저에서 읽고, 키보드로 칸을 옮긴다
 import { useId, useMemo } from 'react';
 import { useRecords } from '@/features/records/hooks/useRecords';
-import type { RecordType } from '@/features/records/schema/recordTypes';
+import {
+  SCHEDULE_DRIVEN_TYPES,
+  type RecordType,
+} from '@/features/records/schema/recordTypes';
 import { useVisibleTypes } from '@/features/settings/hooks/useUserSettings';
 import { filterVisibleEntries } from '@/features/settings/typeVisibility';
 import {
@@ -16,7 +19,7 @@ import {
 import CalendarGrid from './CalendarGrid';
 import CalendarHeader from './CalendarHeader';
 import DaySummary from './DaySummary';
-import { groupByDate, groupByType, SCHEDULE_DRIVEN_TYPES } from './dayRecords';
+import { groupByDate, groupByType } from './dayRecords';
 import { getDayRoutines } from '@/features/routines/progress';
 import { useRoutines } from '@/features/routines/hooks/useRoutines';
 import type { RecordEntryOf } from '@/features/records/schema/recordEntry';

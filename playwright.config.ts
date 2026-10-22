@@ -43,10 +43,10 @@ export default defineConfig({
   // 0이면 글꼴 안티앨리어싱 한두 픽셀에도 실패하고, 크게 잡으면 버튼 하나가 사라져도 통과한다
   expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.002 } },
   projects: [
-    // 기능 흐름: PC(1280×720)에서 사이드바의 "새 기록" 메뉴로 쓴다
+    // 기능 흐름: PC(1280×720). 기록 쓰기(사이드바 "새 기록" 메뉴)와 검색(기록 탭 왼쪽 목록 자리)
     {
       name: 'desktop-chrome',
-      testMatch: 'guest-record-flow.spec.ts',
+      testMatch: /-flow\.spec\.ts$/,
       use: { ...devices['Desktop Chrome'] },
     },
     // 화면 비교는 다시 시도하지 않는다: 시계·데이터를 고정해 늘 같아야 하는 화면이라, 재시도는 흔들림을 숨기기만 한다.

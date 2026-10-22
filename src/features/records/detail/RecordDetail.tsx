@@ -18,10 +18,15 @@ const RECORDS_PATH = '/records';
 
 type RecordDetailProps = {
   id: string;
+  // 모바일 뒤로 버튼이 갈 곳. 검색 결과에서 왔으면 그 결과(/records/search?q=…), 아니면 기록 탭
+  backHref?: string;
 };
 
 // 기록 보기 (시안 6번, PC는 목록 옆 패널). 조회는 useRecord, 글자 만들기는 recordPresentation·fieldView, 수정·삭제는 RecordActions가 맡는다
-export default function RecordDetail({ id }: RecordDetailProps) {
+export default function RecordDetail({
+  id,
+  backHref = RECORDS_PATH,
+}: RecordDetailProps) {
   const { data: entry, isPending, isError, refetch } = useRecord(id);
 
   if (isPending) {
@@ -77,8 +82,12 @@ export default function RecordDetail({ id }: RecordDetailProps) {
       <div className='flex items-center gap-2'>
         {/* PC는 목록이 옆에 있어서 뒤로 버튼이 필요 없다 */}
         <Link
-          href={RECORDS_PATH}
-          aria-label='기록 탭으로 돌아가기'
+          href={backHref}
+          aria-label={
+            backHref === RECORDS_PATH
+              ? '기록 탭으로 돌아가기'
+              : '검색 결과로 돌아가기'
+          }
           className='-ml-2 inline-flex size-11 items-center justify-center rounded-md text-fg-primary hover:bg-surface-hover active:bg-surface-pressed lg:hidden'
         >
           <ChevronLeft

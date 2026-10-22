@@ -1,4 +1,4 @@
-import RecordsOverview from '@/features/records/overview/RecordsOverview';
+import RecordsSidePanel from '@/features/records/overview/RecordsSidePanel';
 
 // /records 아래 모든 화면(목록, 상세, 작성·수정 폼)의 틀.
 // PC(lg 이상)는 왼쪽에 목록을 계속 두고 오른쪽에 상세·폼을 보여 준다 (시안: 목록 440px + 상세).
@@ -10,7 +10,7 @@ export default function RecordsLayout({ children }: LayoutProps<'/records'>) {
         aria-label='기록 목록'
         className='hidden lg:block lg:w-[440px] lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-border'
       >
-        <RecordsOverview />
+        <RecordsSidePanel />
       </aside>
       {/* 목록과 오른쪽 패널이 따로 스크롤된다 */}
       <div className='min-w-0 lg:flex-1 lg:overflow-y-auto'>{children}</div>
