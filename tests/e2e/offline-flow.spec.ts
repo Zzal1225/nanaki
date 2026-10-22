@@ -103,6 +103,23 @@ test('오프라인 작성: 연 적 없는 작성 화면에서 저장하면 바�
   await page.goto('/records');
   await expect(visibleText(page, '[식비] 점심')).toBeVisible();
 
+  // DEBUG(임시): 미리 받은 화면이 어느 캐시에 들어갔나
+  console.log(
+    '[캐시 진단]',
+    JSON.stringify(
+      await page.evaluate(async () => {
+        const out: Record<string, string[]> = {};
+        for (const name of await caches.keys()) {
+          const keys = await (await caches.open(name)).keys();
+          out[name] = keys
+            .map((k) => new URL(k.url))
+            .filter((u) => !u.pathname.startsWith('/_next/'))
+            .map((u) => u.pathname + u.search);
+        }
+        return out;
+      }),
+    ),
+  );
   await context.setOffline(true);
   // 작성 화면은 한 번도 연 적이 없다 (미리 받아 둔 한 장이 모든 타입에 쓰인다)
   await page.goto('/records/new?type=expense');
