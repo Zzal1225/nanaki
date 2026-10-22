@@ -41,16 +41,10 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      {/* 위쪽 여백 = 기기의 상태 표시줄(시계·배터리) 높이. viewport-fit=cover로 화면이 상태 표시줄 뒤까지 넓어져서,
-          없으면 홈 화면에 추가한 앱에서 맨 위 글자가 시계에 붙는다 (2026-10-22 사용자 확인). 일반 브라우저·PC에서는 0 */}
+      {/* 위쪽 여백 = env(safe-area-inset-top). 상태 표시줄 뒤까지 그리는 설정(black-translucent)일 때만 0이 아니다.
+          지금 설정(default)의 아이폰 홈 화면 앱에서는 0으로 재졌다(2026-10-22, iOS 18.7): 앱 화면이 상태 표시줄 아래에서 시작한다.
+          스크롤하면 글자가 상태 표시줄과 겹치던 문제는 여백이 아니라 스크롤 방식으로 막는다 (globals.css display-mode: standalone) */}
       <body className='min-h-full flex flex-col pt-[env(safe-area-inset-top)]'>
-        {/* 상태 표시줄 뒤를 바탕색으로 가린다. 위 여백은 맨 위에 있을 때만 지켜 주고, 스크롤하면 글자가 투명한 상태 표시줄 밑으로
-            올라가 시계와 겹쳤다 (2026-10-22 아이폰 확인 1번). 고정된 띠라 스크롤해도 그 자리에 있다.
-            z-40: 떠 있는 버튼(스피드 다이얼)과 같은 층, 확인 창·시트(z-50)의 어두운 덮개는 이 띠 위로 덮인다 */}
-        <div
-          aria-hidden='true'
-          className='pointer-events-none fixed inset-x-0 top-0 z-40 h-[env(safe-area-inset-top)] bg-bg'
-        />
         <ThemeSync />
         {/* 서비스 워커 등록 (src/sw/sw.ts).
             - 개발 서버에서는 끈다: 고친 코드가 캐시에 가려 안 보이는 일을 막는다
