@@ -52,7 +52,11 @@ test('+ → 가계부 쓰기 → 홈 요약 → 상세 → 수정 → 삭제·�
   await expect(daySummary.getByText('가계부 3건')).toBeVisible();
   await daySummary.getByRole('button', { name: /가계부 3건/ }).click();
   await daySummary.getByRole('link', { name: /\[식비\] 편의점/ }).click();
-  await expect(page).toHaveURL(/\/records\/view\?id=/);
+  // 홈 하루 요약에서 연 상세는 주소에 들어온 곳(back=home)이 붙고, 뒤로 버튼이 홈의 그 날짜로 간다 (detailOrigin)
+  await expect(page).toHaveURL(/\/records\/view\?back=home&date=.*&id=/);
+  await expect(
+    page.getByRole('link', { name: '홈으로 돌아가기' }),
+  ).toHaveAttribute('href', /^\/\?date=/);
   await expect(
     page.getByRole('heading', { level: 1, name: '편의점' }),
   ).toBeVisible();
@@ -65,7 +69,8 @@ test('+ → 가계부 쓰기 → 홈 요약 → 상세 → 수정 → 삭제·�
   ).toBeVisible();
   await page.getByLabel('제목').fill('편의점 간식');
   await page.getByRole('button', { name: '저장' }).click();
-  await expect(page).toHaveURL(/\/records\/view\?id=/);
+  // 수정을 거쳐도 들어온 곳(back=home)이 남는다
+  await expect(page).toHaveURL(/\/records\/view\?back=home&date=.*&id=/);
   await expect(
     page.getByRole('heading', { level: 1, name: '편의점 간식' }),
   ).toBeVisible();
