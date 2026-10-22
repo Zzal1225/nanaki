@@ -376,7 +376,8 @@ function SortSelect({
         onChange={(event) =>
           onChange(event.target.value === 'oldest' ? 'oldest' : 'latest')
         }
-        className='min-h-11 appearance-none bg-transparent pr-6 pl-2 text-body-sm text-fg-secondary'
+        // 16px(text-body): 아이폰은 16px보다 작은 입력칸·선택칸을 누르면 화면을 확대하고 되돌리지 않는다
+        className='min-h-11 appearance-none bg-transparent pr-6 pl-2 text-body text-fg-secondary'
       >
         {(Object.keys(SORT_LABEL) as SearchState['sort'][]).map((sort) => (
           <option key={sort} value={sort}>

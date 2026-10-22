@@ -7,7 +7,11 @@ import {
 } from '@/features/records/api/recordStore';
 import { prepareDeviceDataCleanup } from '@/lib/db/deviceData';
 import { signOut } from './authActions';
-import LogoutButton, { logoutConfirmText } from './LogoutButton';
+import LogoutButton, {
+  OFFLINE_LOGOUT_MESSAGE,
+  logoutConfirmText,
+} from './LogoutButton';
+import { useToastStore } from '@/shared/toast/toastStore';
 
 vi.mock('@/features/records/api/recordStore', () => ({
   listPendingRecordIds: vi.fn(),
@@ -25,7 +29,7 @@ beforeEach(() => {
   vi.mocked(sendPendingRecords).mockResolvedValue();
   vi.mocked(listPendingRecordIds).mockResolvedValue([]);
   vi.mocked(prepareDeviceDataCleanup).mockResolvedValue(removeDeviceData);
-  vi.mocked(signOut).mockResolvedValue(null);
+  vi.mocked(signOut).mockResolvedValue('signedOut');
   vi.stubGlobal('location', { ...window.location, replace });
 });
 afterEach(() => {
@@ -71,14 +75,29 @@ describe('LogoutButton', () => {
     expect(signOut).not.toHaveBeenCalled();
   });
 
-  // 오프라인 등: 보내지 못한 기록이 사라지지 않게 지우지 않는다
+  // 세션이 남은 실패(서버 오류 등): 보내지 못한 기록이 사라지지 않게 지우지 않는다
   it('로그아웃이 실패하면 기기 데이터를 지우지 않는다', async () => {
-    vi.mocked(signOut).mockResolvedValue({ message: '오프라인' } as never);
+    vi.mocked(signOut).mockResolvedValue('failed');
     render(<LogoutButton isAnonymous={false} />);
     fireEvent.click(screen.getByRole('button', { name: '로그아웃' }));
 
     await vi.waitFor(() => expect(signOut).toHaveBeenCalled());
     expect(removeDeviceData).not.toHaveBeenCalled();
     expect(replace).not.toHaveBeenCalled();
+  });
+
+  // 오프라인에서 시작하면 세션만 지워지고 화면이 기록을 읽지 못했다 (2026-10-22 아이폰 확인 9번)
+  it('오프라인이면 보내기·로그아웃을 시작하지 않고 안내만 한다', async () => {
+    const onLine = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    render(<LogoutButton isAnonymous={false} />);
+    fireEvent.click(screen.getByRole('button', { name: '로그아웃' }));
+
+    expect(useToastStore.getState().toast?.message).toBe(
+      OFFLINE_LOGOUT_MESSAGE,
+    );
+    expect(sendPendingRecords).not.toHaveBeenCalled();
+    expect(signOut).not.toHaveBeenCalled();
+    expect(removeDeviceData).not.toHaveBeenCalled();
+    onLine.mockRestore();
   });
 });

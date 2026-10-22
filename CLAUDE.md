@@ -66,7 +66,7 @@ src/
   shared/         공통 코드. ui/ = 공통 컴포넌트(Radix + Tailwind, 확인 창 ConfirmDialog, 모바일 바텀시트·PC 오른쪽 패널 Sheet 포함), theme/ = 다크·라이트 전환,
                   layout/ = 사이드바·하단 탭(메뉴 목록은 navItems.ts 한 곳), query/ = TanStack Query Provider,
                   toast/ = 화면을 옮겨도 남는 알림(Zustand 저장소 + Radix Toast, 앱 틀에 하나),
-                  network/ = 연결 상태(useOnlineStatus, 화면 안내용), date/ = 날짜 도우미(로컬 YYYY-MM-DD, YYYY-MM 달 계산, date-fns 캘린더 계산(calendar.ts), 브라우저에서만 읽는 오늘 useToday)
+                  network/ = 연결 상태(useOnlineStatus, 화면 안내용), navigation/ = 주소가 틀렸을 때 다른 화면으로 옮기기(useReplaceRoute), date/ = 날짜 도우미(로컬 YYYY-MM-DD, YYYY-MM 달 계산, date-fns 캘린더 계산(calendar.ts), 브라우저에서만 읽는 오늘 useToday)
   features/       기능 단위 모듈. auth/ = 로그인·로그아웃(authActions), 지금 계정(useCurrentUser). 이후 search, chat ...
                   settings/ = 설정 화면. api/settingsStore = 설정 저장·조회의 유일한 입구(user_settings),
                   typeVisibility = 숨긴 타입 계산(순수 함수), hooks/useUserSettings = 설정 훅 + 켜진 타입(useVisibleTypes)
@@ -136,6 +136,7 @@ public/              정적 파일
 - 공유·새로고침·뒤로 가기에 살아남아야 하는 상태는 URL에 둔다 (`?date=`, `/records/view?id=`, 검색어·필터). 화면 안에서만 쓰는 상태는 Zustand.
 - 기록 상세는 `/records/view?id=` 하나, 수정은 `/records/edit?id=` (2026-10-22: 오프라인에서 연 적 없는 기록도 열려고 id를 경로에서 ?로 옮김. 화면 HTML이 기록과 상관없이 한 장이어야 서비스 워커 저장본으로 연다. 예전 `/records/<id>`는 next.config redirects). 주소는 `features/records/routes`에서만 만든다. 모바일은 전체 화면, PC는 목록 옆 패널 (layout으로 처리). 작성 폼도 모바일 전체 화면, PC 오른쪽 패널.
 - 오프라인에서 열려야 하는 화면은 주소의 값(id·?쿼리)을 서버가 아니라 브라우저가 읽는다 (`useSearchParams`, Suspense 안). 서버가 읽으면 값마다 HTML이 달라져 저장본 한 장으로 열 수 없다. 요청 때 그리는 화면(◐)도 저장본으로 열면 멈춘다 → 정적(○)으로.
+- 주소를 보고 다른 화면으로 옮길 때(모르는 타입 등) 그리는 중 `redirect()`를 쓰지 않고 `useReplaceRoute`(effect)를 쓴다. cacheComponents는 떠난 화면을 숨겨 두고 지금 주소로 다시 그려서, 그때 던진 redirect가 다음에 그 화면을 열 때 실행돼 튕겼다 (2026-10-22).
 - 시트는 컴포넌트 하나(Radix Dialog 기반)에 모바일 바텀시트 / PC 오른쪽 패널 변형.
 - Enter 처리(채팅·검색)는 `e.nativeEvent.isComposing`이면 무시한다 (한글 조합 중복 전송).
 - 모바일: `100dvh`, 하단 고정 요소에 `env(safe-area-inset-bottom)`, 입력 중 하단 탭·스피드 다이얼 숨김, 숫자 입력은 `inputMode="numeric"`.

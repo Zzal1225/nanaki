@@ -19,6 +19,9 @@ type LogoutButtonProps = {
   isAnonymous: boolean;
 };
 
+export const OFFLINE_LOGOUT_MESSAGE =
+  '오프라인에서는 로그아웃할 수 없어요. 연결된 뒤 다시 시도해 주세요.';
+
 const GUEST_NOTICE =
   '체험 계정은 로그아웃하면 다시 들어올 수 없고, 남긴 기록도 볼 수 없어요.';
 
@@ -43,6 +46,7 @@ export function logoutConfirmText(
 
 // 설정의 로그아웃 줄.
 // 1) 아직 안 보낸 기록을 먼저 보내 본다 2) 그래도 남았으면 "사라져요"라고 묻는다 (CLAUDE.md: 미전송 기록은 먼저 확인)
+// 0) 오프라인이면 시작하지 않고 안내만 한다
 // 3) 로그아웃이 성공하면 이 기기의 사본·화면 캐시를 지운다. 실패하면(오프라인 등) 지우지 않는다: 보내지 못한 기록이 남아야 한다
 // 4) 페이지를 새로 연다(location.replace): TanStack Query 캐시, 토스트(Zustand) 같은 메모리 속 상태가 모두 사라져서,
 //    다음에 로그인한 사람에게 앞 사람의 기록이 잠깐이라도 보이는 일이 없다. replace라 뒤로 가기로 돌아오지 않는다
@@ -58,8 +62,7 @@ export default function LogoutButton({ isAnonymous }: LogoutButtonProps) {
     setIsPending(true);
     // 세션이 있을 때 지울 사본을 알아 둔다 (로그아웃 뒤에는 어느 계정 것인지 모른다)
     const cleanup = await prepareDeviceDataCleanup();
-    const error = await signOut();
-    if (error) {
+    if ((await signOut()) === 'failed') {
       setIsPending(false);
       setConfirmText(null);
       showToast({
@@ -73,6 +76,13 @@ export default function LogoutButton({ isAnonymous }: LogoutButtonProps) {
   }
 
   async function start() {
+    // 오프라인이면 시작하지 않는다. 시작하면 supabase-js가 서버에 알리지 못한 채 이 브라우저의 세션만 지워서
+    // (authActions signOut 설명) 보내지 못한 기록이 계정 없이 남고, 화면은 기록을 읽지 못한다.
+    // 연결된 뒤에 하면 기록을 먼저 보내고 정상적으로 로그아웃한다
+    if (!navigator.onLine) {
+      showToast({ message: OFFLINE_LOGOUT_MESSAGE });
+      return;
+    }
     setIsPending(true);
     // 보내기·세기는 실패해도 로그아웃을 막지 않는다 (세지 못하면 0으로 보고, 묻지 않는다)
     await sendPendingRecords().catch(() => {});

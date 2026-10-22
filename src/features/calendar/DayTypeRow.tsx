@@ -3,6 +3,7 @@ import { recordViewHref } from '@/features/records/routes/recordRoutes';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { RecordType } from '@/features/records/schema/recordTypes';
+import PendingBadge from '@/features/records/ui/PendingBadge';
 import { RECORD_TYPE_STYLE } from '@/features/records/ui/recordTypeStyle';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 
@@ -10,6 +11,8 @@ export type DayRecordItem = {
   id: string;
   title: string;
   value: string;
+  // 아직 서버에 보내지 않은 기록. 오프라인에서 쓴 기록은 대개 홈에서 바로 확인하므로 여기에도 표시한다
+  isPending: boolean;
 };
 
 type DayTypeRowProps = {
@@ -90,7 +93,10 @@ export default function DayTypeRow({
                 href={recordViewHref(item.id)}
                 className='flex min-h-11 items-center justify-between gap-3 text-body-sm text-fg-primary hover:underline'
               >
-                <span className='min-w-0 truncate'>{item.title}</span>
+                <span className='flex min-w-0 items-center gap-2'>
+                  <span className='min-w-0 truncate'>{item.title}</span>
+                  {item.isPending && <PendingBadge />}
+                </span>
                 <span className='shrink-0 font-semibold tabular-nums'>
                   {item.value}
                 </span>

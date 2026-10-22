@@ -128,22 +128,18 @@ test('오프라인 작성: 연 적 없는 작성 화면에서 저장하면 바�
   // (바로 이동하던 예전 테스트는 타이밍에 따라 통과·실패가 갈렸다)
   await expect(page).toHaveURL('/');
 
-  // 저장은 서버를 기다리지 않는다: 기록 탭에 바로 보이고, 아직 안 보냈다는 구름이 붙는다
+  // 저장은 서버를 기다리지 않는다: 기록 탭에 바로 보이고, 아직 안 보냈다는 "저장 대기"가 붙는다
   await page.goto('/records');
   const item = page
     .getByRole('link', { name: /\[식비\] 오프라인 김밥/ })
     .filter({ visible: true })
     .first();
   await expect(item).toBeVisible();
-  await expect(
-    item.getByRole('img', { name: '아직 저장되지 않음' }),
-  ).toBeVisible();
+  await expect(item.getByText('저장 대기')).toBeVisible();
 
-  // 연결이 돌아오면(online 이벤트) 대기열을 보내고 구름이 사라진다
+  // 연결이 돌아오면(online 이벤트) 대기열을 보내고 "저장 대기"가 사라진다
   await context.setOffline(false);
-  await expect(
-    item.getByRole('img', { name: '아직 저장되지 않음' }),
-  ).toHaveCount(0, { timeout: 15_000 });
+  await expect(item.getByText('저장 대기')).toHaveCount(0, { timeout: 15_000 });
 });
 
 // 25d: 로그아웃하면 이 기기에 남은 개인 데이터(기기 사본·저장해 둔 화면)를 지운다. 앱 파일(미리 받기)만 남는다

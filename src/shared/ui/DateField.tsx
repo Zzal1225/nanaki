@@ -75,7 +75,8 @@ export default function DateField({
             onClick?.(e);
           }}
           // 칸 전체를 덮어 어디를 눌러도 이 입력이 눌린다. 투명해도 포커스·키보드 입력은 그대로 된다
-          className='absolute inset-0 h-full w-full cursor-pointer opacity-0'
+          // text-body: 보이지 않아도 글자 크기가 16px보다 작으면 아이폰이 누를 때 화면을 확대한다 (지금은 바탕 16px을 물려받지만 못 박아 둔다)
+          className='absolute inset-0 h-full w-full cursor-pointer text-body opacity-0'
           {...rest}
         />
       </div>

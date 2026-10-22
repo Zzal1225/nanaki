@@ -28,12 +28,20 @@ export async function signInAsGuest(): Promise<AuthError | null> {
   return error;
 }
 
-// 로그아웃. 세션 쿠키를 지운다. 화면 이동과 메모리 정리는 부르는 쪽(LogoutButton)이 맡는다
-export async function signOut(): Promise<AuthError | null> {
+// 로그아웃 결과. 화면은 "이 브라우저가 로그아웃됐는가"만 알면 된다
+export type SignOutResult = 'signedOut' | 'failed';
+
+// 로그아웃. 세션 쿠키를 지운다. 화면 이동과 메모리 정리는 부르는 쪽(LogoutButton)이 맡는다.
+// 오류가 와도 세션이 남았는지 다시 본다: supabase-js(auth-js 2.118)는 Supabase에 보내는 로그아웃 요청이
+// 네트워크로 실패해도 이 브라우저의 세션은 지우고 오류를 돌려준다. 오류만 보고 "실패"라고 하면,
+// 실제로는 로그아웃된 채 화면이 남아 기록을 하나도 못 읽었다 (2026-10-22 아이폰 확인 9번)
+export async function signOut(): Promise<SignOutResult> {
   const supabase = createSupabaseBrowserClient();
   const { error } = await supabase.auth.signOut();
+  if (!error) return 'signedOut';
 
-  return error;
+  const { data } = await supabase.auth.getSession();
+  return data.session ? 'failed' : 'signedOut';
 }
 
 // 계정 삭제 결과. 화면은 결과마다 다른 안내를 보여 준다

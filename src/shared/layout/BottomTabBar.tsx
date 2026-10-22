@@ -36,6 +36,8 @@ function BottomTabBarView({ pathname }: { pathname: string | null }) {
   return (
     <nav
       aria-label='주요 메뉴'
+      // 터치 기기에서 글자를 치는 동안 숨긴다 (globals.css)
+      data-hide-while-typing
       className='fixed inset-x-0 bottom-0 z-10 h-(--tab-bar-height) border-t border-border bg-surface-raised pb-[env(safe-area-inset-bottom)] md:hidden'
     >
       <ul className='flex h-full'>

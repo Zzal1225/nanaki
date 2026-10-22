@@ -28,6 +28,8 @@ type DaySummaryProps = {
   isFuture: boolean;
   isError: boolean;
   onRetry: () => void;
+  // 아직 서버에 보내지 않은 기록 id (펼친 목록의 "저장 대기")
+  pendingIds: ReadonlySet<string>;
 };
 
 // 고른 날의 요약 (시안: 캘린더 아래, PC는 오른쪽 400px).
@@ -41,6 +43,7 @@ export default function DaySummary({
   isFuture,
   isError,
   onRetry,
+  pendingIds,
 }: DaySummaryProps) {
   const [openTypes, setOpenTypes] = useState<ReadonlySet<RecordType>>(
     () => new Set(),
@@ -104,6 +107,7 @@ export default function DaySummary({
                 id: entry.id,
                 title: getListTitle(entry),
                 value: getListValue(entry),
+                isPending: pendingIds.has(entry.id),
               }))}
               isOpen={openTypes.has(type)}
               onToggle={() => toggle(type)}

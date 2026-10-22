@@ -1,8 +1,8 @@
-import { CloudUpload } from 'lucide-react';
 import Link from 'next/link';
 import { splitByKeyword } from '@/features/search/searchResults';
 import { ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import type { RecordType } from '../schema/recordTypes';
+import PendingBadge from '../ui/PendingBadge';
 import { RECORD_TYPE_STYLE } from '../ui/recordTypeStyle';
 
 // 시안 규격: 목록 아이콘 22px (일반 규격 20·24 사이)
@@ -19,7 +19,7 @@ type RecentRecordItemProps = {
   isSelected: boolean;
   // 검색 결과에서 제목 안의 검색어를 타입 옅은 색으로 강조한다 (시안 14a)
   highlight?: string;
-  // 아직 서버에 보내지 않은 기록 (시안 15a: 날짜 옆 작은 구름). 온라인에서 보내지면 사라진다
+  // 아직 서버에 보내지 않은 기록 (시안 15a: 날짜 옆 구름 + "저장 대기"). 온라인에서 보내지면 사라진다
   isPending?: boolean;
 };
 
@@ -75,15 +75,7 @@ export default function RecentRecordItem({
         </span>
         <span className='flex items-center gap-1 text-caption font-medium text-fg-secondary tabular-nums'>
           {subtitle}
-          {isPending && (
-            // 아이콘만으로는 뜻을 알 수 없어서 화면 읽기 프로그램에 글로 알린다
-            <CloudUpload
-              role='img'
-              aria-label='아직 저장되지 않음'
-              size={14}
-              strokeWidth={ICON_STROKE_WIDTH}
-            />
-          )}
+          {isPending && <PendingBadge />}
         </span>
       </div>
       <span className='text-body font-semibold whitespace-nowrap text-fg-primary tabular-nums'>

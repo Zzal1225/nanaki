@@ -121,6 +121,31 @@
   --tab-bar-height: env(safe-area-inset-bottom);
 }
 
+/* 글자를 치는 동안 하단 탭·스피드 다이얼을 숨긴다 (CLAUDE.md: 입력 중 하단 탭·스피드 다이얼 숨김).
+   작성 화면은 아예 없지만, 검색 화면은 검색창과 함께 떠 있었다. 아이폰은 키보드가 올라와도 화면(레이아웃) 높이가
+   그대로라 바닥에 붙은 요소가 키보드 뒤에 숨거나, 스크롤하면 키보드 위 엉뚱한 자리에 떠 보인다.
+   - 터치 기기(pointer: coarse)만: PC는 화면 키보드가 없고, 좁은 창에서 검색창을 누른다고 탭이 사라지면 어색하다
+   - --tab-bar-height는 그대로 둔다: 바꾸면 본문 아래 여백이 줄어 입력 중에 화면이 출렁인다
+   - JS 대신 :has: 포커스 이벤트를 화면마다 달 필요가 없고, 새 입력칸이 생겨도 따로 할 일이 없다
+   - 체크·라디오·날짜(바퀴 선택)·버튼은 화면 키보드가 뜨지 않아서 뺀다 */
+@media (pointer: coarse) {
+  :root:has(
+      :is(
+        input:not(
+          [type='checkbox'],
+          [type='radio'],
+          [type='date'],
+          [type='button'],
+          [type='submit']
+        ),
+        textarea
+      ):focus
+    )
+    [data-hide-while-typing] {
+    display: none;
+  }
+}
+
 /* ---------- 4. Tailwind 연결 ---------- */
 /* inline: 클래스가 값을 복사하지 않고 var()를 참조해서, .dark 전환이 클래스에 반영된다 */
 @theme inline {
