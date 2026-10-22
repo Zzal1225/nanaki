@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { removeWhitespace } from '@/shared/text/removeWhitespace';
 import { BODY_ONLY_ONE_MESSAGE, bodyFieldsSchema, toBodyTitle } from './body';
 import { expenseFieldsSchema } from './expense';
 import { maxLengthMessage, requiredInputMessage } from './fieldKinds';
@@ -36,7 +37,9 @@ export const baseRecordSchema = z.object({
     .array(
       z
         .string()
-        .trim()
+        // 태그는 띄어쓰기 없는 한 단어 (2026-10-22 사용자 결정). 입력칸이 막지만, 예전에 공백을 넣어 저장한 태그도
+        // 고쳐 저장할 때 정리되게 스키마에서도 뺀다. overwrite: 글자 타입을 유지한 채 바꿔서 뒤의 min·max가 그대로 붙는다
+        .overwrite(removeWhitespace)
         .min(1)
         .max(MAX_TAG_LENGTH, { error: maxLengthMessage(MAX_TAG_LENGTH) }),
     )

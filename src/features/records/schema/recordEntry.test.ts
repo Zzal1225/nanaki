@@ -71,6 +71,15 @@ describe('recordEntrySchema', () => {
     const tooMany = Array.from({ length: MAX_TAGS + 1 }, (_, i) => `태그${i}`);
     expect(isValid({ ...VALID_EXPENSE, tags: tooMany })).toBe(false);
   });
+  // 예전에 공백을 넣어 저장한 태그도 고쳐 저장할 때 한 단어로 (2026-10-22: 태그는 띄어쓰기 없음)
+  it('태그 안의 공백은 빼고, 공백만 있는 태그는 실패', () => {
+    const parsed = recordEntrySchema.parse({
+      ...VALID_EXPENSE,
+      tags: [' 출근 길 '],
+    });
+    expect(parsed.tags).toEqual(['출근길']);
+    expect(isValid({ ...VALID_EXPENSE, tags: ['  '] })).toBe(false);
+  });
 });
 
 describe('RecordEntry 타입', () => {

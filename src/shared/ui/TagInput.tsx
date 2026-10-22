@@ -5,6 +5,8 @@ import { X } from 'lucide-react';
 import { useId, useState, type KeyboardEvent } from 'react';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from './icon';
 import FieldError from './FieldError';
+import { splitTagDraft } from './tagDraft';
+import { removeWhitespace } from '@/shared/text/removeWhitespace';
 
 type TagInputProps = {
   label: string;
@@ -30,7 +32,8 @@ export default function TagInput({
   const isFull = value.length >= maxTags;
 
   function addDraft() {
-    const tag = draft.trim();
+    // 태그는 띄어쓰기 없는 한 단어 (스페이스는 태그 끝내기, tagDraft)
+    const tag = removeWhitespace(draft);
     // 빈 값·중복은 조용히 무시한다. 길이·개수 제한은 입력칸 maxLength와 isFull이 미리 막는다
     if (tag && !value.includes(tag)) onChange([...value, tag]);
     setDraft('');
@@ -80,14 +83,21 @@ export default function TagInput({
       <input
         id={inputId}
         value={draft}
-        onChange={(e) => setDraft(e.target.value)}
+        onChange={(e) => {
+          // 공백이 들어오면 그 앞까지를 태그로 (스페이스·붙여 넣기 모두)
+          const next = splitTagDraft(e.target.value, value, maxTags);
+          if (next.tags.length !== value.length) onChange(next.tags);
+          setDraft(next.draft);
+        }}
         onKeyDown={handleKeyDown}
         // 모바일 키보드의 "완료"로 Enter가 안 오는 기기도 있어서 칸을 떠날 때도 태그로 만든다
         onBlur={addDraft}
         maxLength={maxTagLength}
         disabled={isFull}
         enterKeyHint='done'
-        placeholder={isFull ? `태그는 ${maxTags}개까지` : '태그 입력 후 Enter'}
+        placeholder={
+          isFull ? `태그는 ${maxTags}개까지` : '태그 입력 후 스페이스·Enter'
+        }
         aria-invalid={hasError}
         aria-describedby={hasError ? errorId : undefined}
         className={`h-12 rounded-md border bg-surface px-4 text-body text-fg-primary outline-none placeholder:text-fg-secondary disabled:bg-surface-pressed ${
