@@ -47,14 +47,16 @@ test('오프라인: 연 화면은 틀이 뜨고, 안 연 화면은 대체 화면
 
   // 데이터는 서버에서 받으므로 어떻게 보이는지만 기록한다 (불러오는 중 / 오류 / 보임)
   await page.waitForTimeout(5_000);
-  const dataState = (await page
-    .getByText('[식비] 점심')
-    .filter({ visible: true })
-    .count())
+  // role=alert로 세지 않는다: Next의 화면 이동 안내(route announcer)도 alert라 늘 1개 이상 잡힌다 (첫 실험에서 잘못 판정)
+  const isVisible = async (text: string) =>
+    (await page.getByText(text).filter({ visible: true }).count()) > 0;
+  const dataState = (await isVisible('[식비] 점심'))
     ? '기록이 보임'
-    : (await page.getByRole('alert').filter({ visible: true }).count())
-      ? '오류 안내'
-      : '불러오는 중(회색 자리)';
+    : (await isVisible('기록을 불러오지 못했어요'))
+      ? '오류 안내(기록을 불러오지 못했어요)'
+      : (await page.locator('[aria-busy="true"]:visible').count()) > 0
+        ? '불러오는 중(회색 자리)'
+        : '그 밖';
   test.info().annotations.push({
     type: '오프라인 기록 탭 데이터',
     description: dataState,
