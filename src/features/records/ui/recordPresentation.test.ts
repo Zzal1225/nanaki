@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { Routine } from '@/features/routines/schema/routine';
 import type { RecordEntry } from '../schema/recordEntry';
 import {
   formatExpenseAmount,
@@ -218,5 +219,72 @@ describe('지난달과 비교 (기록 탭 카드)', () => {
     expect(text('expense', [TAXI], [CAFE])).toBeNull();
     // 체형은 이번 기간에 체중을 잰 적이 없어도 null (지금 체중을 모른다)
     expect(text('body', [WAIST], [WEIGHT])).toBeNull();
+  });
+});
+
+describe('루틴 체크 (기록 탭 카드·목록)', () => {
+  const WATER_ROUTINE: Routine = {
+    id: '11111111-1111-4111-8111-111111111111',
+    name: '물 마시기',
+    startDate: '2026-09-01',
+    schedule: { kind: 'weekly', days: [0, 1, 2, 3, 4, 5, 6] },
+    goal: { kind: 'count', target: 8, unit: '잔' },
+    endedOn: null,
+  };
+  function waterCheck(occurredAt: string, count: number): RecordEntry {
+    return {
+      ...BASE,
+      id: `w-${occurredAt}`,
+      type: 'routine',
+      occurredAt,
+      title: '물 마시기',
+      fields: { routineId: WATER_ROUTINE.id, count, target: 8, unit: '잔' },
+    };
+  }
+  // 이번 달 1~4일, 지난달 1~4일 (각 4번 해야 했다)
+  const context = {
+    routines: [WATER_ROUTINE],
+    period: {
+      current: { from: '2026-10-01', to: '2026-10-04' },
+      previous: { from: '2026-09-01', to: '2026-09-04' },
+    },
+  };
+
+  it('목록: [루틴 이름], 값은 "5/8잔" (체크형이면 "완료")', () => {
+    expect(getListTitle(waterCheck('2026-10-01', 5))).toBe('[물 마시기]');
+    expect(getListValue(waterCheck('2026-10-01', 5))).toBe('5/8잔');
+    const done: RecordEntry = {
+      ...BASE,
+      id: 'stretch',
+      type: 'routine',
+      title: '스트레칭',
+      fields: { routineId: WATER_ROUTINE.id, count: 1, target: 1, unit: '' },
+    };
+    expect(getListValue(done)).toBe('완료');
+  });
+  it('카드 값은 기간 달성률, 비교는 %p', () => {
+    const current = [
+      waterCheck('2026-10-01', 8),
+      waterCheck('2026-10-02', 8),
+      waterCheck('2026-10-03', 8),
+      waterCheck('2026-10-04', 5),
+    ];
+    const previous = [waterCheck('2026-09-01', 8)];
+    // 이번 3/4 = 75%, 지난달 1/4 = 25%
+    expect(getMonthValue('routine', current, context)).toBe('75%');
+    const comparison = getPreviousMonthComparison(
+      'routine',
+      current,
+      previous,
+      context,
+    );
+    expect(comparison && formatPreviousMonthComparison(comparison)).toBe(
+      '지난달보다 50%p 높아요',
+    );
+  });
+  it('루틴이 없으면 — (해야 할 날이 없다)', () => {
+    expect(
+      getMonthValue('routine', [], { routines: [], period: context.period }),
+    ).toBe('—');
   });
 });

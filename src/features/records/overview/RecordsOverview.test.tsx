@@ -12,6 +12,10 @@ import RecordsOverview from './RecordsOverview';
 // 실제 Supabase 대신 가짜. 이 테스트는 "받은 기록을 어떻게 보여 주는지"만 본다
 // 테스트에는 Next 라우터가 없어서 지금 주소를 가짜로 준다 (PC 선택 표시용)
 vi.mock('next/navigation', () => ({ usePathname: () => '/records' }));
+// 루틴 카드(달성률)용 루틴 목록. 이 테스트에서는 루틴이 없는 계정 (루틴 카드는 —)
+vi.mock('@/features/routines/api/routineStore', () => ({
+  listRoutines: vi.fn().mockResolvedValue([]),
+}));
 vi.mock('@/features/settings/api/settingsStore', () => ({
   getUserSettings: vi.fn(),
   updateHiddenTypes: vi.fn(),

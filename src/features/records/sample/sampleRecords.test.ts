@@ -4,6 +4,10 @@ import { RECORD_TYPE_ORDER } from '../entry/newRecordMenu';
 import { buildSampleRecords } from './sampleRecords';
 
 const TODAY = '2026-10-21';
+// 루틴 체크는 루틴(규칙) id가 있어야 만들 수 있어 sampleRoutines.ts가 따로 만든다
+const RECORDS_BUILT_HERE = RECORD_TYPE_ORDER.filter(
+  (type) => type !== 'routine',
+);
 // 오늘 포함 2주
 const SAMPLE_WINDOW_START = '2026-10-08';
 
@@ -39,13 +43,13 @@ describe('buildSampleRecords', () => {
       (sample) => sample.occurredAt === '2026-10-01',
     );
     expect(new Set(lastMonthFirst.map((s) => s.type)).size).toBe(
-      RECORD_TYPE_ORDER.length,
+      RECORDS_BUILT_HERE.length,
     );
   });
 
   it('구현된 타입이 모두 들어 있다 (체험에서 모든 화면이 채워지게)', () => {
     const types = new Set(samples.map((sample) => sample.type));
-    expect([...types].sort()).toEqual([...RECORD_TYPE_ORDER].sort());
+    expect([...types].sort()).toEqual([...RECORDS_BUILT_HERE].sort());
   });
 
   it('달이 바뀌는 날에도 지난달로 이어서 날짜를 센다', () => {

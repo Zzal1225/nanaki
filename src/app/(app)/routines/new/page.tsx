@@ -6,8 +6,7 @@ export const metadata: Metadata = {
 };
 
 // 루틴은 기록이 아니라 반복 규칙이라 /records/new가 아니라 따로 둔다 (CLAUDE.md: 규칙과 수행 결과를 나눈다).
-// 아직 메뉴에서 이 주소로 오는 길은 없다: 체크(수행 기록)가 생기는 23b에서 스피드 다이얼·사이드바에 연결한다
-// (CLAUDE.md: 미구현 기능은 숨김)
+// 스피드 다이얼·사이드바의 "루틴 만들기"와 루틴 상세의 버튼이 이 주소로 온다. 저장·닫기 뒤에는 루틴 상세로 돌아간다
 export default function NewRoutinePage() {
-  return <NewRoutineForm doneHref='/' />;
+  return <NewRoutineForm doneHref='/records/type/routine' />;
 }

@@ -125,3 +125,13 @@ export async function endRoutine(id: string, endedOn: string): Promise<void> {
     .eq('id', id);
   if (error) throw error;
 }
+
+// 여러 루틴을 한 번에 (체험하기 예시). 요청 하나라 전부 들어가거나 전부 안 들어간다 (createRecords와 같은 이유)
+export async function createRoutines(routines: Routine[]): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const rows = routines.map((routine) =>
+    toRoutineInsert(routineSchema.parse(routine)),
+  );
+  const { error } = await supabase.from('routines').insert(rows);
+  if (error) throw error;
+}

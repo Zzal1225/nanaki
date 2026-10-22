@@ -16,6 +16,7 @@ import { useVisibleTypes } from '@/features/settings/hooks/useUserSettings';
 import { filterVisibleEntries } from '@/features/settings/typeVisibility';
 import { useRecentRecords } from '../hooks/useRecentRecords';
 import { useRecords } from '../hooks/useRecords';
+import { useRoutines } from '@/features/routines/hooks/useRoutines';
 import { RECORD_TYPE_CONFIG } from '../schema/recordTypes';
 import {
   getListTitle,
@@ -59,18 +60,26 @@ function RecordsOverviewView({ pathname }: { pathname: string | null }) {
     currentMonth ? getMonthRangeOf(shiftMonth(currentMonth, -1)) : null,
   );
   const recentRecords = useRecentRecords(RECENT_RECORD_LIMIT);
+  // 루틴 카드의 달성률은 "해야 했던 날"(루틴 규칙)이 있어야 계산된다 (2026-10-22 사용자 결정: 달성률)
+  const routines = useRoutines();
 
   // 지난달까지 기다린다: 비교 줄이 나중에 끼어들며 카드 높이가 바뀌지 않게.
   // 지난달 조회가 실패하면 비교 줄만 빠지고 카드는 그대로 보인다 (isError에 넣지 않는다)
   const isPending =
     monthRecords.isPending ||
     previousMonthRecords.isPending ||
-    recentRecords.isPending;
+    recentRecords.isPending ||
+    routines.isPending;
   const isError = monthRecords.isError || recentRecords.isError;
   // 설정에서 끈 타입은 카드도 기록도 숨긴다 (데이터는 그대로)
   const visibleTypes = useVisibleTypes();
   const monthEntries = monthRecords.data ?? [];
   // 비교는 같은 기간끼리: 이번 달 1일~오늘 vs 지난달 1일~같은 날 (카드 값은 그대로 이번 달 전체)
+  // 카드 값 계산에 기록 말고 필요한 것 (지금은 루틴 달성률만 쓴다)
+  const monthContext = {
+    routines: routines.data ?? [],
+    period: currentMonth && today ? getSamePeriod(currentMonth, today) : null,
+  };
   const period =
     currentMonth && today ? getSamePeriod(currentMonth, today) : null;
   const currentPeriodEntries = period
@@ -133,11 +142,12 @@ function RecordsOverviewView({ pathname }: { pathname: string | null }) {
                 <MonthSummaryCard
                   key={type}
                   type={type}
-                  value={getMonthValue(type, monthEntries)}
+                  value={getMonthValue(type, monthEntries, monthContext)}
                   comparison={getPreviousMonthComparison(
                     type,
                     currentPeriodEntries,
                     previousPeriodEntries,
+                    monthContext,
                   )}
                   isEmpty={monthEntries.every((entry) => entry.type !== type)}
                   isWide={isWide}
