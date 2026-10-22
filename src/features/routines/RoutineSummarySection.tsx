@@ -1,7 +1,7 @@
 'use client';
 
 // 'use client' 이유: 루틴 규칙과 오늘 날짜를 브라우저에서 읽고, 오늘 체크 버튼이 저장 요청을 보낸다
-import { ChevronRight, Plus } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import type { RecordEntryOf } from '@/features/records/schema/recordEntry';
 import { formatDisplayDate } from '@/shared/date/formatDisplayDate';
@@ -25,7 +25,8 @@ type RoutineSummarySectionProps = {
 // 루틴 상세 요약 (시안 13d "오늘 체크 + 달성률"):
 // - 이 달 달성률: 1일~오늘(지난 달이면 그 달 전체) 중 해야 했던 날 대비 목표를 채운 비율
 // - 오늘 할 루틴 체크 (이번 달을 볼 때만: 오늘 체크는 이번 달 기록 안에 있다)
-// - 내 루틴 목록과 만들기 (루틴을 고치거나 그만두는 곳은 여기서만 들어간다)
+// - 내 루틴 목록 (루틴을 고치거나 그만두는 곳은 여기서만 들어간다).
+//   만들기 버튼은 두지 않는다 (2026-10-22 사용자 결정): 만들기는 다른 기록처럼 + 버튼(PC는 사이드바 "새 기록")의 "루틴 만들기" 한 곳에서
 export default function RoutineSummarySection({
   entries,
   monthLabel,
@@ -77,6 +78,12 @@ export default function RoutineSummarySection({
           <p role='alert' className='py-2 text-body-sm text-fg-secondary'>
             루틴을 불러오지 못했어요.
           </p>
+        ) : routines.isSuccess && sorted.length === 0 ? (
+          // 버튼이 없어서 어디서 만드는지 알려 준다. + 모양은 모바일 스피드 다이얼과 PC 사이드바 "새 기록"에 모두 보인다
+          <p className='py-2 text-body-sm text-fg-secondary'>
+            아직 만든 루틴이 없어요. + 버튼의 &quot;루틴 만들기&quot;로 만들 수
+            있어요.
+          </p>
         ) : (
           <ul>
             {sorted.map((routine) => (
@@ -115,17 +122,6 @@ export default function RoutineSummarySection({
             ))}
           </ul>
         )}
-        <Link
-          href='/routines/new'
-          className='mt-1 inline-flex min-h-11 items-center gap-2 self-start rounded-md border border-border bg-surface px-4 text-body-sm font-semibold text-fg-primary hover:bg-surface-hover active:bg-surface-pressed'
-        >
-          <Plus
-            aria-hidden='true'
-            size={ICON_SIZE.sm}
-            strokeWidth={ICON_STROKE_WIDTH}
-          />
-          루틴 만들기
-        </Link>
       </div>
     </>
   );
