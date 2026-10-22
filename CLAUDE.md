@@ -57,7 +57,7 @@ src/
   app/            라우트 (Next.js App Router). globals.css = 디자인 토큰 CSS 변수 + Tailwind 연결
                   auth/callback/ = 구글 로그인 뒤 code를 세션으로 바꾸는 Route Handler
                   api/account/ = 계정 삭제 Route Handler (DELETE, secret 키로 본인 계정만). API는 proxy가 로그인 화면으로 보내지 않고 스스로 401
-                  (app)/ = 로그인 뒤 화면 묶음(/, /records, /records/new, /records/[id](/edit), /records/type/[type], /records/search, /settings).
+                  (app)/ = 로그인 뒤 화면 묶음(/, /records, /records/new, /records/view?id=, /records/edit?id=, /records/type/[type], /records/search, /settings).
                   records/layout.tsx = PC에서 목록(왼쪽) + 상세·폼(오른쪽) 패널. 주소에 안 나타나는 괄호 폴더
                   serwist/sw.js/ = 서비스 워커 파일을 빌드 때 한 번 만드는 Route Handler('use cache'), manifest.ts = 설치 정보,
                   ~offline/ = 연결도 저장본도 없을 때의 대체 화면
@@ -84,7 +84,8 @@ src/
                   records/type/ = 타입 상세(달 이동, 타입별 요약 카드 registry, 목록)
                   records/sample/ = 체험하기 예시 기록(오늘 기준 최근 2주, 순수 함수) + 넣기(addSampleRecords)
                   records/api/recordOutbox = 오프라인 작성 대기열 보내기(순서대로 id upsert, 서버 거절만 멈춤),
-                  records/sync/ = 앱 틀의 OutboxSync(언제 보낼지·실패 토스트)와 OfflineBanner
+                  records/sync/ = 앱 틀의 OutboxSync(언제 보낼지·실패 토스트), OfflineBanner, OfflineWarmup(로그인 뒤 주요 화면 미리 받기)
+                  records/routes/ = 기록 화면 주소 만들기·읽기(recordRoutes)와 주소에서 값을 읽어 화면을 고르는 *FromUrl
                   search/ = 검색 화면. searchState = 주소(?q=&type=&sort=&period=…) 해석·만들기, searchFilters = 필터 시트(타입 설정 filterFields + 필드 정의로 칸 생성·기간·거르기·칩 문구), searchResults = 타입 칩 건수·거르기·검색어 강조(순수 함수),
                   SearchView(모바일 페이지 / PC는 records/overview/RecordsSidePanel이 왼쪽 목록 자리에). 검색어 필터 글자는 records/api/searchQuery
   lib/supabase/   Supabase 클라이언트 (client.ts = 브라우저용, server.ts = 서버용, admin.ts = secret 키 관리자용·서버 전용), database.types.ts = DB 타입(자동 생성, 직접 수정 금지)
@@ -131,8 +132,9 @@ public/              정적 파일
 - 기기 능력 분기(카메라 촬영, 스와이프)는 마운트 후 훅에서 판단하고, 판단 전에는 해당 UI를 숨긴 상태로 시작한다.
 - 스와이프는 지름길일 뿐이다. 모든 조작은 버튼과 키보드로도 가능해야 한다 (캘린더: 방향키·PageUp/PageDown, roving tabindex, `role="grid"`).
 - hover에만 기대는 UI 금지. 터치 영역 44px은 모든 구간에 적용한다.
-- 공유·새로고침·뒤로 가기에 살아남아야 하는 상태는 URL에 둔다 (`?date=`, `/records/[id]`, 검색어·필터). 화면 안에서만 쓰는 상태는 Zustand.
-- 기록 상세는 `/records/[id]` 경로 하나. 모바일은 전체 화면, PC는 목록 옆 패널 (layout으로 처리). 작성 폼도 모바일 전체 화면, PC 오른쪽 패널.
+- 공유·새로고침·뒤로 가기에 살아남아야 하는 상태는 URL에 둔다 (`?date=`, `/records/view?id=`, 검색어·필터). 화면 안에서만 쓰는 상태는 Zustand.
+- 기록 상세는 `/records/view?id=` 하나, 수정은 `/records/edit?id=` (2026-10-22: 오프라인에서 연 적 없는 기록도 열려고 id를 경로에서 ?로 옮김. 화면 HTML이 기록과 상관없이 한 장이어야 서비스 워커 저장본으로 연다. 예전 `/records/<id>`는 next.config redirects). 주소는 `features/records/routes`에서만 만든다. 모바일은 전체 화면, PC는 목록 옆 패널 (layout으로 처리). 작성 폼도 모바일 전체 화면, PC 오른쪽 패널.
+- 오프라인에서 열려야 하는 화면은 주소의 값(id·?쿼리)을 서버가 아니라 브라우저가 읽는다 (`useSearchParams`, Suspense 안). 서버가 읽으면 값마다 HTML이 달라져 저장본 한 장으로 열 수 없다. 요청 때 그리는 화면(◐)도 저장본으로 열면 멈춘다 → 정적(○)으로.
 - 시트는 컴포넌트 하나(Radix Dialog 기반)에 모바일 바텀시트 / PC 오른쪽 패널 변형.
 - Enter 처리(채팅·검색)는 `e.nativeEvent.isComposing`이면 무시한다 (한글 조합 중복 전송).
 - 모바일: `100dvh`, 하단 고정 요소에 `env(safe-area-inset-bottom)`, 입력 중 하단 탭·스피드 다이얼 숨김, 숫자 입력은 `inputMode="numeric"`.

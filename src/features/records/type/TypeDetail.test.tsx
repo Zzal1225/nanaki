@@ -61,7 +61,7 @@ describe('TypeDetail', () => {
     expect(screen.getByText('25%')).toBeTruthy();
     expect(
       screen.getByRole('link', { name: /\[식비\] 점심/ }).getAttribute('href'),
-    ).toBe('/records/1');
+    ).toBe('/records/view?id=1');
   });
 
   it('주소의 달(?month=)로 그 달 첫날~말일을 조회한다', async () => {

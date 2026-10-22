@@ -11,7 +11,10 @@ import RecordsOverview from './RecordsOverview';
 
 // 실제 Supabase 대신 가짜. 이 테스트는 "받은 기록을 어떻게 보여 주는지"만 본다
 // 테스트에는 Next 라우터가 없어서 지금 주소를 가짜로 준다 (PC 선택 표시용)
-vi.mock('next/navigation', () => ({ usePathname: () => '/records' }));
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/records',
+  useSearchParams: () => new URLSearchParams(),
+}));
 // 루틴 카드(달성률)용 루틴 목록. 이 테스트에서는 루틴이 없는 계정 (루틴 카드는 —)
 vi.mock('@/features/routines/api/routineStore', () => ({
   listRoutines: vi.fn().mockResolvedValue([]),
@@ -84,7 +87,7 @@ describe('RecordsOverview', () => {
     renderOverview();
 
     const link = await screen.findByRole('link', { name: /\[식비\] 점심/ });
-    expect(link.getAttribute('href')).toBe('/records/1');
+    expect(link.getAttribute('href')).toBe('/records/view?id=1');
   });
 
   it('이번 달 기록은 오늘이 속한 달의 첫날~말일로 조회한다', async () => {

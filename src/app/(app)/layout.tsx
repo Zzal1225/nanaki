@@ -1,6 +1,7 @@
 import SidebarNewRecordMenu from '@/features/records/entry/SidebarNewRecordMenu';
 import SpeedDial from '@/features/records/entry/SpeedDial';
 import OfflineBanner from '@/features/records/sync/OfflineBanner';
+import OfflineWarmup from '@/features/records/sync/OfflineWarmup';
 import OutboxSync from '@/features/records/sync/OutboxSync';
 import BottomTabBar from '@/shared/layout/BottomTabBar';
 import Sidebar from '@/shared/layout/Sidebar';
@@ -28,6 +29,8 @@ export default function AppLayout({ children }: LayoutProps<'/'>) {
         <Toaster />
         {/* 오프라인에서 쓴 기록을 연결되면 보낸다. 그리는 것은 없다 */}
         <OutboxSync />
+        {/* 연 적 없는 화면도 오프라인에서 열리게 주요 화면을 미리 받아 둔다. 그리는 것은 없다 */}
+        <OfflineWarmup />
       </div>
     </QueryProvider>
   );

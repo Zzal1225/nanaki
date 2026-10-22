@@ -1,6 +1,7 @@
 'use client';
 
 // 'use client' 이유: 입력 상태(React Hook Form), 저장 요청, 화면 이동이 모두 브라우저에서 일어난다
+import { recordViewHref } from '../routes/recordRoutes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { X } from 'lucide-react';
 import Link from 'next/link';
@@ -65,7 +66,7 @@ export default function RecordForm(props: RecordFormProps) {
   // 고치기에서 닫거나 저장하면 그 기록의 상세로, 새로 쓰기는 홈(또는 시작한 날짜의 홈)으로
   const doneHref =
     props.mode === 'edit'
-      ? `/records/${props.entry.id}`
+      ? recordViewHref(props.entry.id)
       : (props.doneHref ?? '/');
 
   const form = useForm<FormInput, unknown, FormOutput>({

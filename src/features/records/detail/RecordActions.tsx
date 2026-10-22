@@ -1,6 +1,7 @@
 'use client';
 
 // 'use client' 이유: 메뉴 열림, 삭제 요청, 화면 이동이 브라우저에서 일어난다
+import { recordEditHref } from '../routes/recordRoutes';
 import { DropdownMenu } from 'radix-ui';
 import { Ellipsis, Pencil, Trash2 } from 'lucide-react';
 import Link from 'next/link';
@@ -25,7 +26,7 @@ export default function RecordActions({ id, canEdit }: RecordActionsProps) {
   const router = useRouter();
   const deleteRecord = useDeleteRecord();
   const showToast = useToastStore((state) => state.showToast);
-  const editHref = `/records/${id}/edit`;
+  const editHref = recordEditHref(id);
 
   async function handleDelete() {
     try {

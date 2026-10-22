@@ -1,6 +1,7 @@
 'use client';
 
 // 'use client' 이유: 고칠 기록을 브라우저에서 불러온 뒤 폼에 넣는다
+import { recordViewHref } from '../routes/recordRoutes';
 import Link from 'next/link';
 import RecordForm from '../form/RecordForm';
 import { isEditableType } from '../schema/recordTypes';
@@ -55,7 +56,7 @@ export default function RecordEditForm({ id }: RecordEditFormProps) {
           루틴 체크는 홈이나 루틴 화면에서 바꿀 수 있어요.
         </p>
         <Link
-          href={`/records/${entry.id}`}
+          href={recordViewHref(entry.id)}
           className='text-body-sm font-semibold text-accent underline underline-offset-4'
         >
           기록으로 돌아가기

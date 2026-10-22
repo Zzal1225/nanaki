@@ -1,34 +1,24 @@
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import TypeDetail from '@/features/records/type/TypeDetail';
-import { parseRecordType } from '@/features/records/schema/recordTypes';
-import { parseMonthParam } from '@/shared/date/month';
+import { RECORD_TYPE_ORDER } from '@/features/records/entry/newRecordMenu';
+import TypeDetailFromUrl from '@/features/records/routes/TypeDetailFromUrl';
 
 export const metadata: Metadata = {
   title: '타입별 기록',
 };
 
-// params(타입)·searchParams(달)는 요청 때만 알 수 있어서 Suspense 안에서 읽는다 (cacheComponents)
-export default function TypeDetailPage({
-  params,
-  searchParams,
-}: PageProps<'/records/type/[type]'>) {
-  return (
-    <Suspense fallback={<p className='sr-only'>타입별 기록을 여는 중</p>}>
-      <TypeDetailContent params={params} searchParams={searchParams} />
-    </Suspense>
-  );
+// 타입은 다섯 개뿐이라 빌드 때 모두 미리 그린다(정적). 요청 때 그리는 부분이 남은 화면(◐)은
+// 서비스 워커가 저장해 둔 HTML로 열면 불러오는 중에서 멈췄다 (25c-2 E2E). 다른 화면처럼 정적 한 장이어야 오프라인에서 열린다
+export function generateStaticParams() {
+  return RECORD_TYPE_ORDER.map((type) => ({ type }));
 }
 
-// 주소는 누구나 고쳐 칠 수 있다: 모르는 타입이면 기록 탭으로, 틀린 달이면 이번 달로
-async function TypeDetailContent({
-  params,
-  searchParams,
-}: Pick<PageProps<'/records/type/[type]'>, 'params' | 'searchParams'>) {
-  const [{ type }, { month }] = await Promise.all([params, searchParams]);
-  const recordType = parseRecordType(type);
-  if (!recordType) redirect('/records');
-
-  return <TypeDetail type={recordType} month={parseMonthParam(month)} />;
+// 타입·달(?month=)은 브라우저가 주소에서 읽는다 (25c-2): 서버 HTML이 달마다 같아야
+// 서비스 워커가 저장해 둔 타입 화면 한 장으로 다른 달도 오프라인에서 연다
+export default function TypeDetailPage() {
+  return (
+    <Suspense fallback={<p className='sr-only'>타입별 기록을 여는 중</p>}>
+      <TypeDetailFromUrl />
+    </Suspense>
+  );
 }

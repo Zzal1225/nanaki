@@ -161,7 +161,7 @@ describe('RecordForm (수정)', () => {
     fireEvent.click(screen.getByRole('button', { name: '저장' }));
 
     await waitFor(() =>
-      expect(replace).toHaveBeenCalledWith('/records/saved-id'),
+      expect(replace).toHaveBeenCalledWith('/records/view?id=saved-id'),
     );
     expect(vi.mocked(updateRecord).mock.calls[0][0]).toEqual({
       ...SAVED,

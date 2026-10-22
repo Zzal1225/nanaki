@@ -51,7 +51,7 @@ test('기록 탭 검색창 → 메모·분류로 찾기 → 결과에서 상세 
 
   // 결과를 열면 오른쪽에 상세, 왼쪽에는 결과가 남는다
   await coffee.click();
-  await expect(page).toHaveURL(/\/records\/[^/?]+\?q=/);
+  await expect(page).toHaveURL(/\/records\/view\?.*q=.*&id=/);
   await expect(page.getByRole('heading', { name: '아메리카노' })).toBeVisible();
   await expect(coffee).toHaveAttribute('aria-current', 'page');
 });
