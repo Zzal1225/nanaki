@@ -42,7 +42,7 @@ type FormOutput = z.output<FormSchema>;
 // 새로 쓰기의 date·doneHref: 홈 캘린더에서 고른 날에 쓰기 시작하면 그 날짜로 채우고, 닫거나 저장하면 그 날로 돌아간다
 type RecordFormProps =
   | { mode: 'create'; type: RecordType; date?: string; doneHref?: string }
-  | { mode: 'edit'; entry: RecordEntry };
+  | { mode: 'edit'; entry: RecordEntry; doneHref?: string };
 
 // 폼의 처음 값. DefaultValues는 "일부만 채워도 되는" 모양이라 새로 쓰기에서 fields를 비워 둘 수 있다.
 // 고치기는 기록을 그대로 넣는다. id가 함께 들어가도 폼 스키마(id 없음)가 제출 때 검사하며 지워서,
@@ -66,7 +66,7 @@ export default function RecordForm(props: RecordFormProps) {
   // 고치기에서 닫거나 저장하면 그 기록의 상세로, 새로 쓰기는 홈(또는 시작한 날짜의 홈)으로
   const doneHref =
     props.mode === 'edit'
-      ? recordViewHref(props.entry.id)
+      ? (props.doneHref ?? recordViewHref(props.entry.id))
       : (props.doneHref ?? '/');
 
   const form = useForm<FormInput, unknown, FormOutput>({
@@ -104,7 +104,8 @@ export default function RecordForm(props: RecordFormProps) {
       className='mx-auto flex w-full max-w-xl flex-col gap-6 px-4 pb-4 md:px-6'
     >
       {/* 시안: 왼쪽 닫기(×), 가운데 제목. 오른쪽 빈칸은 제목을 정확히 가운데 두기 위한 자리 */}
-      <div className='-mx-4 flex h-14 items-center px-1 md:-mx-6 md:px-3'>
+      {/* 스크롤해도 머리 줄(뒤로·닫기)이 맨 위에 붙어 있다 (2026-10-22 사용자 요청: 긴 화면에서 뒤로 가려고 다시 올라가기 불편). bg-bg: 밑으로 지나가는 내용이 비치지 않게, z-20: 떠 있는 + 버튼·메뉴(z-40) 아래 */}
+      <div className='sticky top-0 z-20 -mx-4 flex h-14 items-center bg-bg px-1 md:-mx-6 md:px-3'>
         <Link
           href={doneHref}
           // 닫으면 작성 화면을 방문 기록에서 지운다. 뒤로 가기로 쓰다 만 폼에 돌아오지 않게

@@ -98,7 +98,8 @@ export default function RoutineForm(props: RoutineFormProps) {
       noValidate
       className='mx-auto flex w-full max-w-xl flex-col gap-6 px-4 pb-4 md:px-6'
     >
-      <div className='-mx-4 flex h-14 items-center px-1 md:-mx-6 md:px-3'>
+      {/* 스크롤해도 머리 줄(뒤로·닫기)이 맨 위에 붙어 있다 (2026-10-22 사용자 요청: 긴 화면에서 뒤로 가려고 다시 올라가기 불편). bg-bg: 밑으로 지나가는 내용이 비치지 않게, z-20: 떠 있는 + 버튼·메뉴(z-40) 아래 */}
+      <div className='sticky top-0 z-20 -mx-4 flex h-14 items-center bg-bg px-1 md:-mx-6 md:px-3'>
         <Link
           href={props.doneHref}
           replace

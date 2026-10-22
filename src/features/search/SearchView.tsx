@@ -114,7 +114,8 @@ function SearchViewContent() {
   return (
     <div className='mx-auto flex w-full max-w-xl flex-col pb-6'>
       <h1 className='sr-only'>기록 검색</h1>
-      <div className='flex items-center gap-1 px-1 pt-2 pb-2 md:px-3 lg:mt-4'>
+      {/* 스크롤해도 머리 줄(뒤로·닫기)이 맨 위에 붙어 있다 (2026-10-22 사용자 요청: 긴 화면에서 뒤로 가려고 다시 올라가기 불편). bg-bg: 밑으로 지나가는 내용이 비치지 않게, z-20: 떠 있는 + 버튼·메뉴(z-40) 아래 */}
+      <div className='sticky top-0 z-20 flex items-center gap-1 bg-bg px-1 pt-2 pb-2 md:px-3 lg:mt-4'>
         <Link
           href='/records'
           aria-label='기록 탭으로 돌아가기'

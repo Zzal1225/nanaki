@@ -4,6 +4,7 @@ import OfflineBanner from '@/features/records/sync/OfflineBanner';
 import OfflineWarmup from '@/features/records/sync/OfflineWarmup';
 import OutboxSync from '@/features/records/sync/OutboxSync';
 import BottomTabBar from '@/shared/layout/BottomTabBar';
+import KeyboardInset from '@/shared/layout/KeyboardInset';
 import Sidebar from '@/shared/layout/Sidebar';
 import QueryProvider from '@/shared/query/QueryProvider';
 import Toaster from '@/shared/toast/Toaster';
@@ -16,8 +17,9 @@ export default function AppLayout({ children }: LayoutProps<'/'>) {
     <QueryProvider>
       <div className='flex min-h-dvh'>
         <Sidebar action={<SidebarNewRecordMenu />} />
-        {/* 모바일은 하단 탭이 위를 덮으므로 그 높이만큼 아래를 비운다 */}
-        <main className='min-w-0 flex-1 pb-(--tab-bar-height) md:pb-0'>
+        {/* 모바일은 하단 탭과 떠 있는 + 버튼이 위를 덮으므로 그만큼 아래를 비운다 (globals.css --fab-clearance).
+            키보드가 떠 있으면 그 높이(--keyboard-inset, KeyboardInset)도 더해 맨 아래 입력칸을 키보드 위로 올릴 공간을 만든다 */}
+        <main className='min-w-0 flex-1 pb-[calc(var(--tab-bar-height)+var(--fab-clearance)+var(--keyboard-inset,0px))] md:pb-0'>
           {/* 오프라인일 때만 화면 맨 위에 안내 (모든 기록 화면 공통) */}
           <OfflineBanner />
           {children}
@@ -31,6 +33,8 @@ export default function AppLayout({ children }: LayoutProps<'/'>) {
         <OutboxSync />
         {/* 연 적 없는 화면도 오프라인에서 열리게 주요 화면을 미리 받아 둔다. 그리는 것은 없다 */}
         <OfflineWarmup />
+        {/* 화면 키보드가 아래 입력칸을 가리지 않게 (높이 재기·스크롤). 그리는 것은 없다 */}
+        <KeyboardInset />
       </div>
     </QueryProvider>
   );

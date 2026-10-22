@@ -14,6 +14,8 @@ type RecordActionsProps = {
   id: string;
   // 수정 화면이 없는 기록(루틴 체크: 체크 버튼으로만 바꾼다)은 수정 버튼을 그리지 않는다. 삭제(= 체크 풀기)는 둔다
   canEdit: boolean;
+  // 상세의 "들어온 곳" 조건. 수정 화면에도 넘겨, 저장·닫기 뒤 상세의 뒤로 버튼이 같은 곳으로 간다
+  originQuery?: string;
 };
 
 const MENU_ITEM_CLASS =
@@ -22,11 +24,15 @@ const MENU_ITEM_CLASS =
 // 상세 위쪽 오른쪽의 동작들. 모바일은 좁아서 ⋯ 메뉴에 수정·삭제를 넣고, PC는 수정·삭제를 모두 버튼으로 꺼내 둔다.
 // 시안은 PC도 삭제를 ⋯에 숨겼지만, 넓은 화면에서 한 번 더 누를 이유가 없고 삭제는 5초 되돌리기가 있어 바꿨다
 // (private/decisions/2026-10-21-pc-record-actions.md). 폭에 따른 차이는 CSS(lg:hidden / hidden lg:inline-flex)로만
-export default function RecordActions({ id, canEdit }: RecordActionsProps) {
+export default function RecordActions({
+  id,
+  canEdit,
+  originQuery = '',
+}: RecordActionsProps) {
   const router = useRouter();
   const deleteRecord = useDeleteRecord();
   const showToast = useToastStore((state) => state.showToast);
-  const editHref = recordEditHref(id);
+  const editHref = recordEditHref(id, originQuery);
 
   async function handleDelete() {
     try {

@@ -9,11 +9,16 @@ import { useRecord } from '../hooks/useRecord';
 
 type RecordEditFormProps = {
   id: string;
+  // 상세가 들고 온 "들어온 곳" 조건. 저장·닫기 뒤 상세로 돌아갈 때 그대로 붙인다 (detailOrigin)
+  originQuery?: string;
 };
 
 // 기록을 불러온 다음에 폼을 그린다. 폼의 처음 값(defaultValues)은 처음 그릴 때 한 번만 읽혀서,
 // 불러오기 전에 빈 폼을 먼저 그리면 나중에 값이 와도 칸이 채워지지 않는다
-export default function RecordEditForm({ id }: RecordEditFormProps) {
+export default function RecordEditForm({
+  id,
+  originQuery = '',
+}: RecordEditFormProps) {
   const { data: entry, isPending, isError } = useRecord(id);
 
   if (isPending) {
@@ -56,7 +61,7 @@ export default function RecordEditForm({ id }: RecordEditFormProps) {
           루틴 체크는 홈이나 루틴 화면에서 바꿀 수 있어요.
         </p>
         <Link
-          href={recordViewHref(entry.id)}
+          href={recordViewHref(entry.id, originQuery)}
           className='text-body-sm font-semibold text-accent underline underline-offset-4'
         >
           기록으로 돌아가기
@@ -65,5 +70,11 @@ export default function RecordEditForm({ id }: RecordEditFormProps) {
     );
   }
 
-  return <RecordForm mode='edit' entry={entry} />;
+  return (
+    <RecordForm
+      mode='edit'
+      entry={entry}
+      doneHref={recordViewHref(entry.id, originQuery)}
+    />
+  );
 }

@@ -113,12 +113,20 @@
   --chat-max-width: 720px;
   /* 시안의 탭 높이 90px은 탭 56px + 아이폰 홈 바 여백 34px이다. 기기마다 여백이 달라서 고정값 대신 env()를 쓴다 */
   --tab-bar-height: calc(56px + env(safe-area-inset-bottom));
+  /* 모바일 본문 끝에 더 두는 여백 = 스피드 다이얼(+) 56 + 탭과의 간격 16 + 숨 쉴 여백 16.
+     없으면 맨 아래 내용(홈 루틴의 +/− 등)이 떠 있는 + 버튼에 가려 누를 수 없었다 (2026-10-22 사용자 확인) */
+  --fab-clearance: 88px;
 }
 
 /* 작성·수정 화면은 하단 탭이 없다 (BottomTabBar가 표시만 남긴다). 탭 높이를 홈 막대 여백만 남겨서
    이 변수를 쓰는 본문 아래 여백·저장 버튼 위치가 함께 내려간다. 컴포넌트마다 화면을 따지지 않고 변수 하나로 맞춘다 */
 :root:has([data-tab-bar-hidden]) {
   --tab-bar-height: env(safe-area-inset-bottom);
+}
+
+/* + 버튼(스피드 다이얼)이 없는 화면(작성·설정)은 그 여백도 없다 (SpeedDial이 표시만 남긴다) */
+:root:has([data-fab-hidden]) {
+  --fab-clearance: 0px;
 }
 
 /* 아이폰 홈 화면 앱: 문서(html) 대신 body 안에서 스크롤한다.
