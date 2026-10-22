@@ -39,6 +39,33 @@ export type Database = {
   };
   public: {
     Tables: {
+      budgets: {
+        Row: {
+          category_amounts: Json;
+          created_at: string;
+          month: string;
+          total_amount: number | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          category_amounts?: Json;
+          created_at?: string;
+          month: string;
+          total_amount?: number | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          category_amounts?: Json;
+          created_at?: string;
+          month?: string;
+          total_amount?: number | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       records: {
         Row: {
           created_at: string;
