@@ -124,6 +124,9 @@ test('오프라인 작성: 연 적 없는 작성 화면에서 저장하면 바�
     .click();
   await page.getByLabel('제목').fill('오프라인 김밥');
   await page.getByRole('button', { name: '저장' }).click();
+  // 저장이 끝나면 폼이 홈으로 보낸다. 그 전에 다른 화면으로 가면 저장(기기 사본 쓰기)이 페이지와 함께 끊긴다
+  // (바로 이동하던 예전 테스트는 타이밍에 따라 통과·실패가 갈렸다)
+  await expect(page).toHaveURL('/');
 
   // 저장은 서버를 기다리지 않는다: 기록 탭에 바로 보이고, 아직 안 보냈다는 구름이 붙는다
   await page.goto('/records');
