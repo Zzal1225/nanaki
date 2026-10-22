@@ -70,9 +70,11 @@ const syncRecords = createTableSync((db) =>
 // 조회 전에 부른다: 바뀐 것을 받아 두고(실패하면 그냥 넘어감) 사본을 돌려준다
 async function readyLocalDb(): Promise<LocalDb> {
   const db = await currentLocalDb();
+  (globalThis as unknown as { __offlineTrace?: string[] }).__offlineTrace ??= []; (globalThis as unknown as { __offlineTrace: string[] }).__offlineTrace.push('DEBUG records sync 시작 ' + performance.now());
   await syncRecords(db).catch((error: unknown) =>
     warnSyncFailure('records', error),
   );
+  (globalThis as unknown as { __offlineTrace?: string[] }).__offlineTrace ??= []; (globalThis as unknown as { __offlineTrace: string[] }).__offlineTrace.push('DEBUG records sync 끝 ' + performance.now());
   return db;
 }
 
@@ -138,6 +140,7 @@ export async function listRecentRecords(limit: number): Promise<RecordEntry[]> {
     .filter((row) => !SCHEDULE_DRIVEN_TYPES.some((type) => type === row.type))
     .limit(limit)
     .toArray();
+  (globalThis as unknown as { __offlineTrace?: string[] }).__offlineTrace ??= []; (globalThis as unknown as { __offlineTrace: string[] }).__offlineTrace.push('DEBUG recent 읽음 ' + rows.length);
   return toEntries(rows);
 }
 

@@ -81,6 +81,13 @@ test('오프라인: 연 화면은 기기 사본의 기록으로 그려지고, �
         `pending=${(locks.pending ?? []).map((lock) => lock.name).join('|')}`,
       ];
     });
+    // DEBUG(임시): 읽기 경로 단계 기록
+    const trace = await page.evaluate(
+      () =>
+        (globalThis as unknown as { __offlineTrace?: string[] })
+          .__offlineTrace ?? ['기록 없음'],
+    );
+    databases.push(...trace);
     await page.waitForTimeout(10_000);
     const hasErrorNotice =
       (await page

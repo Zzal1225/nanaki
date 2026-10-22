@@ -5,7 +5,9 @@ import { openLocalDb, type LocalDb } from './localDb';
 // 쿠키에 저장된 세션을 읽기만 해서 오프라인에서도 된다 (getUser는 서버에 물어봐서 오프라인이면 실패한다)
 export async function currentLocalDb(): Promise<LocalDb> {
   const supabase = createSupabaseBrowserClient();
+  (globalThis as unknown as { __offlineTrace?: string[] }).__offlineTrace ??= []; (globalThis as unknown as { __offlineTrace: string[] }).__offlineTrace.push('DEBUG getSession 시작 ' + performance.now());
   const { data, error } = await supabase.auth.getSession();
+  (globalThis as unknown as { __offlineTrace?: string[] }).__offlineTrace ??= []; (globalThis as unknown as { __offlineTrace: string[] }).__offlineTrace.push('DEBUG getSession 끝 ' + performance.now());
   if (error) throw error;
   const userId = data.session?.user.id;
   // 로그인 뒤 화면에서만 부른다 (proxy가 막는다). 여기까지 왔는데 세션이 없으면 사본을 고를 수 없다
