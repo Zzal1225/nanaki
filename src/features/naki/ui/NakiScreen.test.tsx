@@ -127,6 +127,7 @@ describe('NakiScreen', () => {
   it('답: 이해한 조건을 칩으로, 우리가 계산한 한 줄, 기록 탭으로 이어지는 링크', async () => {
     vi.mocked(askNaki).mockResolvedValue({
       kind: 'answer',
+      aggregate: { intent: 'list', field: null },
       state: SEPTEMBER_DINING,
       remaining: 19,
     });
@@ -173,9 +174,27 @@ describe('NakiScreen', () => {
     expect(input.placeholder).toBe('답변을 기다리는 중…');
   });
 
+  it('집계 질문: 계산은 화면이 하고, 최고면 그 기록을 맨 위에 (34e)', async () => {
+    vi.mocked(askNaki).mockResolvedValue({
+      kind: 'answer',
+      aggregate: { intent: 'max', field: 'amount' },
+      state: SEPTEMBER_DINING,
+      remaining: 19,
+    });
+    renderScreen();
+    askByTyping('지난달 외식 중에 제일 비싼 거');
+
+    expect(
+      await screen.findByText('최고 금액 -31,400원 · 09.12 (토)'),
+    ).toBeTruthy();
+    const links = await screen.findAllByRole('link', { name: /\[외식\]/ });
+    expect(links[0].textContent).toContain('저녁');
+  });
+
   it('이해하지 못하면 탓하지 않고 예시 질문', async () => {
     vi.mocked(askNaki).mockResolvedValue({
       kind: 'answer',
+      aggregate: { intent: 'list', field: null },
       state: null,
       remaining: 19,
     });
@@ -262,6 +281,7 @@ describe('NakiScreen', () => {
   it('예시 질문을 누르면 그 질문을 바로 보낸다', async () => {
     vi.mocked(askNaki).mockResolvedValue({
       kind: 'answer',
+      aggregate: { intent: 'list', field: null },
       state: null,
       remaining: 19,
     });

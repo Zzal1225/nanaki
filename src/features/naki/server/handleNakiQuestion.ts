@@ -1,4 +1,9 @@
 import type { SearchState } from '@/features/search/searchState';
+import {
+  LIST_AGGREGATE,
+  toNakiAggregate,
+  type NakiAggregate,
+} from '../nakiAggregate';
 import { nakiRequestSchema, type NakiError } from '../nakiApi';
 import type { NakiLimits, QuotaResult } from '../nakiLimits';
 import {
@@ -41,7 +46,14 @@ type ErrorBody = {
 };
 
 export type NakiQuestionResult =
-  | { status: 200; body: { state: SearchState | null; remaining: number } }
+  | {
+      status: 200;
+      body: {
+        state: SearchState | null;
+        aggregate: NakiAggregate;
+        remaining: number;
+      };
+    }
   | { status: 400 | 401 | 429 | 502; body: ErrorBody };
 
 export async function handleNakiQuestion(
@@ -110,5 +122,13 @@ export async function handleNakiQuestion(
   // 모델이 답은 했지만 형식이 틀리면 이해하지 못한 것으로 (횟수는 쓴 것으로 둔다: 모델은 정상으로 일했다)
   const state =
     result.kind === 'ok' ? toSearchState(result.output, types) : null;
-  return { status: 200, body: { state, remaining: quota.remaining } };
+  // 계산 조건도 서버가 거른다: 고른 타입의 숫자 칸일 때만 (nakiAggregate)
+  const aggregate =
+    result.kind === 'ok' && state
+      ? toNakiAggregate(result.output.intent, result.output.metric, state.type)
+      : LIST_AGGREGATE;
+  return {
+    status: 200,
+    body: { state, aggregate, remaining: quota.remaining },
+  };
 }

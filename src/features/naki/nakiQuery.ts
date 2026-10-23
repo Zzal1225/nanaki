@@ -15,6 +15,7 @@ import {
 } from '@/features/search/searchState';
 import { isDateString } from '@/shared/date/calendar';
 import { formatDisplayDate } from '@/shared/date/formatDisplayDate';
+import { getMetricFields } from './nakiAggregate';
 import { EMPTY_CUSTOM_NAMES, type NakiCustomNames } from './nakiCustomNames';
 
 // 나키: 질문 → AI가 만든 조건 → 우리 검색 조건(SearchState). AI는 조건만 만들고, 찾기·계산은 우리가 한다 (README 6).
@@ -49,6 +50,10 @@ export const nakiAiOutputSchema = z.object({
   ),
   // 별점 n점 이상 (후기)
   ratingMin: z.number().nullable(),
+  // 34e 집계: 무엇을 계산할지 (list·sum·count·avg·max·min)와 계산할 숫자 칸 이름.
+  // 문자열로 받고 nakiAggregate.toNakiAggregate가 거른다 (enum으로 막으면 모르는 값 하나에 답 전체가 버려진다)
+  intent: z.string().nullable(),
+  metric: z.string().nullable(),
 });
 export type NakiAiOutput = z.infer<typeof nakiAiOutputSchema>;
 
@@ -69,6 +74,8 @@ export type NakiTypeDescription = {
   type: RecordType;
   label: string;
   fields: NakiFieldDescription[];
+  // 계산할 수 있는 숫자 칸 (거르기 칸과 다르다: 체중·거리는 필터 칸이 아니어도 평균·최저를 묻는다)
+  metrics: { name: string; label: string; unit?: string }[];
 };
 
 export function describeTypesForAi(
@@ -94,6 +101,11 @@ export function describeTypesForAi(
         ...(userOptions?.length ? { userOptions } : {}),
       };
     }),
+    metrics: getMetricFields(type).map(({ name, label, unit }) => ({
+      name,
+      label,
+      ...(unit ? { unit } : {}),
+    })),
   }));
 }
 
@@ -119,6 +131,9 @@ export function buildNakiInstructions(
     // 2026-10-23 실제 모델 시험: "내가 구독중인 Ott는?"을 기록 찾기가 아닌 질문으로 보고 understood=false를 냈다
     '"내가 구독 중인 ○○는?", "○○ 뭐 있어?", "○○ 언제 했지?"처럼 사용자가 자기 지출·활동·물건을 묻는 질문은 모두 기록 찾기다.',
     '인사·조언·일반 지식처럼 사용자의 기록과 상관없는 질문만 understood를 false로 한다.',
+    // 34e 집계: AI는 계산 종류와 칸만 고르고, 계산은 앱이 한다. 기본은 list
+    'intent는 질문이 원하는 계산이다: 기록을 보여 달라면 list, 얼마·총·합계면 sum, 몇 번·몇 개·몇 건이면 count, 평균이면 avg, 가장 큰·제일 많은·최고·최대면 max, 가장 작은·제일 낮은·최저·최소면 min. 애매하면 list.',
+    'sum·avg·max·min이면 metric에 그 타입 metrics의 name을 쓴다 (예: 체중 → weight, 운동 시간 → minutes, 거리 → distance, 지출 → amount). 그 밖에는 metric을 null로 한다.',
     `기록 타입과 칸: ${JSON.stringify(types)}`,
     // 태그는 칸이 아니라 검색어로 찾는다 (matchesKeyword가 태그를 하나씩 비교한다)
     ...(tags.length > 0

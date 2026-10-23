@@ -12,13 +12,20 @@ import {
   type NakiError,
   type NakiQuota,
 } from '../nakiApi';
+import type { NakiAggregate } from '../nakiAggregate';
 import type { NakiCustomNames } from '../nakiCustomNames';
 
 // 브라우저에서 나키 API를 부르는 유일한 입구 (화면은 fetch를 직접 쓰지 않는다).
 // 응답도 스키마로 검사한다: 서버가 바뀌거나 중간에서 응답이 망가져도 화면이 엉뚱한 값을 그리지 않게
 
 export type NakiAskResult =
-  | { kind: 'answer'; state: SearchState | null; remaining: number }
+  | {
+      kind: 'answer';
+      state: SearchState | null;
+      // 무엇을 계산할지 (34e). 계산은 화면이 기기 사본으로 한다 (nakiSummary)
+      aggregate: NakiAggregate;
+      remaining: number;
+    }
   // network = 서버에 닿지 못함 (연결 끊김). 그 밖은 서버가 알려 준 실패 (nakiApi)
   | {
       kind: 'error';
@@ -68,6 +75,7 @@ export async function askNaki(
       state: answer.data.state
         ? normalizeState(answer.data.state as SearchState)
         : null,
+      aggregate: answer.data.aggregate,
       remaining: answer.data.remaining,
     };
   }
