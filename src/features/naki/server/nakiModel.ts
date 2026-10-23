@@ -15,8 +15,12 @@ import { nakiAiOutputSchema, type NakiAiOutput } from '../nakiQuery';
 // - Gemini 무료 등급은 카드 없이 키만으로 쓰고, JSON 스키마 구조화 출력을 지원한다
 // - generateText + Output.object에 Zod 스키마를 넘기면 응답을 그 스키마로 검증까지 한다 (AI 응답을 믿지 않는 첫 단계)
 
-// 모델은 환경 변수로 바꿀 수 있게: 무료 등급에서 쓸 수 있는 모델·한도는 Google AI Studio에서 자주 바뀐다
-const DEFAULT_MODEL_ID = 'gemini-2.5-flash';
+// 모델은 환경 변수로 바꿀 수 있게: 무료 등급에서 쓸 수 있는 모델·한도는 Google AI Studio에서 자주 바뀐다.
+// 2026-10-23 실제 키로 잰 결과 (질문 6개, 같은 지시문):
+// - gemini-2.5-flash: 새 사용자에게 더 이상 열려 있지 않음 (목록에는 보이지만 호출하면 거절)
+// - gemini-3.8-flash: 약 60초 (생각 단계가 기본으로 켜져 있고 minimal로 줄일 수 없음) → 채팅에 못 씀
+// - gemini-3.5-flash: 2~10초, gemini-3.5-flash-lite: 약 1초. 둘 다 조건은 같게 만들었다 → 빠른 lite
+const DEFAULT_MODEL_ID = 'gemini-3.5-flash-lite';
 // 조건 만들기는 같은 질문에 같은 답이 나와야 한다 (창의성이 필요 없다)
 const TEMPERATURE = 0;
 // 실패 시 SDK가 다시 묻는 횟수. 무료 등급 한도를 아끼고 응답이 늦어지지 않게 한 번만

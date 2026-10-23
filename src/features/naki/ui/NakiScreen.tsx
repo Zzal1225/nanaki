@@ -19,6 +19,7 @@ import {
   type NakiQuota,
 } from '../nakiApi';
 import NakiAnswer from './NakiAnswer';
+import NakiAvatar from './NakiAvatar';
 
 // 질문 하나와 그 답. 대화는 메모리에만 둔다 (2026-10-23 사용자 결정: 첫 PR은 저장·이어 묻기 없음, 탭을 떠나면 사라진다)
 type Turn =
@@ -212,13 +213,7 @@ export default function NakiScreen() {
           </div>
         ) : turns.length === 0 ? (
           <div className='m-auto flex flex-col items-center gap-4 text-center'>
-            <span className='flex size-12 items-center justify-center rounded-full bg-surface-hover text-accent'>
-              <Sparkles
-                aria-hidden='true'
-                size={ICON_SIZE.lg}
-                strokeWidth={ICON_STROKE_WIDTH}
-              />
-            </span>
+            <NakiAvatar size={56} />
             <div className='flex flex-col gap-1'>
               <p className='text-body font-semibold text-fg-primary'>
                 기록에 대해 물어보세요
@@ -239,40 +234,46 @@ export default function NakiScreen() {
                 <p className='max-w-[85%] self-end rounded-lg rounded-br-sm bg-accent px-4 py-2 text-body text-accent-foreground'>
                   {turn.question}
                 </p>
-                {turn.status === 'loading' ? (
-                  <p
-                    aria-live='polite'
-                    className='flex items-center gap-2 rounded-lg bg-surface p-4 text-body-sm text-fg-secondary shadow-card'
-                  >
-                    <Sparkles
-                      aria-hidden='true'
-                      size={14}
-                      strokeWidth={ICON_STROKE_WIDTH}
-                      className='animate-pulse text-accent'
-                    />
-                    조건을 만들고 있어요
-                  </p>
-                ) : turn.status === 'failed' ? (
-                  <p
-                    role='alert'
-                    className='rounded-lg bg-surface p-4 text-body-sm text-fg-primary shadow-card'
-                  >
-                    {FAILURE_MESSAGE[turn.error]}
-                  </p>
-                ) : turn.state ? (
-                  <NakiAnswer state={turn.state} />
-                ) : (
-                  // 해석하지 못함: 탓하지 않고 물을 수 있는 모양을 보여 준다
-                  <div className='flex flex-col gap-3 rounded-lg bg-surface p-4 shadow-card'>
-                    <p className='text-body-sm text-fg-primary'>
-                      잘 이해하지 못했어요. 이렇게 물어봐 주세요.
-                    </p>
-                    <ExampleQuestions
-                      examples={examples}
-                      onPick={(question) => void ask(question)}
-                    />
+                {/* AI가 말하는 줄: 왼쪽에 나키 아바타, 오른쪽에 답 (시안). 사용자 질문은 오른쪽 말풍선 */}
+                <div className='flex items-start gap-2'>
+                  <NakiAvatar size={32} />
+                  <div className='min-w-0 flex-1'>
+                    {turn.status === 'loading' ? (
+                      <p
+                        aria-live='polite'
+                        className='flex items-center gap-2 rounded-lg bg-surface p-4 text-body-sm text-fg-secondary shadow-card'
+                      >
+                        <Sparkles
+                          aria-hidden='true'
+                          size={14}
+                          strokeWidth={ICON_STROKE_WIDTH}
+                          className='animate-pulse text-accent'
+                        />
+                        조건을 만들고 있어요
+                      </p>
+                    ) : turn.status === 'failed' ? (
+                      <p
+                        role='alert'
+                        className='rounded-lg bg-surface p-4 text-body-sm text-fg-primary shadow-card'
+                      >
+                        {FAILURE_MESSAGE[turn.error]}
+                      </p>
+                    ) : turn.state ? (
+                      <NakiAnswer state={turn.state} />
+                    ) : (
+                      // 해석하지 못함: 탓하지 않고 물을 수 있는 모양을 보여 준다
+                      <div className='flex flex-col gap-3 rounded-lg bg-surface p-4 shadow-card'>
+                        <p className='text-body-sm text-fg-primary'>
+                          잘 이해하지 못했어요. 이렇게 물어봐 주세요.
+                        </p>
+                        <ExampleQuestions
+                          examples={examples}
+                          onPick={(question) => void ask(question)}
+                        />
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </li>
             ))}
           </ol>
