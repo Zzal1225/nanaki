@@ -11,6 +11,7 @@ import {
   type DueReminder,
   isGoneStatus,
 } from '../_shared/routineReminder.ts';
+import { isCronRequest, json, readServiceKey } from '../_shared/edge.ts';
 
 // 알림이 늦게 닿아도 의미 있는 시간: 1시간 넘게 꺼져 있던 기기에는 지난 알림을 보내지 않는다
 const TTL_SECONDS = 60 * 60;
@@ -23,33 +24,9 @@ type SubscriptionRow = {
   auth: string;
 };
 
-// 관리자 키: Supabase가 Edge Function에 기본으로 넣어 준다. 새 키 체계(sb_secret_)면 SUPABASE_SECRET_KEYS(JSON)에, 옛 키면 SUPABASE_SERVICE_ROLE_KEY에
-function readServiceKey(): string | null {
-  const keys = Deno.env.get('SUPABASE_SECRET_KEYS');
-  if (keys) {
-    try {
-      const parsed = JSON.parse(keys) as Record<string, string>;
-      if (parsed.default) return parsed.default;
-    } catch {
-      // 아래 옛 키로
-    }
-  }
-  return Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? null;
-}
-
-function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
-
 Deno.serve(async (request) => {
-  // pg_cron만 부르게: Vault의 비밀 값과 같은 헤더만 받는다 (함수는 JWT 검사 없이 배포한다, --no-verify-jwt)
-  const secret = Deno.env.get('REMINDER_CRON_SECRET');
-  if (!secret || request.headers.get('x-reminder-secret') !== secret) {
-    return json({ error: 'unauthorized' }, 401);
-  }
+  // pg_cron만 부르게: Vault의 비밀 값과 같은 헤더만 받는다 (_shared/edge.ts)
+  if (!isCronRequest(request)) return json({ error: 'unauthorized' }, 401);
 
   const url = Deno.env.get('SUPABASE_URL');
   const serviceKey = readServiceKey();

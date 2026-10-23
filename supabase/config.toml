@@ -380,6 +380,10 @@ allow_dynamic_registration = false
 [functions.send-routine-reminders]
 verify_jwt = false
 
+# 37b 주인 없는 사진 파일 정리: 루틴 알림과 같이 pg_cron이 부르고, 함수가 비밀 헤더를 확인한다
+[functions.sweep-photo-files]
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.

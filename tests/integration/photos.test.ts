@@ -142,3 +142,66 @@ describe.skipIf(!hasTestSupabase)('photos: 버킷과 표의 사용자 격리', (
     ).toEqual([]);
   });
 });
+
+// 37b 주인 없는 파일 정리: 사진 표에 줄이 없는 파일만 고른다 (지우기는 Edge Function이 Storage API로)
+describe.skipIf(!hasTestSupabase)('주인 없는 사진 파일 고르기', () => {
+  let dave: TestGuest;
+  const record = newRecordRow('데이브 체형');
+
+  beforeAll(async () => {
+    dave = await signInAsNewGuest();
+    await dave.client.from('records').insert(record);
+  });
+
+  afterAll(() => deleteGuests(dave));
+
+  async function orphans(): Promise<string[]> {
+    const { data, error } = await createAdminClient().rpc(
+      'list_orphan_photo_files',
+      // 테스트는 방금 올린 파일을 보려고 나이 조건을 0초로
+      { p_min_age: '0 seconds', p_limit: 1000 },
+    );
+    if (error) throw error;
+    return data;
+  }
+
+  it('줄이 없는 파일은 고르고, 줄이 있는 파일(보기용·썸네일)은 고르지 않는다', async () => {
+    const id = crypto.randomUUID();
+    const kept = `${dave.userId}/${id}.webp`;
+    const keptThumb = `${dave.userId}/${id}-thumb.webp`;
+    const orphan = `${dave.userId}/${crypto.randomUUID()}.webp`;
+    for (const path of [kept, keptThumb, orphan]) {
+      await dave.client.storage
+        .from('photos')
+        .upload(path, webp(), { contentType: 'image/webp' });
+    }
+    await dave.client.from('photos').insert({
+      id,
+      record_id: record.id,
+      kind: 'side',
+      path: kept,
+      thumb_path: keptThumb,
+      width: 10,
+      height: 10,
+    });
+
+    const found = await orphans();
+    expect(found).toContain(orphan);
+    expect(found).not.toContain(kept);
+    expect(found).not.toContain(keptThumb);
+  });
+
+  it('갓 올린 파일(기본 1시간 안)은 고르지 않는다 (올리는 중인 사진)', async () => {
+    const fresh = `${dave.userId}/${crypto.randomUUID()}.webp`;
+    await dave.client.storage
+      .from('photos')
+      .upload(fresh, webp(), { contentType: 'image/webp' });
+    const { data } = await createAdminClient().rpc('list_orphan_photo_files');
+    expect(data ?? []).not.toContain(fresh);
+  });
+
+  it('사용자는 부를 수 없다 (모든 사람의 파일을 본다)', async () => {
+    const { error } = await dave.client.rpc('list_orphan_photo_files');
+    expect(error).not.toBeNull();
+  });
+});

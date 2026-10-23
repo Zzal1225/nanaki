@@ -1,3 +1,4 @@
+import type { PhotoKind } from '@/features/records/schema/photoKinds';
 import type { Tables } from '@/lib/supabase/database.types';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import {
@@ -14,7 +15,7 @@ const BUCKET = 'photos';
 // 서명 링크 유효 시간. 화면을 보는 동안만 열리고, 주소가 새어도 곧 닫힌다 (CLAUDE.md: 만료 링크로만)
 export const PHOTO_URL_EXPIRES_SECONDS = 10 * 60;
 
-export type PhotoKind = 'front' | 'side' | 'review';
+export type { PhotoKind };
 
 export type Photo = {
   id: string;

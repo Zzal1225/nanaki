@@ -1,3 +1,4 @@
+import type { PhotoKind } from './photoKinds';
 import { BODY_FIELDS } from './body';
 import { EXPENSE_FIELDS } from './expense';
 import {
@@ -60,6 +61,8 @@ export const RECORD_TYPE_CONFIG = {
     // 잰 항목 이름("체중" / "허리둘레")이 제목이 된다 (bodyFormSchema)
     title: HIDDEN_TITLE,
     formSchema: bodyFormSchema,
+    // 눈바디 (step4): 정면·측면 한 장씩
+    photoKinds: ['front', 'side'],
   },
   // 루틴 체크 기록. 다른 타입과 달리 작성 폼으로 쓰지 않는다:
   // "새로 쓰기"는 루틴(규칙) 만들기 화면으로 가고(createHref), 체크는 홈·루틴 상세의 체크 버튼이 만든다.
@@ -91,7 +94,15 @@ type RecordTypeConfig = {
   filterFields: readonly string[];
   title: { isHidden: boolean; placeholder: string };
   formSchema: unknown;
+  // 이 타입에 붙는 사진 칸 (step4, 종류마다 한 장). 없으면 사진 없음
+  photoKinds?: readonly PhotoKind[];
 };
+
+// 사진 칸 (없으면 빈 배열). createHref처럼 넓은 모양으로 읽는다
+export function getPhotoKinds(type: RecordType): readonly PhotoKind[] {
+  const config: RecordTypeConfig = RECORD_TYPE_CONFIG[type];
+  return config.photoKinds ?? [];
+}
 
 // "새로 쓰기" 주소: 폼이 아닌 곳으로 가는 타입(루틴)은 그 주소를 쓴다.
 // 설정을 넓은 모양(RecordTypeConfig)으로 받아 읽는다: as const 객체는 타입마다 모양이 달라
