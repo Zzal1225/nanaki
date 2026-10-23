@@ -66,6 +66,48 @@ export type Database = {
         };
         Relationships: [];
       };
+      fixed_expenses: {
+        Row: {
+          amount: number;
+          category: string;
+          created_at: string;
+          id: string;
+          last_recorded_on: string | null;
+          name: string;
+          payment_method: string | null;
+          schedule: Json;
+          start_date: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          amount: number;
+          category: string;
+          created_at?: string;
+          id?: string;
+          last_recorded_on?: string | null;
+          name: string;
+          payment_method?: string | null;
+          schedule: Json;
+          start_date: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          amount?: number;
+          category?: string;
+          created_at?: string;
+          id?: string;
+          last_recorded_on?: string | null;
+          name?: string;
+          payment_method?: string | null;
+          schedule?: Json;
+          start_date?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       records: {
         Row: {
           created_at: string;
@@ -168,6 +210,10 @@ export type Database = {
     };
     Functions: {
       delete_expired_guests: { Args: never; Returns: number };
+      record_due_fixed_expenses: {
+        Args: { p_today?: string };
+        Returns: number;
+      };
     };
     Enums: {
       [_ in never]: never;
