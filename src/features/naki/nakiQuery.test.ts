@@ -124,7 +124,7 @@ describe('AI 답 → 검색 조건', () => {
 });
 
 describe('AI에 보낼 것', () => {
-  it('켜진 타입의 칸 정의와 기본 선택지만 (기록 내용·직접 입력한 선택지는 없다)', () => {
+  it('사용자가 만든 이름이 없으면: 켜진 타입의 칸 정의와 기본 선택지만 (기록 내용은 없다)', () => {
     const [expense] = describeTypesForAi(['expense']);
     expect(expense.type).toBe('expense');
     expect(expense.fields.map((field) => field.name)).toEqual([
@@ -143,5 +143,32 @@ describe('AI에 보낼 것', () => {
     );
     expect(text).toContain('2026. 10. 23 (금)');
     expect(text).toContain('일요일');
+    expect(text).not.toContain('사용자 태그');
+  });
+
+  it('사용자가 만든 분류 이름은 그 칸의 userOptions로, 태그는 지시문 목록으로 (2026-10-23 사용자 결정)', () => {
+    const names = {
+      fields: [
+        { type: 'expense', field: 'category', values: ['Ott'] },
+        // 꺼진 타입·직접 입력이 없는 칸·없는 칸 이름은 무시한다 (요청 값을 믿지 않는다)
+        { type: 'workout', field: 'activity', values: ['클라이밍'] },
+        { type: 'review', field: 'targetKind', values: ['가짜'] },
+        { type: 'expense', field: 'memo', values: ['비밀'] },
+      ],
+      tags: ['구독'],
+    };
+    const [expense] = describeTypesForAi(['expense'], names);
+    expect(expense.fields[1].userOptions).toEqual(['Ott']);
+    expect(expense.fields[2].userOptions).toBeUndefined();
+    const text = buildNakiInstructions(
+      '2026-10-23',
+      describeTypesForAi(['expense', 'review'], names),
+      names.tags,
+    );
+    expect(text).toContain('"userOptions":["Ott"]');
+    expect(text).toContain('사용자 태그: ["구독"]');
+    expect(text).not.toContain('클라이밍');
+    expect(text).not.toContain('가짜');
+    expect(text).not.toContain('비밀');
   });
 });

@@ -12,6 +12,7 @@ import {
   type NakiError,
   type NakiQuota,
 } from '../nakiApi';
+import type { NakiCustomNames } from '../nakiCustomNames';
 
 // 브라우저에서 나키 API를 부르는 유일한 입구 (화면은 fetch를 직접 쓰지 않는다).
 // 응답도 스키마로 검사한다: 서버가 바뀌거나 중간에서 응답이 망가져도 화면이 엉뚱한 값을 그리지 않게
@@ -35,7 +36,13 @@ function normalizeState(state: SearchState): SearchState {
 }
 
 export async function askNaki(
-  input: { question: string; today: string; types: readonly RecordType[] },
+  input: {
+    question: string;
+    today: string;
+    types: readonly RecordType[];
+    // 사용자가 만든 분류·태그 이름 (기록 내용은 없다, nakiCustomNames)
+    customNames: NakiCustomNames;
+  },
   signal: AbortSignal,
 ): Promise<NakiAskResult> {
   let response: Response;

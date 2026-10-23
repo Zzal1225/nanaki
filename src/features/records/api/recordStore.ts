@@ -201,6 +201,17 @@ export async function listRecentRecords(limit: number): Promise<RecordEntry[]> {
   return toEntries(rows);
 }
 
+// 사본의 모든 기록, 최근 것부터 (나키가 사용자가 만든 분류·태그 이름을 모을 때, naki/nakiCustomNames).
+// 사본 전체라 네트워크 없이 읽고, 기록이 수천 개여도 색인 순서대로 한 번 읽는다
+export async function listAllRecordsNewestFirst(): Promise<RecordEntry[]> {
+  const db = await readyLocalDb();
+  const rows = await db.records
+    .orderBy('[occurred_at+created_at+id]')
+    .reverse()
+    .toArray();
+  return toEntries(rows);
+}
+
 export async function getRecord(id: string): Promise<RecordEntry | null> {
   const db = await readyLocalDb();
   // 사본에 없으면 지운 기록이거나 다른 계정의 기록이다 (사본은 계정마다 따로)

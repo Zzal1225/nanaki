@@ -18,4 +18,7 @@ export const recordKeys = {
   // 'records' 아래라 기록을 쓰거나 지우면 함께 무효화된다 (새 체중을 쓰면 "최근 체중"도 다시 불러온다)
   latestWithField: (type: string, field: string, limit: number) =>
     [...recordKeys.all, 'latest', type, field, limit] as const,
+  // 나키에 보낼 사용자가 만든 분류·태그 이름. 'records' 아래라 새 분류로 기록을 쓰면 다시 모은다
+  customNames: (types: readonly string[]) =>
+    [...recordKeys.all, 'customNames', ...types] as const,
 };

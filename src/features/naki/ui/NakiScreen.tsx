@@ -18,6 +18,7 @@ import {
   type NakiError,
   type NakiQuota,
 } from '../nakiApi';
+import { useNakiCustomNames } from '../hooks/useNakiCustomNames';
 import NakiAnswer from './NakiAnswer';
 import NakiAvatar from '@/shared/ui/NakiAvatar';
 import TypingExamples from './TypingExamples';
@@ -75,6 +76,7 @@ function failureMessage(turn: Extract<Turn, { status: 'failed' }>): string {
 export default function NakiScreen() {
   const isOnline = useOnlineStatus();
   const visibleTypes = useVisibleTypes();
+  const customNames = useNakiCustomNames(visibleTypes);
   const queryClient = useQueryClient();
   const quota = useQuery({
     queryKey: quotaKey,
@@ -137,6 +139,7 @@ export default function NakiScreen() {
           // 이 함수는 버튼·Enter 처리 안에서만 불려 new Date()를 써도 된다 (렌더 중이 아니다)
           today: toLocalDateString(new Date()),
           types: visibleTypes,
+          customNames,
         },
         controller.signal,
       );
@@ -366,9 +369,11 @@ export default function NakiScreen() {
             </button>
           )}
         </div>
-        {/* 개인정보 안내 (2026-10-23 사용자 결정: 개인정보처리방침이 아직 없어 묻기 전에 보이는 곳에 한 줄) */}
+        {/* 개인정보 안내 (2026-10-23 사용자 결정: 개인정보처리방침이 아직 없어 묻기 전에 보이는 곳에 한 줄).
+            같은 날 분류·태그 이름도 보내기로 해서(nakiCustomNames) 문구에 넣었다 */}
         <p className='mt-2 text-center text-caption text-fg-secondary'>
-          질문 문장만 AI 제공자(Google)에 보내요. 기록 내용은 보내지 않아요.
+          질문 문장과 내가 만든 분류·태그 이름만 AI 제공자(Google)에 보내요.
+          기록 내용은 보내지 않아요.
         </p>
       </form>
     </div>
