@@ -145,6 +145,21 @@ describe('NakiScreen', () => {
     });
   });
 
+  it('답을 기다리는 동안: 칩 없이 기다림만, 입력칸 문구도 기다림 (시안, 2026-10-23 사용자 결정)', async () => {
+    // 끝나지 않는 요청: 기다리는 화면을 붙잡아 둔다
+    vi.mocked(askNaki).mockReturnValue(new Promise(() => {}));
+    renderScreen();
+    const input = screen.getByLabelText(
+      '나키에게 물어보기',
+    ) as HTMLInputElement;
+    expect(input.placeholder).toBe('기록에 대해 물어보세요');
+    askByTyping('지난달 외식비 얼마였어?');
+
+    expect(await screen.findByText('조건을 만들고 있어요')).toBeTruthy();
+    expect(screen.queryByRole('list', { name: '찾은 조건' })).toBeNull();
+    expect(input.placeholder).toBe('답변을 기다리는 중…');
+  });
+
   it('이해하지 못하면 탓하지 않고 예시 질문', async () => {
     vi.mocked(askNaki).mockResolvedValue({
       kind: 'answer',
@@ -246,9 +261,11 @@ describe('NakiScreen', () => {
     expect(
       screen.getByRole('link', { name: '검색으로 찾기' }).getAttribute('href'),
     ).toBe('/records/search');
-    expect(
-      (screen.getByLabelText('나키에게 물어보기') as HTMLInputElement).disabled,
-    ).toBe(true);
+    const input = screen.getByLabelText(
+      '나키에게 물어보기',
+    ) as HTMLInputElement;
+    expect(input.disabled).toBe(true);
+    expect(input.placeholder).toBe('오프라인에서는 쓸 수 없어요');
     expect(getNakiQuota).not.toHaveBeenCalled();
   });
 });

@@ -14,6 +14,7 @@ import {
 import { formatShortDate } from '@/shared/date/formatDisplayDate';
 import { getMonthRangeOf, toMonthString } from '@/shared/date/month';
 import type { DateRange } from '@/shared/date/monthRange';
+import { removeWhitespace } from '@/shared/text/removeWhitespace';
 
 // 필터 시트(시안 14b)의 상태와 계산. 화면 없이 테스트할 수 있게 순수 함수로만 둔다.
 // 칸 목록·모양은 타입 설정(filterFields)과 필드 정의(kind)에서 만든다 → 컴포넌트에 if (type === 'expense')가 없다
@@ -210,6 +211,13 @@ export function writeFieldFilters(
   }
 }
 
+// 선택 값 비교용: 대소문자·공백 무시 (검색어 비교와 같은 규칙, searchQuery).
+// 필터 시트에서는 선택지를 눌러 고르니 글자가 늘 같지만, 나키(AI)는 사용자가 직접 입력한 분류("Ott")를 모른 채
+// 질문의 말("OTT")로 조건을 만든다 (직접 입력값은 AI에 보내지 않는다, CLAUDE.md). 정확히 같은 글자만 맞으면 그 기록이 빠진다
+function normalizeSelectValue(value: string): string {
+  return removeWhitespace(value).toLowerCase();
+}
+
 // 기록 하나가 칸 필터를 모두 통과하는지. 그 칸이 비어 있는 기록(결제수단을 안 쓴 가계부)은 그 칸 필터에서 빠진다
 export function matchesFieldFilters(
   entry: RecordEntry,
@@ -219,7 +227,11 @@ export function matchesFieldFilters(
   return Object.entries(filters).every(([name, filter]) => {
     const value = fields[name];
     if (filter.kind === 'select') {
-      return typeof value === 'string' && filter.values.includes(value);
+      if (typeof value !== 'string') return false;
+      const target = normalizeSelectValue(value);
+      return filter.values.some(
+        (selected) => normalizeSelectValue(selected) === target,
+      );
     }
     if (typeof value !== 'number') return false;
     if (filter.kind === 'rating') return value >= filter.min;
