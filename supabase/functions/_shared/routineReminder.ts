@@ -32,17 +32,20 @@ function readCountGoal(goal: unknown): { target: number; unit: string } | null {
   return { target: value.target, unit };
 }
 
-// 제목 = 루틴 이름, 본문 = 아직 안 했다는 것(횟수형은 지금까지 한 만큼). 단위 뒤에 조사를 붙이지 않는다("8잔이에요/3회예요" 받침 따지기를 피한다). 누르면 그날 홈(하루 요약에서 바로 체크)
-// tag = 루틴마다: 같은 루틴 알림이 다시 오면 쌓이지 않고 바뀐다
+// 문구 (2026-10-23 사용자 결정): 제목 "루틴 알림", 본문 "[루틴 이름] 아직 안 했어요" / 횟수형 일부 "[루틴 이름] 3/8잔. 마저 채워 봐요!".
+// 제목을 루틴 이름으로 두면 본문의 [루틴 이름]과 겹친다. 단위 뒤에 조사를 붙이지 않는다("8잔이에요/3회예요" 받침 따지기를 피한다).
+// 누르면 그날 홈(하루 요약에서 바로 체크). tag = 루틴마다: 같은 루틴 알림이 다시 오면 쌓이지 않고 바뀐다
+const REMINDER_TITLE = '루틴 알림';
+
 export function buildReminderPayload(reminder: DueReminder): ReminderPayload {
   const count = readCountGoal(reminder.goal);
-  const body = count
-    ? reminder.done_count > 0
-      ? `오늘 ${reminder.done_count}/${count.target}${count.unit} 했어요. 마저 채워 볼까요?`
-      : `오늘 아직 안 했어요 (목표 ${count.target}${count.unit})`
-    : '오늘 아직 안 했어요';
+  const name = `[${reminder.routine_name}]`;
+  const body =
+    count && reminder.done_count > 0
+      ? `${name} ${reminder.done_count}/${count.target}${count.unit}. 마저 채워 봐요!`
+      : `${name} 아직 안 했어요`;
   return {
-    title: reminder.routine_name,
+    title: REMINDER_TITLE,
     body,
     url: `/?date=${reminder.day}`,
     tag: `routine-${reminder.routine_id}`,
