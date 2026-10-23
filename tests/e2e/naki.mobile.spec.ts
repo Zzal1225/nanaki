@@ -19,7 +19,7 @@ async function expectNoProblems(page: Page, screen: string) {
 function bottomTab(page: Page, name: string) {
   return page
     .getByRole('navigation', { name: '주요 메뉴' })
-    .getByRole('link', { name, exact: true });
+    .getByRole('link', { name });
 }
 
 // 브라우저의 이번 달 (체험 예시 기록의 오늘 것: 점심 9,800원 식비)
