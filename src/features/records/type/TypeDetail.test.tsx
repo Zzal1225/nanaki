@@ -2,6 +2,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { getBudget } from '@/features/budget/api/budgetStore';
+import { emptyBudget } from '@/features/budget/schema/budget';
 import { toMonthString } from '@/shared/date/month';
 import { toLocalDateString } from '@/shared/date/toLocalDateString';
 import { listRecordsOfType } from '../api/recordStore';
@@ -13,6 +15,9 @@ vi.mock('../api/recordStore', () => ({
   // 구름 아이콘(아직 안 보낸 기록). 이 테스트에서는 모두 보낸 상태
   listPendingRecordIds: vi.fn().mockResolvedValue([]),
 }));
+
+// 가계부 카드의 예산 줄이 부르는 예산 저장소 (33b). 기본은 "예산을 한 번도 정하지 않음"
+vi.mock('@/features/budget/api/budgetStore', () => ({ getBudget: vi.fn() }));
 
 const BASE = { memo: null, tags: [], occurredAt: '2026-09-12' };
 const LUNCH: RecordEntry = {
@@ -49,7 +54,13 @@ function renderTypeDetail(type: 'expense' | 'review', month: string | null) {
 }
 
 describe('TypeDetail', () => {
-  beforeEach(() => vi.mocked(listRecordsOfType).mockReset());
+  beforeEach(() => {
+    vi.mocked(listRecordsOfType).mockReset();
+    vi.mocked(getBudget).mockImplementation(async (month) => ({
+      budget: emptyBudget(month),
+      sourceMonth: null,
+    }));
+  });
   afterEach(() => cleanup());
 
   it('가계부: 그 달 지출 합계와 분류별 비율, 기록 목록', async () => {
@@ -100,5 +111,24 @@ describe('TypeDetail', () => {
     // 이전 달 링크만 있고 다음 달 링크는 없다
     const nav = screen.getByRole('navigation', { name: '달 이동' });
     expect(nav.querySelectorAll('a')).toHaveLength(1);
+  });
+
+  it('가계부: 예산이 없으면 "예산 정하기", 있으면 예산 줄이 그 달 예산 화면으로 간다', async () => {
+    vi.mocked(listRecordsOfType).mockResolvedValue([LUNCH, COFFEE]);
+    renderTypeDetail('expense', '2026-09');
+    const setUp = await screen.findByRole('link', { name: '예산 정하기' });
+    expect(setUp.getAttribute('href')).toBe('/budget?month=2026-09');
+    cleanup();
+
+    vi.mocked(getBudget).mockResolvedValue({
+      budget: { month: '2026-09', total: 40000, categories: {} },
+      sourceMonth: '2026-09',
+    });
+    renderTypeDetail('expense', '2026-09');
+    // 지난 달이라 남은 날 없이 "남겼어요" (오늘이 2026-09보다 뒤인 동안 성립)
+    const line = await screen.findByRole('link', { name: /예산 40,000원/ });
+    expect(line.getAttribute('href')).toBe('/budget?month=2026-09');
+    expect(line.textContent).toContain('50%');
+    expect(line.textContent).toContain('20,000원 남겼어요');
   });
 });

@@ -19,6 +19,8 @@ export const WARMUP_PATHS: readonly string[] = [
   ...RECORD_TYPE_ORDER.map((type) => `/records/type/${type}`),
   '/records/view',
   '/records/edit',
+  // 예산 (33b). 달이 ?month=라 한 장으로 모든 달을 연다. 오프라인에서는 보기만 (저장은 온라인 전용)
+  '/budget',
 ];
 
 // 앱을 연 직후에는 첫 화면 요청과 겹치지 않게 조금 미룬다

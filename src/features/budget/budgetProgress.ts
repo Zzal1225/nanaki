@@ -29,6 +29,8 @@ export type BudgetProgress = {
   daysLeft: number | null;
   // 예산을 정한 분류만. 순서: 기본 분류 순서 → 직접 입력 분류는 이름 순
   categories: CategoryProgress[];
+  // 돈은 썼는데 예산을 정하지 않은 분류 (시안 18 "기타 · 예산 없음"). 같은 순서 규칙
+  unbudgeted: { name: string; spent: number }[];
 };
 
 function percentOf(spent: number, limit: number): number {
@@ -38,6 +40,20 @@ function percentOf(spent: number, limit: number): number {
 function categoryOrder(name: string): number {
   const index = (EXPENSE_CATEGORIES as readonly string[]).indexOf(name);
   return index === -1 ? EXPENSE_CATEGORIES.length : index;
+}
+
+function compareCategories(a: { name: string }, b: { name: string }): number {
+  return (
+    categoryOrder(a.name) - categoryOrder(b.name) ||
+    a.name.localeCompare(b.name, 'ko')
+  );
+}
+
+// 분류 이름 목록을 화면 순서로 (편집 시트의 칸 순서도 목록과 같게). 겹친 이름은 하나만
+export function sortCategoryNames(names: Iterable<string>): string[] {
+  return [...new Set(names)].sort((a, b) =>
+    compareCategories({ name: a }, { name: b }),
+  );
 }
 
 function daysLeftIn(month: string, today: string): number | null {
@@ -75,11 +91,13 @@ export function getBudgetProgress(
         isOver: categorySpent > limit,
       };
     })
-    .sort(
-      (a, b) =>
-        categoryOrder(a.name) - categoryOrder(b.name) ||
-        a.name.localeCompare(b.name, 'ko'),
-    );
+    .sort(compareCategories);
+
+  // in 연산자 대신 Object.hasOwn: 분류 이름이 'constructor'·'toString'이면 in은 상속 키까지 찾아 "예산 있음"으로 본다
+  const unbudgeted = [...spentByCategory]
+    .filter(([name]) => !Object.hasOwn(budget.categories, name))
+    .map(([name, categorySpent]) => ({ name, spent: categorySpent }))
+    .sort(compareCategories);
 
   const total = budget.total;
   return {
@@ -90,5 +108,6 @@ export function getBudgetProgress(
     isOver: total !== null && spent > total,
     daysLeft: daysLeftIn(budget.month, today),
     categories,
+    unbudgeted,
   };
 }

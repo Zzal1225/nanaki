@@ -1,16 +1,20 @@
+import type { ReactNode } from 'react';
 import { formatExpenseAmount } from '../ui/recordPresentation';
 import type { ExpenseSummary } from '../ui/typeSummary';
 
 type ExpenseSummaryCardProps = {
   monthLabel: string;
   summary: ExpenseSummary;
+  // 예산 줄 (features/budget). 이 카드는 그리기만 하고 예산 조회는 모른다: 자리만 받아 시안 순서(지출 → 예산 → 분류별)에 놓는다
+  budget?: ReactNode;
 };
 
-// 가계부 요약: 이번 달 지출 + 분류별 막대 (시안). 예산 줄은 step3(예산 기능)에서 이 카드에 더한다.
+// 가계부 요약: 이번 달 지출 + 예산 줄 + 분류별 막대 (시안 13a).
 // 분류마다 색을 늘리지 않고 같은 가계부 색의 막대 길이로만 비교한다 (시안 규칙)
 export default function ExpenseSummaryCard({
   monthLabel,
   summary,
+  budget,
 }: ExpenseSummaryCardProps) {
   return (
     <>
@@ -22,6 +26,7 @@ export default function ExpenseSummaryCard({
           {formatExpenseAmount(summary.total)}
         </span>
       </div>
+      {budget}
       {summary.categories.length > 0 && (
         <div className='flex flex-col gap-2 border-t border-border pt-4'>
           <h2 className='text-body-sm font-semibold text-fg-primary'>분류별</h2>
