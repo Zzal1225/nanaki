@@ -209,13 +209,30 @@ describe('NakiScreen', () => {
       ),
     ).toBeTruthy();
     expect(await screen.findByText(/오늘 0\/20회/)).toBeTruthy();
-    fireEvent.change(screen.getByLabelText('나키에게 물어보기'), {
-      target: { value: '또 물어보기' },
-    });
+    const input = screen.getByLabelText(
+      '나키에게 물어보기',
+    ) as HTMLInputElement;
+    expect(input.disabled).toBe(true);
+    expect(input.placeholder).toBe('오늘 질문을 다 썼어요 · 내일 다시');
     expect(
       (screen.getByRole('button', { name: '보내기' }) as HTMLButtonElement)
         .disabled,
     ).toBe(true);
+  });
+
+  it('다 쓴 채로 화면을 열어도 입력칸이 이유를 알린다 (체험 계정은 로그인을 권한다)', async () => {
+    vi.mocked(getNakiQuota).mockResolvedValue({
+      remaining: 0,
+      limit: 3,
+      isGuest: true,
+    });
+    renderScreen();
+    await screen.findByText(/오늘 0\/3회/);
+    const input = screen.getByLabelText(
+      '나키에게 물어보기',
+    ) as HTMLInputElement;
+    expect(input.disabled).toBe(true);
+    expect(input.placeholder).toBe('오늘 질문을 다 썼어요 · 로그인하면 더');
   });
 
   it('체험 계정이 한도면 로그인을 권하고, 전체 한도·AI 한도면 "쉬어요"', async () => {
