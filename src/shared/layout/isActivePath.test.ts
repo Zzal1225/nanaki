@@ -20,4 +20,9 @@ describe('isActivePath', () => {
   it('나키에 있으면 기록 메뉴가 선택 안됨', () => {
     expect(isActivePath('/naki', '/records')).toBe(false);
   });
+  it('예산 화면에 있으면 기록 메뉴가 선택됨 (가계부에서 들어가는 화면)', () => {
+    expect(isActivePath('/budget', '/records')).toBe(true);
+    expect(isActivePath('/budget', '/')).toBe(false);
+    expect(isActivePath('/budgetx', '/records')).toBe(false);
+  });
 });

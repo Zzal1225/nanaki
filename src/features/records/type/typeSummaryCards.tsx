@@ -6,6 +6,7 @@ import {
   summarizeReviews,
   summarizeWorkouts,
 } from '../ui/typeSummary';
+import ExpenseBudgetSection from '@/features/budget/ui/ExpenseBudgetSection';
 import RoutineSummarySection from '@/features/routines/RoutineSummarySection';
 import BodySummarySection from './BodySummarySection';
 import ExpenseSummaryCard from './ExpenseSummaryCard';
@@ -22,10 +23,12 @@ type SummaryRenderer<T extends RecordType> = (
 // 타입마다 요약 카드 모양이 달라서, "어떤 카드를 그릴지"를 이 목록 한 곳에 모은다.
 // 타입 상세 화면은 renderTypeSummary만 불러서 if (type === 'expense')가 없다. 새 타입은 여기에 한 줄
 const SUMMARY_RENDERERS: { [T in RecordType]: SummaryRenderer<T> } = {
-  expense: (entries, monthLabel) => (
+  // 가계부는 예산(달마다 따로, 33b)을 따로 불러와 카드 안에 예산 줄을 넣는다
+  expense: (entries, monthLabel, month) => (
     <ExpenseSummaryCard
       monthLabel={monthLabel}
       summary={summarizeExpenses(entries)}
+      budget={<ExpenseBudgetSection entries={entries} month={month} />}
     />
   ),
   review: (entries, monthLabel) => (

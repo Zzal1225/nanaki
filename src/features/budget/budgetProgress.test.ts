@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { RecordEntryOf } from '@/features/records/schema/recordEntry';
-import { getBudgetProgress } from './budgetProgress';
+import { getBudgetProgress, sortCategoryNames } from './budgetProgress';
 
 let count = 0;
 function expense(amount: number, category: string): RecordEntryOf<'expense'> {
@@ -82,5 +82,30 @@ describe('예산 진행', () => {
     expect(getBudgetProgress(OCTOBER, [], '2026-11-02').daysLeft).toBeNull();
     expect(getBudgetProgress(OCTOBER, [], '2026-09-30').daysLeft).toBe(31);
     expect(getBudgetProgress(OCTOBER, [], '2026-10-31').daysLeft).toBe(0);
+  });
+
+  it('예산 없는 분류: 돈을 쓴 분류 중 예산을 정하지 않은 것만, 같은 순서 (상속 키 이름도 분류로 본다)', () => {
+    const progress = getBudgetProgress(
+      OCTOBER,
+      [
+        expense(1000, '기타'),
+        expense(2000, '식비'),
+        expense(3000, '교통'),
+        expense(500, 'constructor'),
+        expense(700, '교통'),
+      ],
+      '2026-10-19',
+    );
+    expect(progress.unbudgeted).toEqual([
+      { name: '교통', spent: 3700 },
+      { name: '기타', spent: 1000 },
+      { name: 'constructor', spent: 500 },
+    ]);
+  });
+
+  it('분류 이름 정렬: 기본 분류 순서 → 나머지는 이름 순, 겹친 이름은 하나', () => {
+    expect(
+      sortCategoryNames(['운동복', '기타', '식비', '간식', '식비']),
+    ).toEqual(['식비', '기타', '간식', '운동복']);
   });
 });

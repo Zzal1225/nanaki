@@ -57,7 +57,7 @@ src/
   app/            라우트 (Next.js App Router). globals.css = 디자인 토큰 CSS 변수 + Tailwind 연결
                   auth/callback/ = 구글 로그인 뒤 code를 세션으로 바꾸는 Route Handler
                   api/account/ = 계정 삭제 Route Handler (DELETE, secret 키로 본인 계정만). API는 proxy가 로그인 화면으로 보내지 않고 스스로 401
-                  (app)/ = 로그인 뒤 화면 묶음(/, /records, /records/new, /records/view?id=, /records/edit?id=, /records/type/[type], /records/search, /settings).
+                  (app)/ = 로그인 뒤 화면 묶음(/, /records, /records/new, /records/view?id=, /records/edit?id=, /records/type/[type], /records/search, /settings, /budget?month=).
                   records/layout.tsx = PC에서 목록(왼쪽) + 상세·폼(오른쪽) 패널. 주소에 안 나타나는 괄호 폴더
                   serwist/sw.js/ = 서비스 워커 파일을 빌드 때 한 번 만드는 Route Handler('use cache'), manifest.ts = 설치 정보,
                   ~offline/ = 연결도 저장본도 없을 때의 대체 화면
@@ -69,7 +69,9 @@ src/
                   network/ = 연결 상태(useOnlineStatus, 화면 안내용), navigation/ = 주소가 틀렸을 때 다른 화면으로 옮기기(useReplaceRoute), date/ = 날짜 도우미(로컬 YYYY-MM-DD, YYYY-MM 달 계산, date-fns 캘린더 계산(calendar.ts), 브라우저에서만 읽는 오늘 useToday)
   features/       기능 단위 모듈. auth/ = 로그인·로그아웃(authActions), 지금 계정(useCurrentUser). 이후 search, chat ...
                   budget/ = 가계부 예산(step3, 달마다 따로). api/budgetStore = 예산 저장·조회의 유일한 입구(그 달이 없으면 가장 최근 달을 이어받음),
-                  budgetProgress = 쓴 돈·남은 돈·남은 날·분류별 초과(순수 함수), schema/budget = Zod
+                  budgetProgress = 쓴 돈·남은 돈·남은 날·분류별 초과·예산 없는 분류(순수 함수), budgetText = 문구, schema/budget = Zod,
+                  budgetRoutes = 예산 화면 주소(/budget?month=, 입구는 가계부 요약 카드의 예산 줄 하나), hooks/useBudget = 조회·저장 훅,
+                  ui/ = 예산 화면(BudgetScreen, 달 이동·이어받음 안내·오프라인은 보기만), 편집 시트 2개(전체·분류별), 카드의 예산 줄(ExpenseBudgetSection)
                   settings/ = 설정 화면. api/settingsStore = 설정 저장·조회의 유일한 입구(user_settings),
                   typeVisibility = 숨긴 타입 계산(순수 함수), hooks/useUserSettings = 설정 훅 + 켜진 타입(useVisibleTypes)
                   calendar/ = 홈 캘린더. calendarState = 주소(?date=) 해석·만들기와 공통 탐색(이전·다음 달, 키보드 이동),
