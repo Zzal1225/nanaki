@@ -56,6 +56,30 @@ async function saveCopy(budget: Budget): Promise<void> {
   await db.budgets.put(copy);
 }
 
+// 서버에서 예산을 한 번이라도 받았는지 (계정별 사본 안의 표시, LocalDb.pulls).
+// 예산을 한 번도 안 정한 계정은 서버 답이 "없음"이라 사본에 남는 줄이 없다. 이 표시가 없으면 오프라인에서
+// "받아 봤는데 없음"과 "아직 못 받음"을 가릴 수 없어 "예산 정하기" 대신 오류가 보였다 (2026-10-23 아이폰 비행기 모드 확인)
+const PULL_NAME = 'budgets';
+
+async function markPulled(): Promise<void> {
+  const db = await currentLocalDb();
+  await db.pulls.put({ name: PULL_NAME, pulledAt: new Date().toISOString() });
+}
+
+async function hasPulledOnce(): Promise<boolean> {
+  const db = await currentLocalDb();
+  return (await db.pulls.get(PULL_NAME)) !== undefined;
+}
+
+// 사본으로 답한다. 사본에 줄이 없어도 서버에서 "없음"을 받아 본 적이 있으면 빈 예산(예산 정하기).
+// null = 한 번도 받지 못해 답할 수 없음 (부르는 쪽이 오류로 알린다)
+async function answerFromCopy(month: string): Promise<BudgetView | null> {
+  const copy = await readCopy(month);
+  if (copy) return toView(month, copy);
+  if (await hasPulledOnce()) return toView(month, null);
+  return null;
+}
+
 // 사본에서 "그 달 또는 그 이전 중 가장 최근". undefined = 사본에 예산이 하나도 없음
 async function readCopy(month: string): Promise<Budget | undefined> {
   const db = await currentLocalDb();
@@ -82,16 +106,17 @@ async function fetchLatest(month: string): Promise<Budget | null> {
 // 사본도 없는데 서버에서 못 받으면(이 기기에서 한 번도 못 받음) 오류를 그대로 던진다: 예산이 없는 것처럼 꾸며 보이지 않게
 export async function getBudget(month: string): Promise<BudgetView> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-    const copy = await readCopy(month);
-    if (copy) return toView(month, copy);
+    const answer = await answerFromCopy(month);
+    if (answer) return answer;
   }
   try {
     const latest = await fetchLatest(month);
     if (latest) await saveCopy(latest);
+    await markPulled();
     return toView(month, latest);
   } catch (error) {
-    const copy = await readCopy(month);
-    if (copy) return toView(month, copy);
+    const answer = await answerFromCopy(month);
+    if (answer) return answer;
     throw error;
   }
 }

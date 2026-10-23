@@ -72,6 +72,9 @@ src/
                   budgetProgress = 쓴 돈·남은 돈·남은 날·분류별 초과·예산 없는 분류(순수 함수), budgetText = 문구, schema/budget = Zod,
                   budgetRoutes = 예산 화면 주소(/budget?month=, 입구는 가계부 요약 카드의 예산 줄 하나), hooks/useBudget = 조회·저장 훅,
                   ui/ = 예산 화면(BudgetScreen, 달 이동·이어받음 안내·오프라인은 보기만), 편집 시트 2개(전체·분류별), 카드의 예산 줄(ExpenseBudgetSection)
+                  fixedExpenses/ = 고정지출(step3, 매달 n일). api/fixedExpenseStore = 저장·조회의 유일한 입구(조회는 기기 사본 통째로, 바꾸기는 온라인 전용, 해지 = 삭제),
+                  fixedExpenseDates = 결제일 계산(말일 맞춤·지났나·다음 결제일, DB 함수와 같은 규칙), schema/fixedExpense = Zod.
+                  그날 가계부 기록은 서버가 만든다(DB 함수 record_due_fixed_expenses + pg_cron 매시간, 한국 시간, 한 달에 한 번, 태그 '고정지출')
                   settings/ = 설정 화면. api/settingsStore = 설정 저장·조회의 유일한 입구(user_settings),
                   typeVisibility = 숨긴 타입 계산(순수 함수), hooks/useUserSettings = 설정 훅 + 켜진 타입(useVisibleTypes)
                   calendar/ = 홈 캘린더. calendarState = 주소(?date=) 해석·만들기와 공통 탐색(이전·다음 달, 키보드 이동),

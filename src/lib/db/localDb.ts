@@ -49,6 +49,22 @@ export type LocalBudget = {
   categories: Record<string, number>;
 };
 
+// 고정지출의 사본 (step3). 서버 목록을 통째로 바꿔 담는다(몇 개뿐이라 커서 동기화가 필요 없다). 오프라인에서도 목록이 보이게
+export type LocalFixedExpense = {
+  id: string;
+  name: string;
+  amount: number;
+  category: string;
+  paymentMethod?: string;
+  schedule: { kind: 'monthly'; day: number };
+  startDate: string;
+  lastRecordedOn: string | null;
+};
+
+// 커서 없이 받는 사본(고정지출, 예산)을 "한 번이라도 받았는지". 빈 사본이 "없음"인지 "아직 못 받음"인지 가린다.
+// 계정마다 다른 데이터베이스 안에 두어 계정을 바꿔도 섞이지 않는다 (localStorage였다면 계정끼리 공유된다)
+export type PullMark = { name: string; pulledAt: string };
+
 export class LocalDb extends Dexie {
   records!: Table<LocalRecordRow, string>;
   routines!: Table<LocalRoutineRow, string>;
@@ -56,6 +72,8 @@ export class LocalDb extends Dexie {
   outbox!: Table<OutboxOp, number>;
   settings!: Table<LocalSettings, 'user'>;
   budgets!: Table<LocalBudget, string>;
+  fixedExpenses!: Table<LocalFixedExpense, string>;
+  pulls!: Table<PullMark, string>;
 
   constructor(
     name: string,
@@ -85,6 +103,11 @@ export class LocalDb extends Dexie {
     // 4: 예산 사본 (step3). 키가 달이라 "이 달 이전 중 가장 최근"을 키 순서로 바로 찾는다 (where(':id').belowOrEqual)
     this.version(4).stores({
       budgets: 'month',
+    });
+    // 5: 고정지출 사본 (step3). 늘 전체를 읽어서 색인은 기본 키만. pulls = 통째로 받는 사본의 "받았음" 표시
+    this.version(5).stores({
+      fixedExpenses: 'id',
+      pulls: 'name',
     });
   }
 }
