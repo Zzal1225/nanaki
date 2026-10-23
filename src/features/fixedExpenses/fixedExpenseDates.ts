@@ -35,3 +35,9 @@ export function nextDueDate(
   if (thisMonth >= today && !isRecordedThisMonth) return thisMonth;
   return dueDateInMonth(day, shiftMonth(month, 1));
 }
+
+// '2026-10-05' → '10월 5일' (추가 시트의 "이번 달 지출도 기록하기 (10월 5일)"). 요일은 붙이지 않는다: 선택지 글자를 짧게
+export function formatMonthDay(date: string): string {
+  const [, month, day] = date.split('-').map(Number);
+  return `${month}월 ${day}일`;
+}
