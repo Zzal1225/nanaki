@@ -24,12 +24,14 @@
     "perf:calendar": "node scripts/calendar-perf.mts"
   },
   "dependencies": {
+    "@ai-sdk/google": "^4.0.104",
     "@hookform/resolvers": "^5.9.2",
     "@sentry/nextjs": "^11.8.0",
     "@serwist/turbopack": "^9.5.13",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.118.0",
     "@tanstack/react-query": "^5.104.5",
+    "ai": "^7.0.150",
     "date-fns": "^4.4.0",
     "dexie": "^4.4.6",
     "lucide-react": "^1.59.0",

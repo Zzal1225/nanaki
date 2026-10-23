@@ -18,4 +18,8 @@ describe('shouldShowSpeedDial', () => {
   it('설정에서는 숨는다 (Issue #47)', () => {
     expect(shouldShowSpeedDial('/settings')).toBe(false);
   });
+
+  it('나키에서는 숨긴다 (입력창이 아래에 붙어 있다)', () => {
+    expect(shouldShowSpeedDial('/naki')).toBe(false);
+  });
 });
