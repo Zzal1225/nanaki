@@ -126,6 +126,50 @@ export type Database = {
         };
         Relationships: [];
       };
+      photos: {
+        Row: {
+          created_at: string;
+          height: number;
+          id: string;
+          kind: string;
+          path: string;
+          record_id: string;
+          thumb_path: string;
+          user_id: string;
+          width: number;
+        };
+        Insert: {
+          created_at?: string;
+          height: number;
+          id?: string;
+          kind: string;
+          path: string;
+          record_id: string;
+          thumb_path: string;
+          user_id?: string;
+          width: number;
+        };
+        Update: {
+          created_at?: string;
+          height?: number;
+          id?: string;
+          kind?: string;
+          path?: string;
+          record_id?: string;
+          thumb_path?: string;
+          user_id?: string;
+          width?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'photos_record_id_fkey';
+            columns: ['record_id'];
+            isOneToOne: false;
+            referencedRelation: 'records';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       push_subscriptions: {
         Row: {
           auth: string;
