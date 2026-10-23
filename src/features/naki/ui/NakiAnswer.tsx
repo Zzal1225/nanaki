@@ -52,7 +52,7 @@ function formatNakiPeriod(period: PeriodFilter, fallback: string): string {
     : fallback;
 }
 
-// 나키의 답 하나 (시안 AI): "이 조건으로 찾았어요" 칩 → 우리가 계산한 한 줄 → 기록 3개 → 기록 탭에서 모두 보기.
+// 나키의 답 하나 (시안 AI): "이렇게 이해했어요" 칩 → 우리가 계산한 한 줄 → 기록 3개 → 기록 탭에서 모두 보기.
 // 칩이 핵심이다: AI가 질문을 잘못 이해했으면 사용자가 칩을 보고 바로 알아챈다 (결과만 보여 주면 틀린 것을 모른다)
 export default function NakiAnswer({ state }: NakiAnswerProps) {
   const today = useToday();
@@ -100,7 +100,7 @@ export default function NakiAnswer({ state }: NakiAnswerProps) {
             size={14}
             strokeWidth={ICON_STROKE_WIDTH}
           />
-          이 조건으로 찾았어요
+          이렇게 이해했어요
         </span>
         <ul aria-label='찾은 조건' className='flex flex-wrap gap-1.5'>
           {chips.map((chip) => (

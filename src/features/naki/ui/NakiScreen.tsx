@@ -20,6 +20,7 @@ import {
 } from '../nakiApi';
 import NakiAnswer from './NakiAnswer';
 import NakiAvatar from './NakiAvatar';
+import TypingExamples from './TypingExamples';
 
 // 질문 하나와 그 답. 대화는 메모리에만 둔다 (2026-10-23 사용자 결정: 첫 PR은 저장·이어 묻기 없음, 탭을 떠나면 사라진다)
 type Turn =
@@ -35,6 +36,8 @@ type Turn =
       question: string;
       status: 'failed';
       error: NakiError | 'network';
+      isGuest?: boolean;
+      userLimit?: number;
     };
 
 // 예시 질문 (시안: 빈 화면·이해하지 못했을 때). 그 타입이 꺼져 있으면 빼서 쓸 수 없는 질문을 권하지 않는다
@@ -46,18 +49,29 @@ const EXAMPLES: readonly { question: string; type: RecordType }[] = [
 
 const quotaKey = ['naki', 'quota'] as const;
 
-const FAILURE_MESSAGE: Record<NakiError | 'network', string> = {
-  limit:
-    '오늘 질문을 모두 썼어요. 내일 다시 물어봐 주세요. 그동안은 검색으로 찾을 수 있어요.',
-  unavailable: '지금은 나키를 쓸 수 없어요. 검색으로 찾아 주세요.',
-  model:
-    '답을 만들지 못했어요. 잠시 후 다시 물어봐 주세요. 이번 질문은 횟수에서 빼 두었어요.',
-  signedOut: '로그인이 풀렸어요. 다시 로그인해 주세요.',
-  badRequest: '질문을 보내지 못했어요. 조금 짧게 다시 써 주세요.',
-  network: '연결이 끊겨 보내지 못했어요. 연결을 확인하고 다시 물어봐 주세요.',
-};
+// 실패 안내 (2026-10-23 사용자 결정: 개인 한도 / 전체 한도·AI 제공자 한도 / 해석 실패를 구분).
+// 개인 한도는 아래 limitMessage가 계정에 따라 고른다 (체험 계정에는 로그인을 권한다)
+const FAILURE_MESSAGE: Record<Exclude<NakiError, 'limit'> | 'network', string> =
+  {
+    // 사용자 탓이 아니다: 서비스 전체 하루 횟수를 다 썼거나 AI 제공자가 한도로 거절했다
+    rest: '오늘은 나키가 쉬어요, 내일 다시 시도해 주세요',
+    unavailable: '지금은 나키를 쓸 수 없어요. 검색으로 찾아 주세요.',
+    model:
+      '답을 만들지 못했어요. 잠시 후 다시 물어봐 주세요. 이번 질문은 횟수에서 빼 두었어요.',
+    signedOut: '로그인이 풀렸어요. 다시 로그인해 주세요.',
+    badRequest: '질문을 보내지 못했어요. 조금 짧게 다시 써 주세요.',
+    network: '연결이 끊겨 보내지 못했어요. 연결을 확인하고 다시 물어봐 주세요.',
+  };
 
-// 나키 탭 (시안 AI). 질문 → "이 조건으로 찾았어요" 칩 + 계산 한 줄 + 기록 3개 + 기록 탭에서 보기
+function failureMessage(turn: Extract<Turn, { status: 'failed' }>): string {
+  if (turn.error !== 'limit') return FAILURE_MESSAGE[turn.error];
+  // 체험 계정: 로그인하면 더 쓸 수 있다는 것을 알려 준다 (숫자는 서버 환경 변수의 로그인 계정 한도)
+  return turn.isGuest && turn.userLimit
+    ? `오늘 질문 횟수를 다 썼어요. 구글로 로그인 시 하루 ${turn.userLimit}회까지 사용가능해요.`
+    : '오늘 질문 횟수를 다 썼어요. 내일 다시 물어봐 주세요.';
+}
+
+// 나키 탭 (시안 AI). 질문 → "이렇게 이해했어요" 칩 + 계산 한 줄 + 기록 3개 + 기록 탭에서 보기
 export default function NakiScreen() {
   const isOnline = useOnlineStatus();
   const visibleTypes = useVisibleTypes();
@@ -140,6 +154,8 @@ export default function NakiScreen() {
           question: trimmed,
           status: 'failed',
           error: result.error,
+          isGuest: result.isGuest,
+          userLimit: result.userLimit,
         });
         setRemaining(result.remaining);
       }
@@ -212,7 +228,7 @@ export default function NakiScreen() {
             </Link>
           </div>
         ) : turns.length === 0 ? (
-          <div className='m-auto flex flex-col items-center gap-4 text-center'>
+          <div className='m-auto flex w-full max-w-sm flex-col items-center gap-4 text-center'>
             <NakiAvatar size={56} />
             <div className='flex flex-col gap-1'>
               <p className='text-body font-semibold text-fg-primary'>
@@ -222,8 +238,8 @@ export default function NakiScreen() {
                 nanaki에 남긴 기록만 보고 답해요
               </p>
             </div>
-            <ExampleQuestions
-              examples={examples}
+            <TypingExamples
+              questions={examples.map((example) => example.question)}
               onPick={(question) => void ask(question)}
             />
           </div>
@@ -256,7 +272,7 @@ export default function NakiScreen() {
                         role='alert'
                         className='rounded-lg bg-surface p-4 text-body-sm text-fg-primary shadow-card'
                       >
-                        {FAILURE_MESSAGE[turn.error]}
+                        {failureMessage(turn)}
                       </p>
                     ) : turn.state ? (
                       <NakiAnswer state={turn.state} />
@@ -338,6 +354,10 @@ export default function NakiScreen() {
             </button>
           )}
         </div>
+        {/* 개인정보 안내 (2026-10-23 사용자 결정: 개인정보처리방침이 아직 없어 묻기 전에 보이는 곳에 한 줄) */}
+        <p className='mt-2 text-center text-caption text-fg-secondary'>
+          질문 문장만 AI 제공자(Google)에 보내요. 기록 내용은 보내지 않아요.
+        </p>
       </form>
     </div>
   );

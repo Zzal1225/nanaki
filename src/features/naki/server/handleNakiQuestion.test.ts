@@ -12,8 +12,10 @@ const BODY = {
 
 function deps(overrides: Partial<NakiQuestionDeps> = {}): NakiQuestionDeps {
   return {
-    getUserId: vi.fn().mockResolvedValue('user-1'),
-    useQuota: vi.fn().mockResolvedValue(19),
+    getUser: vi.fn().mockResolvedValue({ id: 'user-1', isGuest: false }),
+    limits: { user: 10, guest: 3, global: 200 },
+    today: '2026-10-24',
+    useQuota: vi.fn().mockResolvedValue({ kind: 'ok', remaining: 9 }),
     refundQuota: vi.fn().mockResolvedValue(undefined),
     askModel: vi.fn().mockResolvedValue({
       kind: 'ok',
@@ -38,7 +40,7 @@ describe('나키 질문 처리 (서버)', () => {
     expect(result).toEqual({
       status: 200,
       body: {
-        remaining: 19,
+        remaining: 9,
         state: {
           keyword: '',
           type: 'expense',
@@ -50,7 +52,19 @@ describe('나키 질문 처리 (서버)', () => {
     });
   });
 
-  it('AI에는 질문과 켜진 타입의 필드 정의만 간다 (기록 내용 없음)', async () => {
+  it('횟수는 서버의 한국 날짜로, 로그인 계정 10회·체험 계정 3회로 센다', async () => {
+    const member = deps();
+    await handleNakiQuestion(BODY, member);
+    expect(member.useQuota).toHaveBeenCalledWith('user-1', '2026-10-24', 10);
+
+    const guest = deps({
+      getUser: vi.fn().mockResolvedValue({ id: 'guest-1', isGuest: true }),
+    });
+    await handleNakiQuestion(BODY, guest);
+    expect(guest.useQuota).toHaveBeenCalledWith('guest-1', '2026-10-24', 3);
+  });
+
+  it('AI에는 질문과 켜진 타입의 필드 정의만 간다 (기록 내용 없음), 날짜는 사용자의 오늘', async () => {
     const d = deps();
     await handleNakiQuestion(BODY, d);
     const { question, instructions } = vi.mocked(d.askModel).mock.calls[0][0];
@@ -58,6 +72,7 @@ describe('나키 질문 처리 (서버)', () => {
     expect(instructions).toContain('"type":"expense"');
     expect(instructions).toContain('"type":"review"');
     expect(instructions).not.toContain('"type":"workout"');
+    expect(instructions).toContain('2026. 10. 23');
   });
 
   it('요청 모양이 틀리면 400, 로그인이 없으면 401 (횟수도 AI도 안 쓴다)', async () => {
@@ -66,30 +81,53 @@ describe('나키 질문 처리 (서버)', () => {
     expect(
       (await handleNakiQuestion({ ...BODY, types: ['nope'] }, d)).status,
     ).toBe(400);
-    const signedOut = deps({ getUserId: vi.fn().mockResolvedValue(null) });
+    const signedOut = deps({ getUser: vi.fn().mockResolvedValue(null) });
     expect((await handleNakiQuestion(BODY, signedOut)).status).toBe(401);
     expect(signedOut.useQuota).not.toHaveBeenCalled();
     expect(d.askModel).not.toHaveBeenCalled();
   });
 
-  it('한도면 429이고 AI를 부르지 않는다', async () => {
-    const d = deps({ useQuota: vi.fn().mockResolvedValue(-1) });
+  it('개인 한도: 체험 계정이면 로그인 계정 한도를 함께 알려 준다 (AI는 부르지 않는다)', async () => {
+    const d = deps({
+      getUser: vi.fn().mockResolvedValue({ id: 'guest-1', isGuest: true }),
+      useQuota: vi.fn().mockResolvedValue({ kind: 'userLimit' }),
+    });
     expect(await handleNakiQuestion(BODY, d)).toEqual({
       status: 429,
-      body: { error: 'limit', remaining: 0 },
+      body: { error: 'limit', remaining: 0, isGuest: true, userLimit: 10 },
     });
     expect(d.askModel).not.toHaveBeenCalled();
   });
 
-  it('AI 제공자 실패면 502이고 횟수를 되돌린다', async () => {
+  it('서비스 전체 한도면 "쉬어요" (AI는 부르지 않는다)', async () => {
+    const d = deps({
+      useQuota: vi.fn().mockResolvedValue({ kind: 'globalLimit' }),
+    });
+    expect(await handleNakiQuestion(BODY, d)).toEqual({
+      status: 429,
+      body: { error: 'rest' },
+    });
+    expect(d.askModel).not.toHaveBeenCalled();
+  });
+
+  it('AI 제공자 429도 "쉬어요"이고 횟수를 되돌린다', async () => {
+    const d = deps({ askModel: vi.fn().mockResolvedValue({ kind: 'busy' }) });
+    expect(await handleNakiQuestion(BODY, d)).toEqual({
+      status: 429,
+      body: { error: 'rest', remaining: 10 },
+    });
+    expect(d.refundQuota).toHaveBeenCalledWith('user-1', '2026-10-24');
+  });
+
+  it('AI 제공자 장애면 502이고 횟수를 되돌린다', async () => {
     const d = deps({
       askModel: vi.fn().mockRejectedValue(new Error('timeout')),
     });
     expect(await handleNakiQuestion(BODY, d)).toEqual({
       status: 502,
-      body: { error: 'model', remaining: 20 },
+      body: { error: 'model', remaining: 10 },
     });
-    expect(d.refundQuota).toHaveBeenCalledWith('user-1');
+    expect(d.refundQuota).toHaveBeenCalledWith('user-1', '2026-10-24');
   });
 
   it('형식이 틀린 답·이해 못 함은 state null (횟수는 쓴 것으로)', async () => {
@@ -98,7 +136,7 @@ describe('나키 질문 처리 (서버)', () => {
     });
     expect(await handleNakiQuestion(BODY, d)).toEqual({
       status: 200,
-      body: { state: null, remaining: 19 },
+      body: { state: null, remaining: 9 },
     });
     expect(d.refundQuota).not.toHaveBeenCalled();
   });

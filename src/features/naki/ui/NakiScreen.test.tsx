@@ -81,7 +81,11 @@ function askByTyping(question: string) {
 
 describe('NakiScreen', () => {
   beforeEach(() => {
-    vi.mocked(getNakiQuota).mockResolvedValue({ remaining: 20, limit: 20 });
+    vi.mocked(getNakiQuota).mockResolvedValue({
+      remaining: 20,
+      limit: 20,
+      isGuest: false,
+    });
     vi.mocked(askNaki).mockReset();
     vi.mocked(searchRecords).mockResolvedValue({
       entries: [LUNCH, DINNER, COFFEE],
@@ -90,6 +94,12 @@ describe('NakiScreen', () => {
     vi.mocked(getUserSettings).mockResolvedValue({ hiddenTypes: [] });
     // jsdom에는 화면 배치가 없다 (새 답이 붙으면 맨 아래로 스크롤)
     Element.prototype.scrollIntoView = vi.fn();
+    // jsdom에는 matchMedia가 없다. "동작 줄이기"로 두어 예시 질문 타이핑 없이 바로 다 보이게 (타이핑은 TypingExamples.test)
+    window.matchMedia = vi.fn().mockReturnValue({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    });
   });
   afterEach(() => {
     cleanup();
@@ -165,7 +175,11 @@ describe('NakiScreen', () => {
     await screen.findByText(/오늘 20\/20회/);
     askByTyping('이번 주 운동 몇 번 했어?');
 
-    expect(await screen.findByText(/오늘 질문을 모두 썼어요/)).toBeTruthy();
+    expect(
+      await screen.findByText(
+        '오늘 질문 횟수를 다 썼어요. 내일 다시 물어봐 주세요.',
+      ),
+    ).toBeTruthy();
     expect(await screen.findByText(/오늘 0\/20회/)).toBeTruthy();
     fireEvent.change(screen.getByLabelText('나키에게 물어보기'), {
       target: { value: '또 물어보기' },
@@ -174,6 +188,54 @@ describe('NakiScreen', () => {
       (screen.getByRole('button', { name: '보내기' }) as HTMLButtonElement)
         .disabled,
     ).toBe(true);
+  });
+
+  it('체험 계정이 한도면 로그인을 권하고, 전체 한도·AI 한도면 "쉬어요"', async () => {
+    vi.mocked(askNaki)
+      .mockResolvedValueOnce({
+        kind: 'error',
+        error: 'limit',
+        remaining: 0,
+        isGuest: true,
+        userLimit: 10,
+      })
+      .mockResolvedValueOnce({ kind: 'error', error: 'rest' });
+    renderScreen();
+    askByTyping('지난달 외식비 얼마였어?');
+    expect(
+      await screen.findByText(
+        '오늘 질문 횟수를 다 썼어요. 구글로 로그인 시 하루 10회까지 사용가능해요.',
+      ),
+    ).toBeTruthy();
+
+    askByTyping('이번 주 운동 몇 번 했어?');
+    expect(
+      await screen.findByText('오늘은 나키가 쉬어요, 내일 다시 시도해 주세요'),
+    ).toBeTruthy();
+  });
+
+  it('예시 질문을 누르면 그 질문을 바로 보낸다', async () => {
+    vi.mocked(askNaki).mockResolvedValue({
+      kind: 'answer',
+      state: null,
+      remaining: 19,
+    });
+    renderScreen();
+    fireEvent.click(
+      await screen.findByRole('button', { name: '이번 주 운동 몇 번 했어?' }),
+    );
+    expect(vi.mocked(askNaki).mock.calls[0][0].question).toBe(
+      '이번 주 운동 몇 번 했어?',
+    );
+  });
+
+  it('질문 문장만 AI 제공자에 보낸다는 안내', () => {
+    renderScreen();
+    expect(
+      screen.getByText(
+        '질문 문장만 AI 제공자(Google)에 보내요. 기록 내용은 보내지 않아요.',
+      ),
+    ).toBeTruthy();
   });
 
   it('오프라인이면 쓸 수 없다고 알리고 검색으로 보낸다', () => {

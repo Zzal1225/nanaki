@@ -50,13 +50,17 @@ export const nakiAnswerSchema = z.object({
 export const nakiQuotaSchema = z.object({
   remaining: z.number().int(),
   limit: z.number().int(),
+  // 체험(익명) 계정인지. 한도 안내 문구가 갈린다 ("구글로 로그인 시 하루 10회")
+  isGuest: z.boolean(),
 });
 export type NakiQuota = z.infer<typeof nakiQuotaSchema>;
 
 // 실패 종류 (응답 본문 { error }). 화면 문구가 이것으로 갈린다
 export const NAKI_ERRORS = [
-  // 오늘 횟수를 다 씀 (429)
+  // 이 계정의 오늘 횟수를 다 씀 (429)
   'limit',
+  // 서비스 전체 하루 횟수를 다 썼거나 AI 제공자가 한도로 거절함(429). 사용자 탓이 아니라 "오늘은 나키가 쉬어요"
+  'rest',
   // 이 환경에 AI 키가 없음 (503)
   'unavailable',
   // AI 제공자 실패·시간 초과 (502). 횟수는 되돌렸다
@@ -71,4 +75,7 @@ export type NakiError = (typeof NAKI_ERRORS)[number];
 export const nakiErrorSchema = z.object({
   error: z.enum(NAKI_ERRORS),
   remaining: z.number().int().optional(),
+  // 'limit'일 때: 체험 계정이면 로그인 계정 한도를 알려 로그인을 권한다
+  isGuest: z.boolean().optional(),
+  userLimit: z.number().int().optional(),
 });

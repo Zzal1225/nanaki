@@ -19,7 +19,14 @@ import {
 export type NakiAskResult =
   | { kind: 'answer'; state: SearchState | null; remaining: number }
   // network = 서버에 닿지 못함 (연결 끊김). 그 밖은 서버가 알려 준 실패 (nakiApi)
-  | { kind: 'error'; error: NakiError | 'network'; remaining?: number };
+  | {
+      kind: 'error';
+      error: NakiError | 'network';
+      remaining?: number;
+      // 'limit'일 때: 체험 계정이면 로그인 계정 한도로 로그인을 권한다
+      isGuest?: boolean;
+      userLimit?: number;
+    };
 
 // 서버가 걸러 준 조건을 주소 모양으로 바꿨다가 다시 읽는다. 검색 화면이 주소를 읽는 것과 같은 길이라
 // "기록 탭에서 보기" 링크로 간 화면과 여기 결과가 늘 같은 조건이다 (틀린 칸 값도 같은 규칙으로 버려진다)
@@ -63,6 +70,8 @@ export async function askNaki(
         kind: 'error',
         error: failure.data.error,
         remaining: failure.data.remaining,
+        isGuest: failure.data.isGuest,
+        userLimit: failure.data.userLimit,
       }
     : { kind: 'error', error: 'model' };
 }
