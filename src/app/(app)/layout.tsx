@@ -6,6 +6,7 @@ import OutboxSync from '@/features/records/sync/OutboxSync';
 import BottomTabBar from '@/shared/layout/BottomTabBar';
 import KeyboardInset from '@/shared/layout/KeyboardInset';
 import Sidebar from '@/shared/layout/Sidebar';
+import StandaloneScrollDiagnostics from '@/shared/layout/StandaloneScrollDiagnostics';
 import QueryProvider from '@/shared/query/QueryProvider';
 import Toaster from '@/shared/toast/Toaster';
 
@@ -35,6 +36,8 @@ export default function AppLayout({ children }: LayoutProps<'/'>) {
         <OfflineWarmup />
         {/* 화면 키보드가 아래 입력칸을 가리지 않게 (높이 재기·스크롤). 그리는 것은 없다 */}
         <KeyboardInset />
+        {/* 임시: 홈 화면 앱에서만 키보드·스크롤 숫자를 띄운다. 원인을 고치면 지운다 (2026-10-23) */}
+        <StandaloneScrollDiagnostics />
       </div>
     </QueryProvider>
   );
