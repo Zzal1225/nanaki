@@ -34,9 +34,10 @@ export async function findMobileProblems(page: Page): Promise<ScreenProblems> {
         return getComputedStyle(element).visibility !== 'hidden';
       }
 
-      // 화면에 키보드를 띄우는 칸만. 체크·라디오·숨은 칸은 확대와 상관없다
+      // 화면에 키보드를 띄우는 칸만. 체크·라디오·숨은 칸은 확대와 상관없다.
+      // 파일 칸(사진 고르기)도 키보드가 아니라 사진 선택 창을 열어 뺀다 (37b2: 쓰기 화면 사진 칸의 숨은 input이 14px로 걸렸다)
       const inputs = document.querySelectorAll(
-        'input:not([type="hidden"], [type="checkbox"], [type="radio"]), textarea, select',
+        'input:not([type="hidden"], [type="checkbox"], [type="radio"], [type="file"]), textarea, select',
       );
       const smallInputs = [...inputs]
         .filter(
