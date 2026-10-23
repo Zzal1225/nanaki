@@ -230,6 +230,7 @@ describe('루틴 체크 (기록 탭 카드·목록)', () => {
     schedule: { kind: 'weekly', days: [0, 1, 2, 3, 4, 5, 6] },
     goal: { kind: 'count', target: 8, unit: '잔' },
     endedOn: null,
+    remindAt: null,
   };
   function waterCheck(occurredAt: string, count: number): RecordEntry {
     return {

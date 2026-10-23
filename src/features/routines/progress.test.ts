@@ -11,6 +11,7 @@ const WATER: Routine = {
   schedule: { kind: 'weekly', days: [0, 1, 2, 3, 4, 5, 6] },
   goal: { kind: 'count', target: 8, unit: '잔' },
   endedOn: null,
+  remindAt: null,
 };
 // 월·수·금 (2026-10-19 = 월요일)
 const STRETCH: Routine = {
@@ -20,6 +21,7 @@ const STRETCH: Routine = {
   schedule: { kind: 'weekly', days: [1, 3, 5] },
   goal: { kind: 'check' },
   endedOn: null,
+  remindAt: null,
 };
 
 function check(

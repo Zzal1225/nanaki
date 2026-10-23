@@ -7,6 +7,7 @@ import {
   listPendingRecordIds,
   sendPendingRecords,
 } from '@/features/records/api/recordStore';
+import { unsubscribeThisDevice } from '@/features/push/api/pushStore';
 import { prepareDeviceDataCleanup } from '@/lib/db/deviceData';
 import { useToastStore } from '@/shared/toast/toastStore';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
@@ -62,6 +63,10 @@ export default function LogoutButton({ isAnonymous }: LogoutButtonProps) {
     setIsPending(true);
     // 세션이 있을 때 지울 사본을 알아 둔다 (로그아웃 뒤에는 어느 계정 것인지 모른다)
     const cleanup = await prepareDeviceDataCleanup();
+    // 이 기기의 푸시 구독을 세션이 있을 때 지운다 (서버 줄은 본인만 지울 수 있다, RLS).
+    // 남겨 두면 다음에 이 기기를 쓰는 사람에게 앞 사람의 루틴 알림이 뜬다. 실패해도 로그아웃은 계속한다:
+    // 브라우저 구독은 끊겨서, 서버에 남은 줄은 보낼 때 410으로 지워진다 (pushStore.unsubscribeThisDevice)
+    await unsubscribeThisDevice().catch(() => {});
     if ((await signOut()) === 'failed') {
       setIsPending(false);
       setConfirmText(null);

@@ -7,6 +7,7 @@ import {
 } from '@/features/records/api/recordStore';
 import { prepareDeviceDataCleanup } from '@/lib/db/deviceData';
 import { signOut } from './authActions';
+import { unsubscribeThisDevice } from '@/features/push/api/pushStore';
 import LogoutButton, {
   OFFLINE_LOGOUT_MESSAGE,
   logoutConfirmText,
@@ -21,6 +22,9 @@ vi.mock('@/lib/db/deviceData', () => ({
   prepareDeviceDataCleanup: vi.fn(),
 }));
 vi.mock('./authActions', () => ({ signOut: vi.fn() }));
+vi.mock('@/features/push/api/pushStore', () => ({
+  unsubscribeThisDevice: vi.fn().mockResolvedValue(undefined),
+}));
 
 const replace = vi.fn();
 const removeDeviceData = vi.fn(async () => {});
@@ -62,6 +66,10 @@ describe('LogoutButton', () => {
     expect(sendPendingRecords).toHaveBeenCalled();
     expect(signOut).toHaveBeenCalled();
     expect(removeDeviceData).toHaveBeenCalled();
+    // 이 기기의 푸시 구독은 세션이 있을 때(로그아웃 전에) 지운다: 다음 사람에게 앞 사람의 알림이 뜨지 않게
+    expect(
+      vi.mocked(unsubscribeThisDevice).mock.invocationCallOrder[0],
+    ).toBeLessThan(vi.mocked(signOut).mock.invocationCallOrder[0]);
   });
 
   it('보내도 남은 기록이 있으면 확인 창을 먼저 띄운다', async () => {

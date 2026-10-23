@@ -13,7 +13,8 @@ import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import RoutineChecklist from './check/RoutineChecklist';
 import { useRoutines } from './hooks/useRoutines';
 import { getAchievement, getDayRoutines } from './progress';
-import { formatGoal } from './schema/routine';
+import { isPushConfigured } from '@/features/push/api/pushStore';
+import { formatGoal, formatRemindTime } from './schema/routine';
 
 type RoutineSummarySectionProps = {
   // 이 달의 루틴 체크 기록 (타입 상세가 이미 불러온 것)
@@ -108,7 +109,12 @@ export default function RoutineSummarySection({
                     <span className='truncate text-caption text-fg-secondary'>
                       {routine.endedOn
                         ? `${formatDisplayDate(routine.endedOn)}에 그만둠`
-                        : `${formatSchedule(routine.schedule)} · ${formatGoal(routine.goal)}`}
+                        : `${formatSchedule(routine.schedule)} · ${formatGoal(routine.goal)}${
+                            // 알림 시각 (35a). 푸시를 쓸 수 없는 배포에서는 보이지 않는다 (폼의 알림 칸과 같은 조건)
+                            routine.remindAt && isPushConfigured()
+                              ? ` · 알림 ${formatRemindTime(routine.remindAt)}`
+                              : ''
+                          }`}
                     </span>
                   </span>
                   <ChevronRight

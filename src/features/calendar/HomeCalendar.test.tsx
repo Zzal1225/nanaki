@@ -270,6 +270,7 @@ describe('HomeCalendar', () => {
         schedule: { kind: 'weekly', days: [0, 1, 2, 3, 4, 5, 6] },
         goal: { kind: 'check' },
         endedOn: null,
+        remindAt: null,
       },
     ]);
     renderCalendar();

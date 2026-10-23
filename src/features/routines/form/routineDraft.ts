@@ -73,5 +73,6 @@ export const routineDraftSchema = z.object({
     .transform(toScheduleCandidate)
     .pipe(scheduleSchema),
   goal: z.custom<GoalDraft>().transform(toGoalCandidate).pipe(goalSchema),
+  remindAt: routineSchema.shape.remindAt,
 });
 export type RoutineDraftInput = z.input<typeof routineDraftSchema>;

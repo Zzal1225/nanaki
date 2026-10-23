@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   formatGoal,
+  formatRemindTime,
   goalSchema,
   isActiveOn,
+  listRemindTimes,
   routineSchema,
   toEndedOn,
   type Routine,
@@ -15,6 +17,7 @@ const ROUTINE: Routine = {
   schedule: { kind: 'weekly', days: [0, 1, 2, 3, 4, 5, 6] },
   goal: { kind: 'count', target: 8, unit: '잔' },
   endedOn: null,
+  remindAt: null,
 };
 
 describe('routineSchema', () => {
@@ -30,6 +33,31 @@ describe('routineSchema', () => {
     expect(
       goalSchema.safeParse({ kind: 'count', target: 2, unit: '' }).success,
     ).toBe(true);
+  });
+});
+
+describe('알림 시각 (10분 단위, 한국 시각 HH:MM)', () => {
+  it('10분 단위만 받는다 (DB check와 같은 규칙)', () => {
+    const parse = (remindAt: string | null) =>
+      routineSchema.safeParse({ ...ROUTINE, remindAt }).success;
+    expect(parse(null)).toBe(true);
+    expect(parse('00:00')).toBe(true);
+    expect(parse('21:30')).toBe(true);
+    expect(parse('23:50')).toBe(true);
+    expect(parse('21:35')).toBe(false);
+    expect(parse('24:00')).toBe(false);
+    expect(parse('9:00')).toBe(false);
+  });
+
+  it('고르기 칸: 10분마다 144개, 표기는 오전·오후 12시간제', () => {
+    const times = listRemindTimes();
+    expect(times).toHaveLength(144);
+    expect(times[0]).toBe('00:00');
+    expect(times.at(-1)).toBe('23:50');
+    expect(formatRemindTime('00:00')).toBe('오전 12:00');
+    expect(formatRemindTime('09:00')).toBe('오전 9:00');
+    expect(formatRemindTime('12:00')).toBe('오후 12:00');
+    expect(formatRemindTime('21:30')).toBe('오후 9:30');
   });
 });
 

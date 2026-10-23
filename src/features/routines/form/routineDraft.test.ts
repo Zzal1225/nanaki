@@ -7,7 +7,7 @@ import {
   type ScheduleDraft,
 } from './routineDraft';
 
-const BASE = { name: '물 마시기', startDate: '2026-10-21' };
+const BASE = { name: '물 마시기', startDate: '2026-10-21', remindAt: null };
 const CHECK: GoalDraft = { kind: 'check', targetCount: undefined, unit: '' };
 
 describe('scheduleToDraft', () => {

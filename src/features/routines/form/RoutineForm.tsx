@@ -6,6 +6,7 @@ import { X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Controller, useForm } from 'react-hook-form';
+import { isPushConfigured } from '@/features/push/api/pushStore';
 import { useOnlineStatus } from '@/shared/network/useOnlineStatus';
 import Button from '@/shared/ui/Button';
 import DateField from '@/shared/ui/DateField';
@@ -18,6 +19,7 @@ import {
   type RoutineFormValues,
 } from '../schema/routine';
 import GoalInput from './GoalInput';
+import RemindInput from './RemindInput';
 import {
   goalToDraft,
   routineDraftSchema,
@@ -41,6 +43,7 @@ function toDefaultValues(props: RoutineFormProps): RoutineDraftInput {
       startDate: routine.startDate,
       schedule: scheduleToDraft(routine.schedule, routine.startDate),
       goal: goalToDraft(routine.goal),
+      remindAt: routine.remindAt,
     };
   }
   const { today } = props;
@@ -49,6 +52,8 @@ function toDefaultValues(props: RoutineFormProps): RoutineDraftInput {
     startDate: today,
     schedule: scheduleToDraft(undefined, today),
     goal: goalToDraft(undefined),
+    // 알림은 사용자가 켤 때만 (켜는 순간 이 기기 알림 권한을 묻는다)
+    remindAt: null,
   };
 }
 
@@ -164,6 +169,21 @@ export default function RoutineForm(props: RoutineFormProps) {
           />
         )}
       />
+
+      {/* 알림 (35a): 이 배포에 푸시 공개 키가 있을 때만 보인다. 보내기(35b)가 없는 배포에서 켤 수 있는 척하지 않게 (CLAUDE.md: 미구현 기능은 숨김) */}
+      {isPushConfigured() && (
+        <Controller
+          control={form.control}
+          name='remindAt'
+          render={({ field: input, fieldState }) => (
+            <RemindInput
+              value={input.value}
+              onChange={input.onChange}
+              error={fieldState.error?.message}
+            />
+          )}
+        />
+      )}
 
       <div className='sticky bottom-(--tab-bar-height) -mx-4 flex flex-col gap-2 bg-bg px-4 py-3 md:bottom-0 md:-mx-6 md:px-6'>
         {saving.error && (
