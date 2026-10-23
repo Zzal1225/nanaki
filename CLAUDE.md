@@ -88,7 +88,8 @@ src/
                   settings/ = 설정 화면. api/settingsStore = 설정 저장·조회의 유일한 입구(user_settings),
                   typeVisibility = 숨긴 타입 계산(순수 함수), hooks/useUserSettings = 설정 훅 + 켜진 타입(useVisibleTypes), PushDeviceSection = 이 기기 알림 끄기(받는 중일 때만)
                   photos/ = 사진(step4: 눈바디·후기). api/photoStore = 사진 저장·조회·삭제의 유일한 입구(비공개 버킷 photos, 서명 링크 10분, 온라인 전용),
-                  photoImage = 형식 확인(JPG·PNG·WebP, HEIC 안내)·EXIF 회전·다시 인코딩(위치 정보 제거)·긴 변 1600 + 썸네일 400 WebP(못 만들면 JPEG). 계정 삭제 API가 사진 파일을 먼저 지운다
+                  photoImage = 형식 확인(JPG·PNG·WebP, HEIC 안내)·EXIF 회전·다시 인코딩(위치 정보 제거)·긴 변 1600 + 썸네일 400 WebP(못 만들면 JPEG). 계정 삭제 API가 사진 파일을 먼저 지운다.
+                  hooks/usePhotos(서명 링크는 닫히기 2분 전에 새로), ui/RecordPhotos = 상세의 사진 칸(타입 설정 photoKinds대로, 오프라인·대기열이면 안내), PhotoViewer(시트: 크게 보기·바꾸기·지우기)
                   push/ = 루틴 푸시 알림 받기(step3, 35a). api/pushStore = 이 기기 구독 저장·삭제의 유일한 입구(권한 묻기·save_push_subscription, NEXT_PUBLIC_VAPID_PUBLIC_KEY 없으면 알림 UI 숨김),
                   pushSupport = 이 기기에서 받을 수 있는지(아이폰은 홈 화면 앱만, 순수 함수), hooks/useThisDevicePush. 루틴 폼의 알림 칸은 routines/form/RemindInput(10분 단위)
                   calendar/ = 홈 캘린더. calendarState = 주소(?date=) 해석·만들기와 공통 탐색(이전·다음 달, 키보드 이동),
@@ -123,7 +124,8 @@ tests/e2e/          Playwright E2E (npm run test:e2e). CI가 같은 로컬 Supab
                     visual.spec.ts = 화면 비교, 기준 이미지는 visual.spec.ts-snapshots/ (CI 리눅스에서만 만든다:
                     화면을 바꾸면 CI가 실패하며 visual-snapshots 아티팩트를 올린다 → 내려받아 확인 → 바뀐 이미지만 커밋)
 supabase/migrations/ DB 구조(SQL). 새 파일은 npm run db:new, 적용은 npm run db:push, 타입은 npm run db:types
-supabase/functions/  Edge Function(Deno). send-routine-reminders = 루틴 알림 보내기(pg_cron 10분마다, @negrel/webpush, 404·410 구독 삭제).
+supabase/functions/  Edge Function(Deno). send-routine-reminders = 루틴 알림 보내기(pg_cron 10분마다, @negrel/webpush, 404·410 구독 삭제),
+                     sweep-photo-files = 주인 없는 사진 파일 정리(하루 한 번, 체험 만료·지우기 실패). _shared/edge.ts = cron 확인·관리자 키(Deno 전용).
                      Deno 본체는 앱 tsc에서 빠진다(tsconfig exclude) → 순수 함수는 _shared/에 두고 앱 vitest가 테스트한다. 배포는 npx supabase functions deploy
 tokens/tokens.json   디자인 토큰의 유일한 원본. 바꾸면 src/app/globals.css를 맞춘다
 docs/real-device-checklist.md  아이폰 실기기에서만 확인할 것 (자동화 못 하는 것만, 레이아웃·입력·서비스 워커·로그인 PR 뒤)

@@ -4,10 +4,15 @@
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { formatDisplayDate } from '@/shared/date/formatDisplayDate';
+import RecordPhotos from '@/features/photos/ui/RecordPhotos';
 import Button from '@/shared/ui/Button';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import { useRecord } from '../hooks/useRecord';
-import { isEditableType, RECORD_TYPE_CONFIG } from '../schema/recordTypes';
+import {
+  getPhotoKinds,
+  isEditableType,
+  RECORD_TYPE_CONFIG,
+} from '../schema/recordTypes';
 import { formatFieldValue } from '../ui/fieldView';
 import { getHeadlineField, getListValue } from '../ui/recordPresentation';
 import { RECORD_TYPE_STYLE } from '../ui/recordTypeStyle';
@@ -83,6 +88,7 @@ export default function RecordDetail({
   // 화면에 그리기 위해 이름으로 값을 꺼낸다. 이미 검증을 통과한 기록이라 읽기만 한다
   const fieldValues = entry.fields as Record<string, unknown>;
   const back = detailBackTarget(origin, entry.type);
+  const photoKinds = getPhotoKinds(entry.type);
 
   return (
     <article className='mx-auto flex w-full max-w-xl flex-col gap-4 px-4 pt-2 pb-6 md:px-6 lg:pt-6'>
@@ -166,6 +172,11 @@ export default function RecordDetail({
           </DetailRow>
         )}
       </dl>
+
+      {/* 사진 칸은 타입 설정이 정한다 (체형 = 정면·측면, step4). 사진이 없는 타입은 그리지 않는다 */}
+      {photoKinds.length > 0 && (
+        <RecordPhotos recordId={entry.id} kinds={photoKinds} />
+      )}
     </article>
   );
 }

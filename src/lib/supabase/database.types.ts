@@ -343,6 +343,10 @@ export type Database = {
         Args: { p_day: string; p_user_key: string };
         Returns: number;
       };
+      list_orphan_photo_files: {
+        Args: { p_limit?: number; p_min_age?: unknown };
+        Returns: string[];
+      };
       record_due_fixed_expenses: {
         Args: { p_today?: string };
         Returns: number;
