@@ -18,6 +18,10 @@ vi.mock('../api/recordStore', () => ({
 
 // 가계부 카드의 예산 줄이 부르는 예산 저장소 (33b). 기본은 "예산을 한 번도 정하지 않음"
 vi.mock('@/features/budget/api/budgetStore', () => ({ getBudget: vi.fn() }));
+// 가계부 카드의 고정지출 줄이 부르는 저장소 (33d). 없으면 줄을 그리지 않는다
+vi.mock('@/features/fixedExpenses/api/fixedExpenseStore', () => ({
+  listFixedExpenses: vi.fn().mockResolvedValue([]),
+}));
 
 const BASE = { memo: null, tags: [], occurredAt: '2026-09-12' };
 const LUNCH: RecordEntry = {

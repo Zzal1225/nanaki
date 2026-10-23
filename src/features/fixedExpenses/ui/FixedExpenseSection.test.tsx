@@ -10,7 +10,6 @@ import {
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  createFixedExpense,
   deleteFixedExpense,
   listFixedExpenses,
   updateFixedExpense,
@@ -20,12 +19,11 @@ import FixedExpenseSection from './FixedExpenseSection';
 
 vi.mock('../api/fixedExpenseStore', () => ({
   listFixedExpenses: vi.fn(),
-  createFixedExpense: vi.fn(),
   updateFixedExpense: vi.fn(),
   deleteFixedExpense: vi.fn(),
 }));
 
-// Radix 라디오 그룹("이번 달 지출은?")이 크기를 재려고 ResizeObserver를 쓰는데 jsdom에는 없다 (RoutineForm.test와 같은 가짜)
+// 수정 시트의 Radix 칩(토글 그룹)이 크기를 재려고 ResizeObserver를 쓰는데 jsdom에는 없다 (RoutineForm.test와 같은 가짜)
 vi.stubGlobal(
   'ResizeObserver',
   class {
@@ -72,7 +70,6 @@ describe('FixedExpenseSection', () => {
   beforeEach(() => {
     vi.mocked(listFixedExpenses).mockReset();
     vi.mocked(listFixedExpenses).mockResolvedValue([PHONE, GYM]);
-    vi.mocked(createFixedExpense).mockReset();
     vi.mocked(updateFixedExpense).mockReset();
     vi.mocked(deleteFixedExpense).mockReset();
   });
@@ -88,82 +85,6 @@ describe('FixedExpenseSection', () => {
       screen.getByRole('button', { name: /헬스장/ }).textContent,
     ).toContain('1일 남음');
     expect(screen.getByText(/이번 달 고정지출 -115,000원/)).toBeTruthy();
-  });
-
-  it('추가: 이번 달 결제일이 지났으면 묻고 기본은 "다음 결제일부터". 고르면 이번 달도 기록', async () => {
-    vi.mocked(createFixedExpense).mockResolvedValue(PHONE);
-    renderSection();
-    fireEvent.click(
-      await screen.findByRole('button', { name: '고정지출 추가' }),
-    );
-    const sheet = await screen.findByRole('dialog', { name: '고정지출 추가' });
-
-    fireEvent.change(within(sheet).getByLabelText('이름'), {
-      target: { value: '월세' },
-    });
-    fireEvent.change(within(sheet).getByLabelText('금액'), {
-      target: { value: '700000' },
-    });
-    fireEvent.change(within(sheet).getByLabelText('매달 며칠'), {
-      target: { value: '5' },
-    });
-    // 기본 선택과 안내 (2026-10-23 사용자 시안)
-    expect(
-      within(sheet)
-        .getByRole('radio', { name: '다음 결제일부터 기록하기' })
-        .getAttribute('aria-checked'),
-    ).toBe('true');
-    expect(
-      within(sheet).getByText(
-        '11월 5일부터 자동 기록돼요. 이번 달 지출은 추가하지 않아요.',
-      ),
-    ).toBeTruthy();
-
-    fireEvent.click(
-      within(sheet).getByRole('radio', {
-        name: '이번 달 지출도 기록하기 (10월 5일)',
-      }),
-    );
-    fireEvent.click(within(sheet).getByRole('radio', { name: '생활' }));
-    fireEvent.click(within(sheet).getByRole('button', { name: '저장' }));
-
-    await waitFor(() => expect(createFixedExpense).toHaveBeenCalled());
-    expect(vi.mocked(createFixedExpense).mock.calls[0]).toEqual([
-      {
-        name: '월세',
-        amount: 700000,
-        category: '생활',
-        schedule: { kind: 'monthly', day: 5 },
-      },
-      { today: TODAY, includeCurrentMonth: true },
-    ]);
-  });
-
-  it('결제일이 아직 안 지났으면 묻지 않는다', async () => {
-    renderSection();
-    fireEvent.click(
-      await screen.findByRole('button', { name: '고정지출 추가' }),
-    );
-    const sheet = await screen.findByRole('dialog');
-    fireEvent.change(within(sheet).getByLabelText('매달 며칠'), {
-      target: { value: '25' },
-    });
-    expect(
-      within(sheet).queryByText('이번 달 지출은 어떻게 할까요?'),
-    ).toBeNull();
-  });
-
-  it('빈 칸은 저장 전에 칸 아래 오류', async () => {
-    renderSection();
-    fireEvent.click(
-      await screen.findByRole('button', { name: '고정지출 추가' }),
-    );
-    const sheet = await screen.findByRole('dialog');
-    fireEvent.click(within(sheet).getByRole('button', { name: '저장' }));
-
-    expect(await within(sheet).findByText('이름을 입력해 주세요')).toBeTruthy();
-    expect(within(sheet).getByText('금액을 입력해 주세요')).toBeTruthy();
-    expect(createFixedExpense).not.toHaveBeenCalled();
   });
 
   it('줄을 누르면 수정, 해지는 확인 뒤 삭제', async () => {
@@ -186,15 +107,42 @@ describe('FixedExpenseSection', () => {
     );
   });
 
-  it('오프라인(canEdit 꺼짐)이면 추가·줄 버튼이 비활성', async () => {
+  it('수정: 바꾼 값으로 저장, 빈 이름은 저장 전에 오류', async () => {
+    vi.mocked(updateFixedExpense).mockResolvedValue(PHONE);
+    renderSection();
+    fireEvent.click(await screen.findByRole('button', { name: /통신비/ }));
+    const sheet = await screen.findByRole('dialog', { name: '고정지출 수정' });
+
+    fireEvent.change(within(sheet).getByLabelText('이름'), {
+      target: { value: '' },
+    });
+    fireEvent.click(within(sheet).getByRole('button', { name: '저장' }));
+    expect(await within(sheet).findByText('이름을 입력해 주세요')).toBeTruthy();
+    expect(updateFixedExpense).not.toHaveBeenCalled();
+
+    fireEvent.change(within(sheet).getByLabelText('이름'), {
+      target: { value: '휴대폰' },
+    });
+    fireEvent.change(within(sheet).getByLabelText('금액'), {
+      target: { value: '49,000' },
+    });
+    fireEvent.click(within(sheet).getByRole('button', { name: '저장' }));
+    await waitFor(() =>
+      expect(updateFixedExpense).toHaveBeenCalledWith(PHONE.id, {
+        name: '휴대폰',
+        amount: 49000,
+        category: '생활',
+        paymentMethod: '카드',
+        schedule: { kind: 'monthly', day: 5 },
+      }),
+    );
+  });
+
+  it('오프라인(canEdit 꺼짐)이면 줄을 눌러도 열리지 않는다 (보기만)', async () => {
     renderSection(false);
-    const add = (await screen.findByRole('button', {
-      name: '고정지출 추가',
+    const phone = (await screen.findByRole('button', {
+      name: /통신비/,
     })) as HTMLButtonElement;
-    expect(add.disabled).toBe(true);
-    expect(
-      (screen.getByRole('button', { name: /통신비/ }) as HTMLButtonElement)
-        .disabled,
-    ).toBe(true);
+    expect(phone.disabled).toBe(true);
   });
 });

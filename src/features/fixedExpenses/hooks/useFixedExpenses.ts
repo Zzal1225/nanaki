@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { recordKeys } from '@/features/records/hooks/recordKeys';
 import {
   createFixedExpense,
   deleteFixedExpense,
@@ -27,25 +26,20 @@ function useInvalidateFixedExpenses() {
     queryClient.invalidateQueries({ queryKey: fixedExpenseKeys.all });
 }
 
+// 가계부 쓰기에서 "고정지출"을 체크하고 저장한 뒤 부른다 (기록은 폼이 이미 만들었다)
 export function useCreateFixedExpense() {
-  const queryClient = useQueryClient();
   const invalidate = useInvalidateFixedExpenses();
   return useMutation({
     mutationFn: ({
       input,
       today,
-      includeCurrentMonth,
+      recordedOn,
     }: {
       input: FixedExpenseInput;
       today: string;
-      includeCurrentMonth: boolean;
-    }) => createFixedExpense(input, { today, includeCurrentMonth }),
-    // "이번 달도 기록"이면 가계부 기록이 하나 생겼다: 예산 화면의 쓴 돈·가계부 목록도 다시 그린다
-    onSuccess: () =>
-      Promise.all([
-        invalidate(),
-        queryClient.invalidateQueries({ queryKey: recordKeys.all }),
-      ]),
+      recordedOn: string | null;
+    }) => createFixedExpense(input, { today, recordedOn }),
+    onSuccess: invalidate,
   });
 }
 

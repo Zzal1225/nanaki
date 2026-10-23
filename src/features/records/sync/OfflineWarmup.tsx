@@ -21,6 +21,8 @@ export const WARMUP_PATHS: readonly string[] = [
   '/records/edit',
   // 예산 (33b). 달이 ?month=라 한 장으로 모든 달을 연다. 오프라인에서는 보기만 (저장은 온라인 전용)
   '/budget',
+  // 고정지출 (33d). 주소에 값이 없어 한 장
+  '/fixed-expenses',
 ];
 
 // 앱을 연 직후에는 첫 화면 요청과 겹치지 않게 조금 미룬다

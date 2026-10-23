@@ -1,7 +1,7 @@
-import { Check, Plus, Repeat } from 'lucide-react';
+import { Check, Repeat } from 'lucide-react';
 import { formatExpenseAmount } from '@/features/records/ui/recordPresentation';
 import { formatSchedule } from '@/shared/schedule/schedule';
-import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
+import { ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import {
   formatFixedExpenseStatus,
   getFixedExpenseStatus,
@@ -13,48 +13,24 @@ type FixedExpenseListProps = {
   items: FixedExpense[];
   today: string;
   canEdit: boolean;
-  onAdd: () => void;
   onEdit: (item: FixedExpense) => void;
 };
 
 // 고정지출 목록 (시안 18 아래쪽): 반복 아이콘 · 이름 / "매달 5일 · ✓ 기록됨" · 금액, 맨 아래 자동 기록 안내와 이번 달 합계.
-// 표시만 한다. 조회·시트는 FixedExpenseSection
+// 표시만 한다. 조회·시트는 FixedExpenseSection. 추가 버튼은 없다: 만들기는 가계부 쓰기의 체크에서만 (2026-10-23 사용자 결정)
 export default function FixedExpenseList({
   items,
   today,
   canEdit,
-  onAdd,
   onEdit,
 }: FixedExpenseListProps) {
   return (
-    <section aria-labelledby='fixed-expense-title' className='flex flex-col'>
-      <div className='flex items-center justify-between px-1 pb-2'>
-        <h2
-          id='fixed-expense-title'
-          className='text-body font-semibold text-fg-primary'
-        >
-          고정지출
-        </h2>
-        <button
-          type='button'
-          disabled={!canEdit}
-          onClick={onAdd}
-          aria-label='고정지출 추가'
-          className='-my-3 -mr-2 inline-flex min-h-11 items-center gap-1 rounded-md px-2 text-body-sm font-semibold text-accent enabled:hover:bg-surface-hover enabled:active:bg-surface-pressed disabled:text-fg-disabled'
-        >
-          <Plus
-            aria-hidden='true'
-            size={ICON_SIZE.sm}
-            strokeWidth={ICON_STROKE_WIDTH}
-          />
-          추가
-        </button>
-      </div>
-
+    // 화면 제목(h1 "고정지출")이 바로 위에 있어 목록 제목은 따로 그리지 않고 영역 이름만 둔다
+    <section aria-label='고정지출 목록' className='flex flex-col'>
       {items.length === 0 ? (
         <p className='rounded-lg bg-surface p-4 text-body-sm text-fg-secondary shadow-card'>
-          통신비·구독료처럼 매달 나가는 돈을 추가하면 그날 자동으로 가계부에
-          기록돼요
+          가계부를 쓸 때 금액 옆 ‘고정지출’을 체크하면 여기에 모이고, 매달 그날
+          자동으로 기록돼요
         </p>
       ) : (
         <>

@@ -1,12 +1,8 @@
-import { createRecord } from '@/features/records/api/recordStore';
 import { currentLocalDb } from '@/lib/db/currentLocalDb';
 import type { LocalFixedExpense } from '@/lib/db/localDb';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import type { Tables } from '@/lib/supabase/database.types';
-import { toMonthString } from '@/shared/date/month';
-import { dueDateInMonth, isDueDatePassed } from '../fixedExpenseDates';
 import {
-  FIXED_EXPENSE_TAG,
   fixedExpenseInputSchema,
   fixedExpenseSchema,
   type FixedExpense,
@@ -115,33 +111,27 @@ export async function listFixedExpenses(): Promise<FixedExpense[]> {
 }
 
 type CreateOptions = {
-  // 'YYYY-MM-DD' (브라우저의 오늘). 시작일이 되고, 이번 달 결제일이 지났는지를 이걸로 본다
+  // 'YYYY-MM-DD' (브라우저의 오늘). 시작일이 된다: 이 날보다 앞선 결제일은 서버가 만들지 않는다
   today: string;
-  // 이번 달 결제일이 이미 지났을 때 그 지출도 지금 기록할지 (2026-10-23 사용자 결정: 기본은 기록하지 않고 다음 결제일부터)
-  includeCurrentMonth: boolean;
+  // 이 고정지출의 한 번을 이미 가계부에 적은 날 (가계부 쓰기에서 "고정지출"을 체크한 그 기록의 날짜). 없으면 null.
+  // 그 달은 서버가 다시 만들지 않는다 (DB 함수: last_recorded_on이 이번 달이면 건너뜀)
+  recordedOn: string | null;
 };
 
-// 고정지출 추가. 이번 달 결제일이 지났고 includeCurrentMonth면 그 날짜로 가계부 기록도 하나 만든다:
-// - 고정지출 줄을 먼저 서버에 넣는다(온라인 전용). 실패하면 기록도 만들지 않는다
-// - 이번 달 것을 기록했다고 last_recorded_on에 함께 적어, 서버의 자동 기록이 같은 달에 또 만들지 않게 한다
-// - 기록은 다른 기록과 같은 길(기기 먼저 → 대기열)로 만든다. 서버 함수에 맡기면 다음 정시까지 최대 1시간 늦게 보인다
+// 고정지출 추가 (온라인 전용). 기록은 여기서 만들지 않는다:
+// 가계부 쓰기에서 체크하면 기록은 폼이 평소처럼 만들고(기기 먼저 → 대기열), 여기서는 규칙만 서버에 넣는다 (2026-10-23 사용자 결정)
 export async function createFixedExpense(
   input: FixedExpenseInput,
-  { today, includeCurrentMonth }: CreateOptions,
+  { today, recordedOn }: CreateOptions,
 ): Promise<FixedExpense> {
   const checked = fixedExpenseInputSchema.parse(input);
-  const day = checked.schedule.day;
-  const recordsCurrentMonth =
-    includeCurrentMonth && isDueDatePassed(day, today);
-  const dueThisMonth = dueDateInMonth(day, toMonthString(today));
-
   const supabase = createSupabaseBrowserClient();
   const { data, error } = await supabase
     .from('fixed_expenses')
     .insert({
       ...toRowValues(checked),
       start_date: today,
-      last_recorded_on: recordsCurrentMonth ? dueThisMonth : null,
+      last_recorded_on: recordedOn,
     })
     .select(SELECT_COLUMNS)
     .single();
@@ -150,23 +140,6 @@ export async function createFixedExpense(
   const saved = toFixedExpense(row);
   const db = await currentLocalDb();
   await db.fixedExpenses.put(saved);
-
-  if (recordsCurrentMonth) {
-    await createRecord({
-      type: 'expense',
-      occurredAt: dueThisMonth,
-      title: checked.name,
-      memo: null,
-      tags: [FIXED_EXPENSE_TAG],
-      fields: {
-        amount: checked.amount,
-        category: checked.category,
-        ...(checked.paymentMethod
-          ? { paymentMethod: checked.paymentMethod }
-          : {}),
-      },
-    });
-  }
   return saved;
 }
 

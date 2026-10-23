@@ -12,6 +12,7 @@ import {
   useWatch,
   type DefaultValues,
 } from 'react-hook-form';
+import type { ReactNode } from 'react';
 import type { z } from 'zod';
 import { toLocalDateString } from '@/shared/date/toLocalDateString';
 import Button from '@/shared/ui/Button';
@@ -40,8 +41,21 @@ type FormOutput = z.output<FormSchema>;
 
 // 새로 쓰기: type만, 고치기: 고칠 기록(entry)까지. 같은 폼을 써서 입력칸·검증이 두 화면에서 어긋나지 않는다.
 // 새로 쓰기의 date·doneHref: 홈 캘린더에서 고른 날에 쓰기 시작하면 그 날짜로 채우고, 닫거나 저장하면 그 날로 돌아간다
+// 새로 쓰기에만 있는 덧붙임 자리 (타입별 기능이 폼 안을 몰라도 끼어들 수 있게. 폼은 어떤 타입의 무엇인지 모른다):
+// - fieldAddon: 그 이름의 입력칸 옆에 붙일 것 (가계부 금액 옆 "고정지출" 체크, features/fixedExpenses)
+// - onCreated: 기록을 저장한 뒤 할 일. 여기서 난 실패는 기록 저장을 되돌리지 않는다 (부르는 쪽이 알아서 알린다)
+export type CreateFormExtras = {
+  fieldAddon?: { name: string; node: ReactNode };
+  onCreated?: (entry: RecordEntry) => Promise<void>;
+};
+
 type RecordFormProps =
-  | { mode: 'create'; type: RecordType; date?: string; doneHref?: string }
+  | ({
+      mode: 'create';
+      type: RecordType;
+      date?: string;
+      doneHref?: string;
+    } & CreateFormExtras)
   | { mode: 'edit'; entry: RecordEntry; doneHref?: string };
 
 // 폼의 처음 값. DefaultValues는 "일부만 채워도 되는" 모양이라 새로 쓰기에서 fields를 비워 둘 수 있다.
@@ -87,7 +101,8 @@ export default function RecordForm(props: RecordFormProps) {
       if (editingId) {
         await updateRecord.mutateAsync({ ...values, id: editingId });
       } else {
-        await createRecord.mutateAsync(values);
+        const created = await createRecord.mutateAsync(values);
+        if (props.mode === 'create') await props.onCreated?.(created);
       }
       // push가 아니라 replace: 뒤로 가기로 방금 저장한 폼에 돌아오면 같은 기록을 또 저장할 수 있다
       router.replace(doneHref);
@@ -140,21 +155,38 @@ export default function RecordForm(props: RecordFormProps) {
       />
 
       {/* 타입별 필드: 정의 배열 순서대로 그린다 (시안: 날짜와 구분선 사이에만 들어간다) */}
-      {config.fields.map((field) => (
-        <Controller
-          key={field.name}
-          control={form.control}
-          name={`fields.${field.name}`}
-          render={({ field: input, fieldState }) => (
-            <FieldInput
-              field={field}
-              value={input.value}
-              onChange={input.onChange}
-              error={fieldState.error?.message}
-            />
-          )}
-        />
-      ))}
+      {config.fields.map((field) => {
+        const input = (
+          <Controller
+            key={field.name}
+            control={form.control}
+            name={`fields.${field.name}`}
+            render={({ field: input, fieldState }) => (
+              <FieldInput
+                field={field}
+                value={input.value}
+                onChange={input.onChange}
+                error={fieldState.error?.message}
+              />
+            )}
+          />
+        );
+        const addon =
+          props.mode === 'create' && props.fieldAddon?.name === field.name
+            ? props.fieldAddon.node
+            : null;
+        if (!addon) return input;
+        // 덧붙임은 칸 오른쪽에 좁게. pt-7 = 칸 위 이름표(20px) + 간격(8px): 입력칸과 같은 줄에 놓이게 (오류 문구가 생겨도 위치가 흔들리지 않게 위 기준)
+        return (
+          <div
+            key={field.name}
+            className='grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3'
+          >
+            {input}
+            <div className='pt-7'>{addon}</div>
+          </div>
+        );
+      })}
 
       <hr className='border-border' />
 

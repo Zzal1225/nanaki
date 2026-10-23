@@ -3,11 +3,12 @@
 // 'use client' 이유: 타입(?type=)과 날짜(?date=)를 주소에서 브라우저가 읽는다.
 // 서버가 읽으면 타입마다 다른 HTML이 되어, 서비스 워커가 저장해 둔 작성 화면 한 장으로 다른 타입을 열 수 없다 (오프라인 작성)
 import { useSearchParams } from 'next/navigation';
+import { Fragment } from 'react';
 import { toCalendarHref } from '@/features/calendar/calendarState';
 import { isDateString } from '@/shared/date/calendar';
 import { useReplaceRoute } from '@/shared/navigation/useReplaceRoute';
-import RecordForm from '../form/RecordForm';
 import { getCreateHref, parseRecordType } from '../schema/recordTypes';
+import { renderCreateForm } from './createForms';
 
 // 주소(?type=expense)는 누구나 고쳐 칠 수 있어서, 모르는 타입이면 폼을 그리지 않고 홈으로 보낸다.
 // 폼으로 쓰지 않는 타입(루틴 체크)은 그 타입의 만들기 화면으로 (?type=routine을 직접 친 경우).
@@ -22,16 +23,13 @@ export default function NewRecordFromUrl() {
   useReplaceRoute(moveTo ?? null);
   if (!type || moveTo) return null;
 
-  // key: 타입이 바뀌면(작성 중 메뉴에서 다른 타입) 폼을 새로 만든다. 처음 값은 처음 그릴 때만 읽힌다
+  // 타입마다 다른 폼(가계부는 고정지출 체크가 붙은 폼)은 createForms 한 곳에서 고른다.
+  // key: 타입·날짜가 바뀌면(작성 중 메뉴에서 다른 타입) 폼을 새로 만든다. 처음 값은 처음 그릴 때만 읽힌다
   return isDateString(date) ? (
-    <RecordForm
-      key={`${type}-${date}`}
-      mode='create'
-      type={type}
-      date={date}
-      doneHref={toCalendarHref(date)}
-    />
+    <Fragment key={`${type}-${date}`}>
+      {renderCreateForm({ type, date, doneHref: toCalendarHref(date) })}
+    </Fragment>
   ) : (
-    <RecordForm key={type} mode='create' type={type} />
+    <Fragment key={type}>{renderCreateForm({ type })}</Fragment>
   );
 }

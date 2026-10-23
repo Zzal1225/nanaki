@@ -1,7 +1,6 @@
 'use client';
 
 // 'use client' 이유: 시트 안 입력값·저장 중 상태·해지 확인 창을 들고 있다
-import { RadioGroup } from 'radix-ui';
 import { useState, type FormEvent } from 'react';
 import {
   formatNumberInput,
@@ -11,20 +10,13 @@ import {
   EXPENSE_CATEGORIES,
   PAYMENT_METHODS,
 } from '@/features/records/schema/expense';
-import { toMonthString } from '@/shared/date/month';
+import { withObjectParticle } from '@/shared/text/withObjectParticle';
 import Button from '@/shared/ui/Button';
 import ChipSelect from '@/shared/ui/ChipSelect';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 import FieldError from '@/shared/ui/FieldError';
 import Sheet from '@/shared/ui/Sheet';
-import { withObjectParticle } from '@/shared/text/withObjectParticle';
 import TextField from '@/shared/ui/TextField';
-import {
-  dueDateInMonth,
-  formatMonthDay,
-  isDueDatePassed,
-  nextDueDate,
-} from '../fixedExpenseDates';
 import {
   fixedExpenseInputSchema,
   MAX_FIXED_EXPENSE_NAME_LENGTH,
@@ -32,17 +24,10 @@ import {
   type FixedExpenseInput,
 } from '../schema/fixedExpense';
 
-export type FixedExpenseSheetMode =
-  { kind: 'add' } | { kind: 'edit'; item: FixedExpense };
-
 type FixedExpenseSheetProps = {
-  mode: FixedExpenseSheetMode | null;
+  // 고칠 고정지출. null이면 닫힘
+  item: FixedExpense | null;
   onClose: () => void;
-  today: string;
-  onCreate: (
-    input: FixedExpenseInput,
-    includeCurrentMonth: boolean,
-  ) => Promise<unknown>;
   onUpdate: (id: string, input: FixedExpenseInput) => Promise<unknown>;
   onDelete: (id: string) => Promise<unknown>;
 };
@@ -52,25 +37,20 @@ const SAVE_FAILED_MESSAGE =
 const DELETE_FAILED_MESSAGE =
   '해지하지 못했어요. 연결을 확인하고 다시 시도해 주세요.';
 
-// 고정지출 추가·수정 시트 (모바일 바텀시트 / PC 오른쪽 패널, 공통 Sheet). 해지(삭제)는 수정 시트 안에
+// 고정지출 수정 시트 (모바일 바텀시트 / PC 오른쪽 패널, 공통 Sheet). 해지(삭제)도 여기서.
+// 만들기는 가계부 쓰기의 "고정지출" 체크에서만 (2026-10-23 사용자 결정: 입력 화면을 두 개 두지 않는다)
 export default function FixedExpenseSheet(props: FixedExpenseSheetProps) {
-  const { mode, onClose } = props;
+  const { item, onClose } = props;
   return (
     <Sheet
-      open={mode !== null}
+      open={item !== null}
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
-      title={mode?.kind === 'edit' ? '고정지출 수정' : '고정지출 추가'}
+      title='고정지출 수정'
     >
       {/* 열 때마다 새로 그려 입력칸을 지금 값으로 채운다 (예산 시트와 같은 방식). key: 다른 줄을 열면 새 초안 */}
-      {mode && (
-        <FixedExpenseForm
-          key={mode.kind === 'edit' ? mode.item.id : 'add'}
-          {...props}
-          mode={mode}
-        />
-      )}
+      {item && <FixedExpenseForm key={item.id} {...props} item={item} />}
     </Sheet>
   );
 }
@@ -83,27 +63,7 @@ type Draft = {
   day: number | undefined;
 };
 
-type FieldName = 'name' | 'amount' | 'category' | 'paymentMethod' | 'day';
-
-function toDraft(mode: FixedExpenseSheetMode): Draft {
-  if (mode.kind === 'add') {
-    return {
-      name: '',
-      amount: undefined,
-      category: undefined,
-      paymentMethod: undefined,
-      day: undefined,
-    };
-  }
-  const { item } = mode;
-  return {
-    name: item.name,
-    amount: item.amount,
-    category: item.category,
-    paymentMethod: item.paymentMethod,
-    day: item.schedule.day,
-  };
-}
+type FieldName = keyof Draft;
 
 // Zod 오류 경로 → 칸 이름 (schedule.day는 "결제일" 칸)
 function toFieldName(path: readonly PropertyKey[]): FieldName | null {
@@ -121,33 +81,25 @@ function toFieldName(path: readonly PropertyKey[]): FieldName | null {
 }
 
 function FixedExpenseForm({
-  mode,
+  item,
   onClose,
-  today,
-  onCreate,
   onUpdate,
   onDelete,
-}: Omit<FixedExpenseSheetProps, 'mode'> & { mode: FixedExpenseSheetMode }) {
-  const [draft, setDraft] = useState<Draft>(() => toDraft(mode));
+}: Omit<FixedExpenseSheetProps, 'item'> & { item: FixedExpense }) {
+  const [draft, setDraft] = useState<Draft>({
+    name: item.name,
+    amount: item.amount,
+    category: item.category,
+    paymentMethod: item.paymentMethod,
+    day: item.schedule.day,
+  });
   const [errors, setErrors] = useState<Partial<Record<FieldName, string>>>({});
-  // 이번 달 결제일이 지났을 때 그 지출도 지금 기록할지. 기본은 "다음 결제일부터" (2026-10-23 사용자 결정)
-  const [includeCurrentMonth, setIncludeCurrentMonth] = useState(false);
   const [saveError, setSaveError] = useState<string>();
   const [isSaving, setIsSaving] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const isValidDay =
-    draft.day !== undefined && draft.day >= 1 && draft.day <= 31;
-  // 추가할 때만 묻는다: 수정은 시작일·기록 여부를 건드리지 않는다 (fixedExpenseStore.updateFixedExpense)
-  const asksCurrentMonth =
-    mode.kind === 'add' && isValidDay && isDueDatePassed(draft.day ?? 1, today);
-  const passedDueDate = isValidDay
-    ? dueDateInMonth(draft.day ?? 1, toMonthString(today))
-    : null;
-  const nextDue = isValidDay ? nextDueDate(draft.day ?? 1, today, null) : null;
-
-  function update<K extends keyof Draft>(name: K, value: Draft[K]) {
+  function update<K extends FieldName>(name: K, value: Draft[K]) {
     setDraft((current) => ({ ...current, [name]: value }));
     setErrors((current) => {
       const next = { ...current };
@@ -179,11 +131,7 @@ function FixedExpenseForm({
     setIsSaving(true);
     setSaveError(undefined);
     try {
-      if (mode.kind === 'add') {
-        await onCreate(result.data, asksCurrentMonth && includeCurrentMonth);
-      } else {
-        await onUpdate(mode.item.id, result.data);
-      }
+      await onUpdate(item.id, result.data);
       onClose();
     } catch {
       // 시트를 닫지 않는다: 입력한 값이 남아 있어야 연결이 돌아왔을 때 그대로 다시 누른다
@@ -194,10 +142,9 @@ function FixedExpenseForm({
   }
 
   async function handleDelete() {
-    if (mode.kind !== 'edit') return;
     setIsDeleting(true);
     try {
-      await onDelete(mode.item.id);
+      await onDelete(item.id);
       setIsConfirmOpen(false);
       onClose();
     } catch {
@@ -212,7 +159,6 @@ function FixedExpenseForm({
     <form onSubmit={handleSubmit} noValidate className='flex flex-col gap-5'>
       <TextField
         label='이름'
-        placeholder='예: 통신비'
         maxLength={MAX_FIXED_EXPENSE_NAME_LENGTH}
         value={draft.name}
         onChange={(e) => update('name', e.target.value)}
@@ -236,53 +182,10 @@ function FixedExpenseForm({
           error={errors.day}
         />
         <p className='text-caption text-fg-secondary'>
-          31일이 없는 달은 말일에 기록돼요
+          31일이 없는 달은 말일에 기록돼요. 이번 달에 이미 기록했으면 다음
+          달부터 바뀐 날짜로 기록돼요
         </p>
       </div>
-
-      {asksCurrentMonth && passedDueDate && nextDue && (
-        <fieldset className='flex flex-col gap-2'>
-          <legend className='mb-2 text-body-sm font-medium text-fg-primary'>
-            이번 달 지출은 어떻게 할까요?
-          </legend>
-          <RadioGroup.Root
-            value={includeCurrentMonth ? 'include' : 'next'}
-            onValueChange={(value) =>
-              setIncludeCurrentMonth(value === 'include')
-            }
-            className='flex flex-col gap-2'
-          >
-            {[
-              { value: 'next', label: '다음 결제일부터 기록하기' },
-              {
-                value: 'include',
-                label: `이번 달 지출도 기록하기 (${formatMonthDay(passedDueDate)})`,
-              },
-            ].map((option) => (
-              <RadioGroup.Item
-                key={option.value}
-                value={option.value}
-                className='flex min-h-11 items-center gap-3 rounded-md border border-border bg-surface px-3 text-left text-body-sm text-fg-primary data-[state=checked]:border-accent data-[state=checked]:ring-1 data-[state=checked]:ring-accent'
-              >
-                {/* 고른 칸 표시: 테두리 색만이 아니라 동그라미 안 점으로도 */}
-                <span
-                  aria-hidden='true'
-                  className='flex size-5 shrink-0 items-center justify-center rounded-full border-2 border-border'
-                >
-                  <RadioGroup.Indicator className='size-2.5 rounded-full bg-accent' />
-                </span>
-                {option.label}
-              </RadioGroup.Item>
-            ))}
-          </RadioGroup.Root>
-          <p className='text-caption text-fg-secondary'>
-            {includeCurrentMonth
-              ? `${formatMonthDay(passedDueDate)} 날짜로 지금 기록하고, ${formatMonthDay(nextDue)}부터 자동 기록돼요.`
-              : `${formatMonthDay(nextDue)}부터 자동 기록돼요. 이번 달 지출은 추가하지 않아요.`}
-          </p>
-        </fieldset>
-      )}
-
       <ChipSelect
         label='분류'
         options={EXPENSE_CATEGORIES}
@@ -307,23 +210,19 @@ function FixedExpenseForm({
       <Button type='submit' isLoading={isSaving}>
         저장
       </Button>
-      {mode.kind === 'edit' && (
-        <>
-          <Button variant='ghost' onClick={() => setIsConfirmOpen(true)}>
-            <span className='text-danger'>해지</span>
-          </Button>
-          <ConfirmDialog
-            open={isConfirmOpen}
-            onOpenChange={setIsConfirmOpen}
-            title={`${withObjectParticle(mode.item.name)} 해지할까요?`}
-            description='다음 결제일부터 기록하지 않아요. 이미 기록된 지출은 남아요.'
-            confirmLabel='해지'
-            confirmVariant='danger'
-            onConfirm={() => void handleDelete()}
-            isPending={isDeleting}
-          />
-        </>
-      )}
+      <Button variant='ghost' onClick={() => setIsConfirmOpen(true)}>
+        <span className='text-danger'>해지</span>
+      </Button>
+      <ConfirmDialog
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title={`${withObjectParticle(item.name)} 해지할까요?`}
+        description='다음 결제일부터 기록하지 않아요. 이미 기록된 지출은 남아요.'
+        confirmLabel='해지'
+        confirmVariant='danger'
+        onConfirm={() => void handleDelete()}
+        isPending={isDeleting}
+      />
     </form>
   );
 }

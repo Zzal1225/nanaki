@@ -33,11 +33,11 @@ export async function addSampleRecords(): Promise<void> {
     console.warn('[sample] 체험 예시 기록을 넣지 못함', error);
   }
 
-  // 고정지출(규칙)은 기록과 따로라 실패해도 기록에 영향이 없다. 이번 달 지난 결제일은 기록하지 않는다(기본값)
+  // 고정지출(규칙)은 기록과 따로라 실패해도 기록에 영향이 없다. 시작일이 오늘이라 이번 달 지난 결제일은 기록되지 않는다
   try {
     await Promise.all(
       buildSampleFixedExpenses(today).map((input) =>
-        createFixedExpense(input, { today, includeCurrentMonth: false }),
+        createFixedExpense(input, { today, recordedOn: null }),
       ),
     );
   } catch (error) {
