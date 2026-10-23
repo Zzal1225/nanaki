@@ -19,7 +19,7 @@ import {
   type NakiQuota,
 } from '../nakiApi';
 import NakiAnswer from './NakiAnswer';
-import NakiAvatar from './NakiAvatar';
+import NakiAvatar from '@/shared/ui/NakiAvatar';
 import TypingExamples from './TypingExamples';
 
 // 질문 하나와 그 답. 대화는 메모리에만 둔다 (2026-10-23 사용자 결정: 첫 PR은 저장·이어 묻기 없음, 탭을 떠나면 사라진다)

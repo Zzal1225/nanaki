@@ -3,14 +3,15 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Suspense, type ReactNode } from 'react';
-import { Sprout } from 'lucide-react';
-import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
+import { ICON_STROKE_WIDTH } from '@/shared/ui/icon';
+import NakiAvatar from '@/shared/ui/NakiAvatar';
 import AiBadge from './AiBadge';
 import { isActivePath } from './isActivePath';
 import { NAV_ITEMS, SETTINGS_ITEM, type NavItem } from './navItems';
 
 // 시안의 메뉴 아이콘 크기 (일반 규격 20·24 사이의 내비게이션 전용 값)
 const NAV_ICON_SIZE = 22;
+const SIDEBAR_LOGO_SIZE = 32;
 
 // 'use client'인 이유: 지금 주소(usePathname)로 선택된 메뉴를 표시해야 한다.
 // 태블릿(md)은 접힘 72px, PC(lg)는 펼침 240px. 폭에 따라 다른 컴포넌트를 그리지 않고 CSS로만 바꾼다
@@ -40,13 +41,8 @@ function SidebarView({
   return (
     <aside className='sticky top-0 hidden h-dvh w-(--sidebar-collapsed) shrink-0 flex-col gap-2 border-r border-border bg-surface px-3 py-4 md:flex lg:w-(--sidebar-expanded)'>
       <div className='flex h-12 items-center justify-center gap-3 lg:justify-start lg:px-2'>
-        <span className='flex size-8 items-center justify-center rounded-full bg-accent text-accent-foreground'>
-          <Sprout
-            aria-hidden='true'
-            size={ICON_SIZE.md}
-            strokeWidth={ICON_STROKE_WIDTH}
-          />
-        </span>
+        {/* 앱 로고 = 나키 아바타 (2026-10-23 사용자 결정: 아이콘은 모두 아바타로). 예전 새싹 원(size-8)과 같은 32px */}
+        <NakiAvatar size={SIDEBAR_LOGO_SIZE} />
         <span className='sr-only text-title font-bold text-fg-primary lg:not-sr-only'>
           nanaki
         </span>
