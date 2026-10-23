@@ -9,6 +9,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['src/**/*.test.{ts,tsx}'],
+    // supabase/functions/_shared: Edge Function(Deno)이 쓰는 순수 함수도 앱 테스트로 검사한다 (CI에 Deno가 없다)
+    include: ['src/**/*.test.{ts,tsx}', 'supabase/functions/**/*.test.ts'],
   },
 });
