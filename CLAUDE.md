@@ -99,7 +99,8 @@ src/
                   calendar/ = 홈 캘린더. calendarState = 주소(?date=) 해석·만들기와 공통 탐색(이전·다음 달, 키보드 이동),
                   useCalendar = 상태(고른 날짜) + 바꾸는 함수(history.replaceState), CalendarGrid(월 캘린더, role=grid, roving tabindex),
                   CalendarHeader(달 이동 + 오늘 아이콘 TodayButton), DaySummary(하루 요약)
-                  records/schema/ = 필드 빌더(fieldKinds)와 타입별 스키마, RecordEntry 판별 유니온
+                  records/schema/ = 필드 빌더(fieldKinds)와 타입별 스키마, RecordEntry 판별 유니온. 타입 설정(recordTypes)에 폼 차이도 둔다:
+                  contentHint(위 안내 한 줄, 있으면 "(선택)" 표시 없음)·hidesTagsAndMemo·formSchemaWithPhotos(사진 장수로 "1개 이상" 검사) — 지금은 체형만
                   records/api/ = 기록 저장·조회의 유일한 입구(recordStore)와 DB 줄 변환(recordMapper)
                   records/hooks/ = TanStack Query 훅과 쿼리 키(recordKeys)
                   records/form/ = 작성 폼(RecordForm), 필드 종류별 입력칸(FieldInput), 입력값 변환

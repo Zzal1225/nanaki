@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { listPendingRecordIds } from '@/features/records/api/recordStore';
 import {
   createPhotoUrls,
+  deletePhoto,
   listPhotosOfRecord,
   uploadPhoto,
   type Photo,
@@ -105,5 +106,49 @@ describe('RecordPhotos (눈바디 사진 칸)', () => {
     });
     expect(await screen.findByRole('alert')).toBeTruthy();
     expect(screen.getByRole('alert').textContent).toContain('HEIC');
+  });
+
+  it('사진만 있는 기록의 마지막 사진을 지우면 "이 기록이 삭제돼요" 확인 → 사진을 지운 뒤 기록도 지운다', async () => {
+    vi.mocked(deletePhoto).mockResolvedValue(undefined);
+    const onRecordEmptied = vi.fn(async () => undefined);
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RecordPhotos
+          recordId='r1'
+          kinds={['front', 'side']}
+          isPhotoOnly
+          onRecordEmptied={onRecordEmptied}
+        />
+      </QueryClientProvider>,
+    );
+    fireEvent.click(
+      await screen.findByRole('button', { name: '정면 사진 크게 보기' }),
+    );
+    fireEvent.click(await screen.findByRole('button', { name: '지우기' }));
+    expect(
+      await screen.findByRole('heading', { name: '이 기록이 삭제돼요' }),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: '기록 삭제' }));
+
+    await vi.waitFor(() => expect(onRecordEmptied).toHaveBeenCalled());
+    expect(deletePhoto).toHaveBeenCalled();
+    // 사진 지우기가 먼저 (실패하면 기록은 그대로)
+    expect(vi.mocked(deletePhoto).mock.invocationCallOrder[0]).toBeLessThan(
+      onRecordEmptied.mock.invocationCallOrder[0] ?? 0,
+    );
+  });
+
+  it('숫자가 있는 기록이면 평소처럼 "사진을 지울까요?"', async () => {
+    renderPhotos();
+    fireEvent.click(
+      await screen.findByRole('button', { name: '정면 사진 크게 보기' }),
+    );
+    fireEvent.click(await screen.findByRole('button', { name: '지우기' }));
+    expect(
+      await screen.findByRole('heading', { name: '사진을 지울까요?' }),
+    ).toBeTruthy();
   });
 });

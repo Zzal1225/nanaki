@@ -30,7 +30,13 @@ import {
   MAX_TITLE_LENGTH,
   type RecordEntry,
 } from '../schema/recordEntry';
-import { RECORD_TYPE_CONFIG, type RecordType } from '../schema/recordTypes';
+import {
+  getContentHint,
+  getFormSchema,
+  hidesTagsAndMemo,
+  RECORD_TYPE_CONFIG,
+  type RecordType,
+} from '../schema/recordTypes';
 import FieldInput from './FieldInput';
 import { emptyToNull } from './inputValue';
 
@@ -51,14 +57,22 @@ export type CreateFormExtras = {
   onCreated?: (entry: RecordEntry) => Promise<void>;
 };
 
+// photoCount: 사진 칸이 있는 폼(체형)에서 지금 사진 장수. 주면 사진도 "내용"으로 친다 (체중·허리둘레·사진 중 1개 이상).
+// 쓰기 화면은 고른 사진(온라인일 때만), 고치기는 이미 붙은 사진. 안 주면 타입의 기본 스키마
 type RecordFormProps =
   | ({
       mode: 'create';
       type: RecordType;
       date?: string;
       doneHref?: string;
+      photoCount?: number;
     } & CreateFormExtras)
-  | { mode: 'edit'; entry: RecordEntry; doneHref?: string };
+  | {
+      mode: 'edit';
+      entry: RecordEntry;
+      doneHref?: string;
+      photoCount?: number;
+    };
 
 // 폼의 처음 값. DefaultValues는 "일부만 채워도 되는" 모양이라 새로 쓰기에서 fields를 비워 둘 수 있다.
 // 고치기는 기록을 그대로 넣는다. id가 함께 들어가도 폼 스키마(id 없음)가 제출 때 검사하며 지워서,
@@ -78,6 +92,8 @@ function toDefaultValues(props: RecordFormProps): DefaultValues<FormInput> {
 export default function RecordForm(props: RecordFormProps) {
   const type = props.mode === 'edit' ? props.entry.type : props.type;
   const config = RECORD_TYPE_CONFIG[type];
+  const contentHint = getContentHint(type);
+  const hasTagsAndMemo = !hidesTagsAndMemo(type);
   const editingId = props.mode === 'edit' ? props.entry.id : null;
   // 고치기에서 닫거나 저장하면 그 기록의 상세로, 새로 쓰기는 홈(또는 시작한 날짜의 홈)으로
   const doneHref =
@@ -87,7 +103,8 @@ export default function RecordForm(props: RecordFormProps) {
 
   const form = useForm<FormInput, unknown, FormOutput>({
     // 제출할 때 타입별 폼 스키마로 검사하고, 실패하면 칸마다 오류를 넣는다 (검증 규칙을 한 곳에서만 관리)
-    resolver: zodResolver(config.formSchema),
+    // 사진 장수가 바뀌면 다음 렌더의 스키마로 검사한다 (resolver는 제출할 때마다 지금 넘긴 것을 쓴다)
+    resolver: zodResolver(getFormSchema(type, props.photoCount)),
     defaultValues: toDefaultValues(props),
   });
   // watch 대신 useWatch: 메모 칸이 바뀔 때 이 폼 전체가 아니라 필요한 값만 구독한다
@@ -142,6 +159,11 @@ export default function RecordForm(props: RecordFormProps) {
         <span aria-hidden='true' className='size-11' />
       </div>
 
+      {/* 무엇을 채워야 하는지 한 줄 (체형: 칸마다 "(선택)" 대신). 머리 줄 바로 아래라 칸보다 먼저 읽힌다 */}
+      {contentHint && (
+        <p className='-mt-2 text-body-sm text-fg-secondary'>{contentHint}</p>
+      )}
+
       <Controller
         control={form.control}
         name='occurredAt'
@@ -166,6 +188,7 @@ export default function RecordForm(props: RecordFormProps) {
             render={({ field: input, fieldState }) => (
               <FieldInput
                 field={field}
+                hidesOptionalMark={contentHint !== null}
                 value={input.value}
                 onChange={input.onChange}
                 error={fieldState.error?.message}
@@ -203,33 +226,38 @@ export default function RecordForm(props: RecordFormProps) {
         />
       )}
 
-      <Controller
-        control={form.control}
-        name='tags'
-        render={({ field: input, fieldState }) => (
-          <TagInput
-            label='태그 (선택)'
-            value={input.value}
-            onChange={input.onChange}
-            maxTags={MAX_TAGS}
-            maxTagLength={MAX_TAG_LENGTH}
-            error={fieldState.error?.message}
+      {/* 태그·메모를 쓰지 않는 타입(체형)은 그리지 않는다. 예전에 적힌 값은 폼 처음 값에 남아 고쳐 저장해도 지워지지 않는다 */}
+      {hasTagsAndMemo && (
+        <>
+          <Controller
+            control={form.control}
+            name='tags'
+            render={({ field: input, fieldState }) => (
+              <TagInput
+                label='태그 (선택)'
+                value={input.value}
+                onChange={input.onChange}
+                maxTags={MAX_TAGS}
+                maxTagLength={MAX_TAG_LENGTH}
+                error={fieldState.error?.message}
+              />
+            )}
           />
-        )}
-      />
 
-      <TextArea
-        label='메모 (선택)'
-        maxLength={MAX_MEMO_LENGTH}
-        length={memo?.length ?? 0}
-        error={form.formState.errors.memo?.message}
-        {...form.register('memo', {
-          // 빈 칸은 null로: DB에서 메모 "없음"은 null이다
-          setValueAs: emptyToNull,
-        })}
-      />
+          <TextArea
+            label='메모 (선택)'
+            maxLength={MAX_MEMO_LENGTH}
+            length={memo?.length ?? 0}
+            error={form.formState.errors.memo?.message}
+            {...form.register('memo', {
+              // 빈 칸은 null로: DB에서 메모 "없음"은 null이다
+              setValueAs: emptyToNull,
+            })}
+          />
+        </>
+      )}
 
-      {/* 선택 입력(태그·메모)과 같은 줄기에 둔다: 사진도 "(선택)"이고, 저장 버튼 바로 위라 고른 뒤 바로 저장한다 */}
+      {/* 폼 끝, 저장 버튼 바로 위: 사진을 고른 뒤 바로 저장한다 (체형은 태그·메모가 없어 숫자 칸 바로 아래가 된다) */}
       {props.mode === 'create' && props.section}
 
       {/* 모바일에서 저장 버튼이 하단 탭 바로 위에 붙어 있게 한다 (--tab-bar-height에 홈 막대 여백이 이미 들어 있다).

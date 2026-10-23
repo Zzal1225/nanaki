@@ -5,7 +5,12 @@ import { useState } from 'react';
 import RecordForm from '@/features/records/form/RecordForm';
 import type { RecordEntry } from '@/features/records/schema/recordEntry';
 import type { PhotoKind } from '@/features/records/schema/photoKinds';
-import type { RecordType } from '@/features/records/schema/recordTypes';
+import { useDiscardRecord } from '@/features/records/hooks/useDeleteRecord';
+import {
+  getContentHint,
+  hasFieldValues,
+  type RecordType,
+} from '@/features/records/schema/recordTypes';
 import { useOnlineStatus } from '@/shared/network/useOnlineStatus';
 import { useToastStore } from '@/shared/toast/toastStore';
 import {
@@ -42,6 +47,7 @@ export default function RecordFormWithPhotos({
 
   // 미리보기 주소(blob:)는 바꾸기·빼기·화면 떠날 때 닫는다 (useObjectUrls)
   const objectUrls = useObjectUrls();
+  const discardRecord = useDiscardRecord();
 
   // 형식 확인(HEIC 안내)과 맞춰 자르기는 PhotoPickButton이 끝냈다: 여기 오는 파일은 3:4로 자른 JPEG
   function pick(kind: PhotoKind, file: File) {
@@ -58,12 +64,18 @@ export default function RecordFormWithPhotos({
     setPicks(next);
   }
 
-  // 기록은 이미 저장됐다. 사진 실패는 던지지 않고 알리기만 한다 (던지면 폼이 저장 화면에 멈추고, 다시 누르면 기록이 두 개 생긴다)
+  const list: PickedPhoto[] = kinds.flatMap((kind) => {
+    const picked = picks[kind];
+    return picked ? [{ kind, file: picked.file }] : [];
+  });
+  // 폼 검사(체중·허리둘레·사진 중 1개 이상)에 넘기는 사진 장수. 오프라인이면 0: 사진은 저장 뒤 서버로 올라가는데
+  // 오프라인이면 못 올라가서, 사진만 고른 기록이 빈 기록으로 남는다 (2026-10-24 사용자: 빈 껍데기를 막을 것)
+  const photoCount = isOnline ? list.length : 0;
+
+  // 기록은 이미 저장됐다. 숫자가 있는 기록이면 사진 실패는 던지지 않고 알리기만 한다
+  // (던지면 폼이 저장 화면에 멈추고, 다시 누르면 기록이 두 개 생긴다).
+  // 사진만 있는 기록인데 한 장도 못 올렸으면 빈 기록이 된다 → 방금 저장한 기록을 거둬들이고 폼에 남아 다시 시도하게 한다
   async function handleCreated(entry: RecordEntry) {
-    const list: PickedPhoto[] = kinds.flatMap((kind) => {
-      const picked = picks[kind];
-      return picked ? [{ kind, file: picked.file }] : [];
-    });
     if (list.length === 0) return;
     // 오프라인이면 보내기를 시도하지 않는다: 요청이 시간 초과(15초)까지 저장 버튼을 붙잡을 수 있다
     if (!isOnline) {
@@ -73,9 +85,20 @@ export default function RecordFormWithPhotos({
     }
     setIsAttaching(true);
     try {
-      const notice = newRecordPhotoNotice(
-        await attachNewRecordPhotos(entry.id, list),
-      );
+      const result = await attachNewRecordPhotos(entry.id, list);
+      const isNoneUploaded =
+        result.status === 'notOnServer' ||
+        (result.status === 'partial' &&
+          result.failedKinds.length === list.length);
+      if (isNoneUploaded && !hasFieldValues(entry)) {
+        await discardRecord.mutateAsync(entry.id).catch(() => undefined);
+        setError(
+          '사진을 올리지 못해 저장하지 않았어요. 잠시 후 다시 시도해 주세요',
+        );
+        // 던져서 폼이 이동하지 않게 한다 (RecordForm은 onCreated가 던지면 그 자리에 남는다)
+        throw new Error('사진만 있는 기록의 사진을 올리지 못함');
+      }
+      const notice = newRecordPhotoNotice(result);
       if (notice) showToast(notice);
     } finally {
       setIsAttaching(false);
@@ -88,8 +111,11 @@ export default function RecordFormWithPhotos({
       type={type}
       date={date}
       doneHref={doneHref}
+      photoCount={photoCount}
       section={
         <NewRecordPhotos
+          // 폼 위에 "체중, 허리둘레, 사진 중 1개 이상" 안내가 있으면 "(선택)"을 붙이지 않는다
+          title={getContentHint(type) ? '사진' : '사진 (선택)'}
           kinds={kinds}
           picks={picks}
           onPick={pick}

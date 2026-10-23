@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { removeWhitespace } from '@/shared/text/removeWhitespace';
-import { BODY_ONLY_ONE_MESSAGE, bodyFieldsSchema, toBodyTitle } from './body';
+import {
+  BODY_CONTENT_MESSAGE,
+  bodyFieldsSchema,
+  hasBodyContent,
+  toBodyTitle,
+} from './body';
 import { expenseFieldsSchema } from './expense';
 import { maxLengthMessage, requiredInputMessage } from './fieldKinds';
 import { reviewFieldsSchema } from './review';
@@ -90,19 +95,25 @@ export const workoutFormSchema = workoutRecordSchema
     title: values.fields.activity,
   }));
 
-// 체형: 제목 칸이 없고 잰 항목 이름("체중" / "허리둘레")을 제목으로 저장한다
-export const bodyFormSchema = bodyRecordSchema
-  .omit({ id: true })
-  .extend({ title: optionalTitleSchema })
-  // 새로 쓰거나 고칠 때는 하나만 (2026-10-22 사용자 결정). 오류는 체중 칸 아래에 보여 준다
-  .refine(
-    ({ fields }) => fields.weight === undefined || fields.waist === undefined,
-    { error: BODY_ONLY_ONE_MESSAGE, path: ['fields', 'weight'] },
-  )
-  .transform((values) => ({
-    ...values,
-    title: toBodyTitle(values.fields),
-  }));
+// 체형: 제목 칸이 없고 잰 항목 이름("체중" / "허리둘레" / "체중·허리둘레" / "눈바디")을 제목으로 저장한다.
+// 체중·허리둘레·사진 중 1개 이상 (2026-10-24 사용자 결정): 사진은 폼 값이 아니라서 장수를 받아 스키마를 만든다.
+// refine 하나로 끝내고 사진만 있는 기록을 따로 다루지 않는다. 오류는 체중 칸 아래에 보여 준다
+export function bodyFormSchemaFor(photoCount: number) {
+  return bodyRecordSchema
+    .omit({ id: true })
+    .extend({ title: optionalTitleSchema })
+    .refine(({ fields }) => hasBodyContent(fields, photoCount), {
+      error: BODY_CONTENT_MESSAGE,
+      path: ['fields', 'weight'],
+    })
+    .transform((values) => ({
+      ...values,
+      title: toBodyTitle(values.fields),
+    }));
+}
+
+// 사진을 모르는 곳(사진 칸이 없는 폼)의 기본: 사진 0장 = 체중이나 허리둘레가 있어야 한다
+export const bodyFormSchema = bodyFormSchemaFor(0);
 
 // z.union이 아니라 판별 유니온: type을 먼저 보고 맞는 스키마 하나만 검사해서 오류가 그 타입 기준으로 정확히 나온다
 export const recordEntrySchema = z.discriminatedUnion('type', [

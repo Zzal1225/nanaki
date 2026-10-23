@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
-  BODY_ONLY_ONE_MESSAGE,
+  BODY_CONTENT_MESSAGE,
   MAX_BODY_WEIGHT_KG,
-  measureOf,
+  measuresOf,
   toBodyTitle,
 } from './body';
-import { bodyFormSchema, recordEntrySchema } from './recordEntry';
+import {
+  bodyFormSchema,
+  bodyFormSchemaFor,
+  recordEntrySchema,
+} from './recordEntry';
 
 const VALID_BODY = {
   id: '0b6e4f0e-2d4c-4c84-9a0c-5a5e1c2f7a31',
@@ -22,20 +26,22 @@ function isValid(value: unknown) {
 }
 
 describe('체형 기록 스키마 (저장된 기록)', () => {
-  it('체중만, 허리둘레만 모두 통과', () => {
+  it('체중만, 허리둘레만, 둘 다 모두 통과', () => {
     expect(isValid(VALID_BODY)).toBe(true);
     expect(isValid({ ...VALID_BODY, fields: { waist: 78 } })).toBe(true);
+    expect(
+      isValid({ ...VALID_BODY, fields: { weight: 68.4, waist: 78 } }),
+    ).toBe(true);
   });
-  it('둘 다 비면 실패', () => {
-    expect(isValid({ ...VALID_BODY, fields: {} })).toBe(false);
+  // 사진만 있는 기록: 사진은 photos 표에 있어 이 스키마는 볼 수 없다. 읽기에서 떨어뜨리면 목록에서 사라진다
+  it('두 칸이 비어도 읽는다 (사진만 있는 기록)', () => {
+    expect(isValid({ ...VALID_BODY, title: '눈바디', fields: {} })).toBe(true);
   });
-  // 규칙을 바꾸기 전에 저장된 기록이 목록에서 사라지면 안 된다
-  it('둘 다 있는 예전 기록도 읽는다, 없어진 항목(체지방률 등)은 떨어뜨린다', () => {
+  it('없어진 항목(체지방률 등)은 떨어뜨린다', () => {
     const result = recordEntrySchema.safeParse({
       ...VALID_BODY,
       fields: { weight: 68.4, waist: 78, bodyFat: 18.2 },
     });
-    expect(result.success).toBe(true);
     expect(result.data?.fields).toEqual({ weight: 68.4, waist: 78 });
   });
   it('소수 한 자리·상한까지', () => {
@@ -47,35 +53,50 @@ describe('체형 기록 스키마 (저장된 기록)', () => {
 });
 
 describe('잰 항목과 제목', () => {
-  it('체중 기록은 "체중", 허리둘레 기록은 "허리둘레" (둘 다 있으면 체중)', () => {
+  it('적힌 항목으로 제목을 짓는다 (사진만이면 "눈바디")', () => {
     expect(toBodyTitle({ weight: 68.4 })).toBe('체중');
     expect(toBodyTitle({ waist: 78 })).toBe('허리둘레');
-    expect(measureOf({ weight: 68.4, waist: 78 })).toBe('weight');
+    expect(toBodyTitle({ weight: 68.4, waist: 78 })).toBe('체중·허리둘레');
+    expect(toBodyTitle({})).toBe('눈바디');
+  });
+  it('항목은 체중 먼저', () => {
+    expect(measuresOf({ waist: 78, weight: 68.4 })).toEqual([
+      'weight',
+      'waist',
+    ]);
+    expect(measuresOf({})).toEqual([]);
   });
 });
 
-describe('체형 작성 폼 스키마', () => {
+describe('체형 작성 폼 스키마 (체중·허리둘레·사진 중 1개 이상)', () => {
   // 작성 폼은 id 없이, 제목 칸 없이('') 받는다
   const input = { ...VALID_BODY, id: undefined, title: '' };
 
-  it('제목은 잰 항목 이름으로 채운다', () => {
+  it('제목은 적힌 항목 이름으로 채운다', () => {
     expect(bodyFormSchema.parse(input).title).toBe('체중');
     expect(
-      bodyFormSchema.parse({ ...input, fields: { waist: 78 } }).title,
-    ).toBe('허리둘레');
+      bodyFormSchema.parse({ ...input, fields: { weight: 68.4, waist: 78 } })
+        .title,
+    ).toBe('체중·허리둘레');
   });
-  it('둘 다 적으면 "하나만" 오류 (체중 칸 아래)', () => {
-    const result = bodyFormSchema.safeParse({
-      ...input,
-      fields: { weight: 68.4, waist: 78 },
-    });
+  it('둘 다 적어도 된다', () => {
+    expect(
+      bodyFormSchema.safeParse({
+        ...input,
+        fields: { weight: 68.4, waist: 78 },
+      }).success,
+    ).toBe(true);
+  });
+  it('다 비고 사진도 없으면 "1개 이상" 오류 (체중 칸 아래)', () => {
+    const result = bodyFormSchema.safeParse({ ...input, fields: {} });
     expect(result.error?.issues[0]).toMatchObject({
-      message: BODY_ONLY_ONE_MESSAGE,
+      message: BODY_CONTENT_MESSAGE,
       path: ['fields', 'weight'],
     });
   });
-  it('둘 다 비면 "입력해 주세요" 오류', () => {
-    const result = bodyFormSchema.safeParse({ ...input, fields: {} });
-    expect(result.success).toBe(false);
+  it('사진이 있으면 숫자 없이도 저장, 제목은 "눈바디"', () => {
+    const result = bodyFormSchemaFor(2).safeParse({ ...input, fields: {} });
+    expect(result.success).toBe(true);
+    expect(result.data?.title).toBe('눈바디');
   });
 });

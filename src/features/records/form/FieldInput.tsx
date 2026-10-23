@@ -17,6 +17,8 @@ type FieldInputProps = {
   value: unknown;
   onChange: (value: unknown) => void;
   error?: string;
+  // 폼 위에 "무엇 중 1개 이상" 같은 안내가 있으면 칸마다 "(선택)"을 붙이지 않는다 (체형, 2026-10-24 사용자 결정)
+  hidesOptionalMark?: boolean;
 };
 
 export default function FieldInput({
@@ -24,9 +26,13 @@ export default function FieldInput({
   value,
   onChange,
   error,
+  hidesOptionalMark = false,
 }: FieldInputProps) {
   // 선택 칸만 이름 옆에 표시한다 (시안: 필수가 기본)
-  const label = field.isOptional ? `${field.label} (선택)` : field.label;
+  const label =
+    field.isOptional && !hidesOptionalMark
+      ? `${field.label} (선택)`
+      : field.label;
 
   // switch로 kind를 확인하면 TypeScript가 field를 그 모양으로 좁혀서 unit·options 같은 칸을 쓸 수 있다
   switch (field.kind) {

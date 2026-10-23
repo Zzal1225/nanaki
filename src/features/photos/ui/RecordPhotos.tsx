@@ -24,12 +24,20 @@ type RecordPhotosProps = {
   recordId: string;
   // 타입 설정이 정한 사진 칸 (체형 = 정면·측면). 종류마다 한 장
   kinds: readonly PhotoKind[];
+  // 기록에 사진 말고 다른 내용이 없는지 (사진만 있는 체형 기록). 그러면 마지막 사진을 지울 때 기록도 지운다
+  isPhotoOnly?: boolean;
+  onRecordEmptied?: () => Promise<void>;
 };
 
 // 기록 상세의 사진 칸 (step4 37b 눈바디). 칸마다 사진이 있으면 썸네일(누르면 크게 보기·바꾸기·지우기), 없으면 "＋ 정면 사진".
 // 사진은 온라인 전용 (photoStore): 오프라인·아직 서버에 없는 기록(대기열)이면 안내만 한다.
 // 서버에 없는 기록에 붙이면 DB가 막는다(기록 id 연결) → 보내진 뒤에 붙인다
-export default function RecordPhotos({ recordId, kinds }: RecordPhotosProps) {
+export default function RecordPhotos({
+  recordId,
+  kinds,
+  isPhotoOnly = false,
+  onRecordEmptied,
+}: RecordPhotosProps) {
   const isOnline = useOnlineStatus();
   const isOnServer = !usePendingRecordIds().has(recordId);
   const photos = useRecordPhotos(recordId, isOnline && isOnServer);
@@ -117,7 +125,12 @@ export default function RecordPhotos({ recordId, kinds }: RecordPhotosProps) {
           {error}
         </p>
       )}
-      <PhotoViewer photo={viewing} onClose={() => setViewing(null)} />
+      <PhotoViewer
+        photo={viewing}
+        onClose={() => setViewing(null)}
+        isLastContent={isPhotoOnly && list.length === 1}
+        onRecordEmptied={onRecordEmptied}
+      />
     </section>
   );
 }

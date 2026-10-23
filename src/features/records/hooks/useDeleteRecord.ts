@@ -47,3 +47,16 @@ export function useDeleteRecord() {
     },
   });
 }
+
+// 되돌리기 없이 지우기 (알림도 부르는 쪽이 정한다). 사진만 있는 체형 기록이 빈 기록이 될 때 쓴다:
+// - 쓰기 화면에서 사진을 하나도 못 올렸을 때 방금 저장한 기록을 거둬들인다
+// - 상세에서 마지막 사진을 지울 때 기록도 지운다 (확인 창을 거친 뒤)
+// 되돌리기를 주지 않는 이유: 되돌리면 사진이 이미 없는 빈 기록이 돌아온다
+export function useDiscardRecord() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteRecord,
+    onSuccess: () =>
+      void queryClient.invalidateQueries({ queryKey: recordKeys.all }),
+  });
+}

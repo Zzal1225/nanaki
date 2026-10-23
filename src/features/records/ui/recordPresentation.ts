@@ -1,7 +1,9 @@
 import {
   BODY_MEASURE_LABEL,
   BODY_MEASURE_UNIT,
-  measureOf,
+  BODY_PHOTO_ONLY_TITLE,
+  measuresOf,
+  toBodyTitle,
   type BodyMeasure,
 } from '../schema/body';
 import { getAchievement } from '@/features/routines/progress';
@@ -36,10 +38,10 @@ type RecordPresentation<T extends RecordType> = {
     previous: EntryOf<T>[],
     context: MonthContext,
   ) => PreviousMonthComparison | null;
-  // 상세에서 제목 아래 크게 보여 준 필드(= 목록 값). 아래 표에서는 빼서 같은 값이 두 번 나오지 않게 한다.
-  // 기록마다 다를 수 있어 함수다 (체형: 체중 기록이면 체중, 허리둘레 기록이면 허리둘레).
+  // 상세에서 제목 아래 크게 보여 준 필드들(= 목록 값). 아래 표에서는 빼서 같은 값이 두 번 나오지 않게 한다.
+  // 기록마다 다를 수 있어 함수다 (체형: 적힌 체중·허리둘레 모두, 사진만이면 없음).
   // 상세 위 배지는 타입 이름만 보여 준다 (2026-10-22 사용자 결정: "가계부 · 교통"처럼 항목까지는 어색하다)
-  headlineField: (entry: EntryOf<T>) => string;
+  headlineFields: (entry: EntryOf<T>) => readonly string[];
   // 홈 하루 요약 한 줄: 이름과 값 (시안: "가계부 3건 · -32,000원", "후기 1건 · 동네 로스터리 ★4")
   dayLabel: (entries: EntryOf<T>[]) => string;
   dayValue: (entries: EntryOf<T>[]) => string;
@@ -60,7 +62,7 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
             ['덜 썼어요', '더 썼어요'],
           ),
     monthValue: (entries) => formatExpenseAmount(sumAmounts(entries)),
-    headlineField: () => 'amount',
+    headlineFields: () => ['amount'],
     dayLabel: (entries) => `가계부 ${entries.length}건`,
     dayValue: (entries) => formatExpenseAmount(sumAmounts(entries)),
   },
@@ -76,7 +78,7 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
             (count) => `${count}건`,
             ['덜 썼어요', '더 썼어요'],
           ),
-    headlineField: () => 'rating',
+    headlineFields: () => ['rating'],
     dayLabel: (entries) => `후기 ${entries.length}건`,
     // 후기는 더할 값이 없어서 첫 대상의 이름을 보여 주고, 여러 개면 나머지 개수만 붙인다
     dayValue: ([first, ...rest]) =>
@@ -104,7 +106,7 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
             (count) => `${count}회`,
             ['덜 했어요', '더 했어요'],
           ),
-    headlineField: () => 'minutes',
+    headlineFields: () => ['minutes'],
     dayLabel: (entries) => `운동 ${entries.length}회`,
     // 하나면 "러닝 30분"(시안), 여럿이면 종목 대신 그날 총 시간
     dayValue: (entries) =>
@@ -134,17 +136,20 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
         '높아요',
       ]);
     },
-    headlineField: () => 'count',
+    headlineFields: () => ['count'],
     // 홈 하루 요약의 루틴 줄은 기록이 아니라 그날 일정으로 따로 그린다 (RoutineDayRow). 이 둘은 쓰이지 않을 때를 위한 값
     dayLabel: () => '루틴',
     dayValue: (entries) =>
       `완료 ${entries.filter((entry) => entry.fields.count >= entry.fields.target).length}개`,
   },
   body: {
-    // "[체중]" / "[허리둘레]": 한 기록에 하나만 잰다 (둘 다 있는 예전 기록은 체중)
-    listTitle: (entry) => `[${BODY_MEASURE_LABEL[measureOf(entry.fields)]}]`,
+    // "[체중]" / "[허리둘레]" / "[체중·허리둘레]" / 사진만이면 "[눈바디]" (2026-10-24: 둘 다·사진만 허용)
+    listTitle: (entry) => `[${toBodyTitle(entry.fields)}]`,
+    // "68.2kg · 78cm". 사진만 있는 기록은 값이 없다 (빈 글자: 목록은 제목만, 상세는 큰 숫자 줄을 그리지 않는다)
     listValue: (entry) =>
-      formatBodyMeasure(entry.fields, measureOf(entry.fields)),
+      measuresOf(entry.fields)
+        .map((measure) => formatBodyMeasure(entry.fields, measure))
+        .join(' · '),
     // 체형은 더하거나 셀 값이 아니라 "지금 몇 kg인지"가 궁금하다. 허리둘레만 잰 기록은 건너뛴다
     monthValue: (entries) => {
       const latest = latestEntryOf(withWeight(entries));
@@ -162,7 +167,7 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
         ['줄었어요', '늘었어요'],
       );
     },
-    headlineField: (entry) => measureOf(entry.fields),
+    headlineFields: (entry) => measuresOf(entry.fields),
     dayLabel: () => '체형',
     // 시안: "68.4kg · 허리둘레 78cm". 그날 마지막 체중과 마지막 허리둘레 (따로 잰 두 기록을 한 줄에)
     dayValue: (entries) => {
@@ -170,13 +175,16 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
       const waist = latestEntryOf(
         entries.filter((entry) => entry.fields.waist !== undefined),
       );
-      return [
-        weight && formatBodyMeasure(weight.fields, 'weight'),
-        waist &&
-          `${BODY_MEASURE_LABEL.waist} ${formatBodyMeasure(waist.fields, 'waist')}`,
-      ]
-        .filter(Boolean)
-        .join(' · ');
+      // 그날 사진만 찍었으면(숫자 없음) 빈 값 대신 "눈바디"
+      return (
+        [
+          weight && formatBodyMeasure(weight.fields, 'weight'),
+          waist &&
+            `${BODY_MEASURE_LABEL.waist} ${formatBodyMeasure(waist.fields, 'waist')}`,
+        ]
+          .filter(Boolean)
+          .join(' · ') || BODY_PHOTO_ONLY_TITLE
+      );
     },
   },
 };
@@ -311,8 +319,8 @@ export function getMonthValue(
   return presentationOf(type).monthValue(ofType as never, context);
 }
 
-export function getHeadlineField(entry: RecordEntry): string {
-  return presentationOf(entry.type).headlineField(entry as never);
+export function getHeadlineFields(entry: RecordEntry): readonly string[] {
+  return presentationOf(entry.type).headlineFields(entry as never);
 }
 
 // 홈 하루 요약: 같은 타입의 그날 기록을 받는다. 빈 배열은 넘기지 않는다 (그 타입 줄을 아예 그리지 않으므로)
