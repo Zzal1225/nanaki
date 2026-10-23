@@ -21,7 +21,6 @@ import { getBudgetProgress, sortCategoryNames } from '../budgetProgress';
 import { budgetBackHref, budgetHref } from '../budgetRoutes';
 import { inheritedBudgetNotice } from '../budgetText';
 import { useBudget, useSaveBudget } from '../hooks/useBudget';
-import FixedExpenseSection from '@/features/fixedExpenses/ui/FixedExpenseSection';
 import CategoryBudgetList from './CategoryBudgetList';
 import CategoryBudgetSheet from './CategoryBudgetSheet';
 import TotalBudgetCard from './TotalBudgetCard';
@@ -37,7 +36,7 @@ type OpenSheet = 'total' | 'categories' | null;
 const NOTICE_CLASS =
   'flex items-start gap-2 rounded-md bg-surface-hover px-3 py-2 text-body-sm text-fg-primary';
 
-// 예산 · 고정지출 화면 (시안 18). 위는 그 달 예산, 아래는 고정지출(이번 달을 볼 때만).
+// 예산 화면 (시안 18의 위쪽). 고정지출은 따로 (/fixed-expenses, 2026-10-23 사용자 결정: 예산 설정과 고정지출을 나눈다).
 // 달마다 따로라 타입 화면처럼 ‹ 달 › 로 다른 달을 보고 고친다 (2026-10-23 사용자 결정: 지난달도 수정)
 export default function BudgetScreen({ month: monthParam }: BudgetScreenProps) {
   const today = useToday();
@@ -70,7 +69,7 @@ export default function BudgetScreen({ month: monthParam }: BudgetScreenProps) {
               strokeWidth={ICON_STROKE_WIDTH}
             />
           </Link>
-          <h1 className='ml-1 text-title text-fg-primary'>예산 · 고정지출</h1>
+          <h1 className='ml-1 text-title text-fg-primary'>예산</h1>
           <span className='flex-1' />
           {month && currentMonth && (
             <MonthNav
@@ -182,10 +181,6 @@ export default function BudgetScreen({ month: monthParam }: BudgetScreenProps) {
           canEdit={isOnline}
           onEdit={() => setOpenSheet('categories')}
         />
-        {/* 고정지출은 지금의 규칙이라 이번 달을 볼 때만 (2026-10-23 사용자 결정) */}
-        {month === currentMonth && (
-          <FixedExpenseSection today={today} canEdit={isOnline} />
-        )}
       </div>
 
       <TotalBudgetSheet

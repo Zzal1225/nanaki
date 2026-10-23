@@ -1,9 +1,9 @@
 const HOME_HREF = '/';
 
-// 기록 탭 밖 주소지만 기록 탭에 속한 화면. 예산(/budget)은 가계부 화면에서 들어가는 화면이라 기록 탭을 켠 채 둔다.
+// 기록 탭 밖 주소지만 기록 탭에 속한 화면. 예산(/budget)·고정지출(/fixed-expenses)은 가계부 화면에서 들어가는 화면이라 기록 탭을 켠 채 둔다.
 // 주소를 /records 아래로 두지 않은 이유: 기록 layout(PC 목록 + 오른쪽 패널) 밖에서 넓게 보이게 (33b)
 const MENU_EXTRA_PATHS: Readonly<Record<string, readonly string[]>> = {
-  '/records': ['/budget'],
+  '/records': ['/budget', '/fixed-expenses'],
 };
 
 function isUnder(pathname: string, href: string): boolean {

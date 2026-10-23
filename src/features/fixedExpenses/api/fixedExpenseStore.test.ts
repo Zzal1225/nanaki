@@ -1,6 +1,5 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createRecord } from '@/features/records/api/recordStore';
 import { closeLocalDb } from '@/lib/db/localDb';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { createFakeBrowserClient } from '@/lib/supabase/fakeBrowserClient.testing';
@@ -13,10 +12,6 @@ import {
 vi.mock('@/lib/supabase/client', () => ({
   createSupabaseBrowserClient: vi.fn(),
 }));
-// 기록 만들기는 기록 저장소의 일이라(대기열·동기화) 여기서는 "무엇을 만들라고 했는지"만 본다
-vi.mock('@/features/records/api/recordStore', () => ({
-  createRecord: vi.fn(),
-}));
 
 let userCount = 0;
 let server: ReturnType<typeof createFakeBrowserClient>;
@@ -26,7 +21,6 @@ beforeEach(() => {
   vi.mocked(createSupabaseBrowserClient).mockReturnValue(
     server.client as never,
   );
-  vi.mocked(createRecord).mockReset();
 });
 afterEach(() => {
   closeLocalDb();
@@ -97,87 +91,41 @@ describe('고정지출 조회', () => {
 });
 
 describe('고정지출 추가', () => {
-  function respondSaved(lastRecordedOn: string | null) {
-    server.respond({
-      data: {
-        ...PHONE,
-        id: '33333333-3333-4333-8333-333333333333',
-        name: '월세',
-        amount: 700000,
-        payment_method: null,
-        schedule: { kind: 'monthly', day: 5 },
-        start_date: '2026-10-23',
-        last_recorded_on: lastRecordedOn,
-      },
-      error: null,
-    });
-  }
-
   function insertedRow() {
     return server.calls.find((call) => call.method === 'insert')?.args[0];
   }
 
-  it('기본: 오늘부터 시작, 지난 이번 달 결제일은 기록하지 않는다', async () => {
-    respondSaved(null);
+  it('오늘부터 시작, 체크한 기록의 날짜를 "이번 달 기록함"으로 남긴다 (서버가 같은 달에 또 만들지 않게)', async () => {
+    server.respond({
+      data: { ...PHONE, last_recorded_on: '2026-10-23' },
+      error: null,
+    });
     await createFixedExpense(RENT_INPUT, {
       today: '2026-10-23',
-      includeCurrentMonth: false,
+      recordedOn: '2026-10-23',
     });
 
     expect(insertedRow()).toMatchObject({
       name: '월세',
       payment_method: null,
+      schedule: { kind: 'monthly', day: 5 },
       start_date: '2026-10-23',
-      last_recorded_on: null,
-    });
-    expect(createRecord).not.toHaveBeenCalled();
-  });
-
-  it('"이번 달도 기록": 결제일 날짜로 고정지출 태그 기록을 만들고, 서버가 같은 달에 또 만들지 않게 표시한다', async () => {
-    respondSaved('2026-10-05');
-    await createFixedExpense(
-      { ...RENT_INPUT, paymentMethod: '계좌이체' },
-      { today: '2026-10-23', includeCurrentMonth: true },
-    );
-
-    expect(insertedRow()).toMatchObject({ last_recorded_on: '2026-10-05' });
-    expect(createRecord).toHaveBeenCalledWith({
-      type: 'expense',
-      occurredAt: '2026-10-05',
-      title: '월세',
-      memo: null,
-      tags: ['고정지출'],
-      fields: { amount: 700000, category: '생활', paymentMethod: '계좌이체' },
+      last_recorded_on: '2026-10-23',
     });
   });
 
-  it('결제일이 아직 안 지났으면 "이번 달도"를 골라도 지금 만들지 않는다 (서버가 그날 만든다)', async () => {
-    respondSaved(null);
-    await createFixedExpense(
-      { ...RENT_INPUT, schedule: { kind: 'monthly', day: 25 } },
-      { today: '2026-10-23', includeCurrentMonth: true },
-    );
-
-    expect(insertedRow()).toMatchObject({ last_recorded_on: null });
-    expect(createRecord).not.toHaveBeenCalled();
-  });
-
-  it('서버 저장이 실패하면 기록도 만들지 않는다', async () => {
+  it('서버 저장이 실패하면 오류 (작성 폼이 "등록하지 못했어요"로 알린다)', async () => {
     server.failNext();
     await expect(
-      createFixedExpense(RENT_INPUT, {
-        today: '2026-10-23',
-        includeCurrentMonth: true,
-      }),
+      createFixedExpense(RENT_INPUT, { today: '2026-10-23', recordedOn: null }),
     ).rejects.toThrow();
-    expect(createRecord).not.toHaveBeenCalled();
   });
 
   it('잘못된 값은 서버에 보내기 전에 막는다', async () => {
     await expect(
       createFixedExpense(
         { ...RENT_INPUT, amount: 0 },
-        { today: '2026-10-23', includeCurrentMonth: false },
+        { today: '2026-10-23', recordedOn: null },
       ),
     ).rejects.toThrow();
     expect(server.calls).toEqual([]);

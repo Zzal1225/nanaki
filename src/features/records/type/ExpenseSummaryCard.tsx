@@ -7,6 +7,8 @@ type ExpenseSummaryCardProps = {
   summary: ExpenseSummary;
   // 예산 줄 (features/budget). 이 카드는 그리기만 하고 예산 조회는 모른다: 자리만 받아 시안 순서(지출 → 예산 → 분류별)에 놓는다
   budget?: ReactNode;
+  // 고정지출 화면으로 가는 줄 (features/fixedExpenses). 예산 줄 바로 아래
+  fixedExpenses?: ReactNode;
 };
 
 // 가계부 요약: 이번 달 지출 + 예산 줄 + 분류별 막대 (시안 13a).
@@ -15,6 +17,7 @@ export default function ExpenseSummaryCard({
   monthLabel,
   summary,
   budget,
+  fixedExpenses,
 }: ExpenseSummaryCardProps) {
   return (
     <>
@@ -27,6 +30,7 @@ export default function ExpenseSummaryCard({
         </span>
       </div>
       {budget}
+      {fixedExpenses}
       {summary.categories.length > 0 && (
         <div className='flex flex-col gap-2 border-t border-border pt-4'>
           <h2 className='text-body-sm font-semibold text-fg-primary'>분류별</h2>

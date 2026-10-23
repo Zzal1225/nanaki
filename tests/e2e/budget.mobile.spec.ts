@@ -47,7 +47,7 @@ test('가계부 카드 → 예산 정하기 → 전체·분류별 예산 → 카
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: '예산 · 고정지출',
+      name: '예산',
       exact: true,
     }),
   ).toBeVisible();
@@ -86,55 +86,59 @@ test('가계부 카드 → 예산 정하기 → 전체·분류별 예산 → 카
   ).toBeVisible();
 });
 
-test('예산 화면의 고정지출: 체험 예시 → 추가 → 수정 → 해지', async ({
+test('가계부 쓰기의 고정지출 체크 → 가계부 화면 → 고정지출 화면에서 수정·해지', async ({
   page,
 }) => {
   await page.goto('/login');
   await page.getByRole('button', { name: '로그인 없이 체험하기' }).click();
   await expect(page).toHaveURL('/');
 
+  // 가계부 쓰기: 금액 칸 옆 "고정지출"을 체크하고 저장
+  await page.getByRole('button', { name: '새 기록 쓰기' }).click();
+  await page.getByRole('menuitem', { name: '가계부 쓰기' }).click();
+  await page.getByLabel('금액').fill('700000');
+  const fixedToggle = page.getByRole('checkbox', { name: '고정지출' });
+  await fixedToggle.click();
+  await expect(fixedToggle).toBeChecked();
+  await page
+    .getByRole('radiogroup', { name: '분류' })
+    .getByRole('radio', { name: '생활' })
+    .click();
+  await page.getByLabel('제목').fill('월세');
+  await page.getByLabel('제목').blur();
+  await expectNoProblems(page, '가계부 쓰기 (고정지출 체크)');
+  await page.getByRole('button', { name: '저장' }).click();
+  await expect(page).toHaveURL('/');
+  await expect(
+    page.getByText(/매달 \d+일에 자동으로 기록돼요/).first(),
+  ).toBeVisible();
+
+  // 가계부 화면 요약 카드: 체험 예시 2개 + 방금 만든 1개
   await bottomTab(page, '기록').click();
   await page
     .locator('a[href^="/records/type/expense"]')
     .filter({ visible: true })
     .first()
     .click();
-  await page.getByRole('link', { name: '예산 정하기' }).click();
+  await page.getByRole('link', { name: /고정지출 3개/ }).click();
+  await expect(page).toHaveURL('/fixed-expenses');
+  await expect(
+    page.getByRole('heading', { level: 1, name: '고정지출', exact: true }),
+  ).toBeVisible();
+  await expect(bottomTab(page, '기록')).toHaveAttribute('aria-current', 'page');
 
-  // 체험 계정에는 예시 고정지출 2개가 있다 (records/sample/sampleFixedExpenses)
-  const list = page.getByRole('region', { name: '고정지출' });
-  await expect(list.getByRole('button', { name: /통신비/ })).toBeVisible();
-  await expect(list.getByRole('button', { name: /넷플릭스/ })).toBeVisible();
-  await expect(list.getByText(/이번 달 고정지출 -68,500원/)).toBeVisible();
-
-  // 추가. 이번 달 결제일이 이미 지났으면 "이번 달 지출은?"을 묻는다 (기본: 다음 결제일부터).
-  // 날짜는 브라우저의 오늘로 정한다: 1일이면 지난 결제일이 없어 묻지 않는다
-  const todayDay = await page.evaluate(() => new Date().getDate());
-  const day = todayDay > 1 ? 1 : 28;
-  await list.getByRole('button', { name: '고정지출 추가' }).click();
-  const sheet = page.getByRole('dialog', { name: '고정지출 추가' });
-  await sheet.getByLabel('이름').fill('월세');
-  await sheet.getByLabel('금액').fill('700000');
-  await sheet.getByLabel('매달 며칠').fill(String(day));
-  if (todayDay > 1) {
-    await expect(
-      sheet.getByRole('radio', { name: '다음 결제일부터 기록하기' }),
-    ).toBeChecked();
-  }
-  await sheet
-    .getByRole('radiogroup', { name: '분류' })
-    .getByRole('radio', { name: '생활' })
-    .click();
-  await expectNoProblems(page, '고정지출 추가 시트');
-  await sheet.getByRole('button', { name: '저장' }).click();
-  await expect(sheet).toBeHidden();
+  // 이번 달 몫은 방금 쓴 기록이라 "기록됨"
+  const list = page.getByRole('region', { name: '고정지출 목록' });
   const rent = list.getByRole('button', { name: /월세/ });
+  await expect(rent).toContainText('기록됨');
   await expect(rent).toContainText('-700,000원');
+  await expectNoProblems(page, '고정지출 화면');
 
   // 수정: 줄을 누르면 시트
   await rent.click();
   const edit = page.getByRole('dialog', { name: '고정지출 수정' });
   await edit.getByLabel('금액').fill('650000');
+  await expectNoProblems(page, '고정지출 수정 시트');
   await edit.getByRole('button', { name: '저장' }).click();
   await expect(edit).toBeHidden();
   await expect(rent).toContainText('-650,000원');
@@ -148,5 +152,4 @@ test('예산 화면의 고정지출: 체험 예시 → 추가 → 수정 → 해
   const confirm = page.getByRole('alertdialog', { name: '월세를 해지할까요?' });
   await confirm.getByRole('button', { name: '해지' }).click();
   await expect(list.getByRole('button', { name: /월세/ })).toHaveCount(0);
-  await expectNoProblems(page, '예산 · 고정지출 화면');
 });

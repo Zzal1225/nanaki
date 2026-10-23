@@ -57,7 +57,7 @@ src/
   app/            라우트 (Next.js App Router). globals.css = 디자인 토큰 CSS 변수 + Tailwind 연결
                   auth/callback/ = 구글 로그인 뒤 code를 세션으로 바꾸는 Route Handler
                   api/account/ = 계정 삭제 Route Handler (DELETE, secret 키로 본인 계정만). API는 proxy가 로그인 화면으로 보내지 않고 스스로 401
-                  (app)/ = 로그인 뒤 화면 묶음(/, /records, /records/new, /records/view?id=, /records/edit?id=, /records/type/[type], /records/search, /settings, /budget?month=).
+                  (app)/ = 로그인 뒤 화면 묶음(/, /records, /records/new, /records/view?id=, /records/edit?id=, /records/type/[type], /records/search, /settings, /budget?month=, /fixed-expenses).
                   records/layout.tsx = PC에서 목록(왼쪽) + 상세·폼(오른쪽) 패널. 주소에 안 나타나는 괄호 폴더
                   serwist/sw.js/ = 서비스 워커 파일을 빌드 때 한 번 만드는 Route Handler('use cache'), manifest.ts = 설치 정보,
                   ~offline/ = 연결도 저장본도 없을 때의 대체 화면
@@ -71,10 +71,12 @@ src/
                   budget/ = 가계부 예산(step3, 달마다 따로). api/budgetStore = 예산 저장·조회의 유일한 입구(그 달이 없으면 가장 최근 달을 이어받음),
                   budgetProgress = 쓴 돈·남은 돈·남은 날·분류별 초과·예산 없는 분류(순수 함수), budgetText = 문구, schema/budget = Zod,
                   budgetRoutes = 예산 화면 주소(/budget?month=, 입구는 가계부 요약 카드의 예산 줄 하나), hooks/useBudget = 조회·저장 훅,
-                  ui/ = 예산 · 고정지출 화면(BudgetScreen, 달 이동·이어받음 안내·오프라인은 보기만), 편집 시트 2개(전체·분류별), 카드의 예산 줄(ExpenseBudgetSection)
+                  ui/ = 예산 화면(BudgetScreen, 달 이동·이어받음 안내·오프라인은 보기만), 편집 시트 2개(전체·분류별), 카드의 예산 줄(ExpenseBudgetSection)
                   fixedExpenses/ = 고정지출(step3, 매달 n일). api/fixedExpenseStore = 저장·조회의 유일한 입구(조회는 기기 사본 통째로, 바꾸기는 온라인 전용, 해지 = 삭제),
                   fixedExpenseDates = 결제일 계산(말일 맞춤·지났나·다음 결제일, DB 함수와 같은 규칙), fixedExpenseStatus = 목록 상태(기록됨·오늘·N일 남음), schema/fixedExpense = Zod,
-                  hooks/useFixedExpenses, ui/ = 예산 화면 아래 목록(FixedExpenseSection, 이번 달을 볼 때만)·추가/수정 시트(해지 포함, 지난 결제일이면 "이번 달도 기록" 선택).
+                  hooks/useFixedExpenses, ui/ = 고정지출 화면(FixedExpensesScreen, /fixed-expenses: 목록·수정 시트·해지, 추가 버튼 없음),
+                  가계부 카드의 "고정지출 N개 ›"(ExpenseFixedExpenseLine, 이번 달만), 가계부 쓰기 + 금액 옆 "고정지출" 체크(ExpenseCreateForm).
+                  만들기는 가계부 쓰기의 체크에서만: 기록은 폼이 저장하고, 같은 내용의 규칙(매달 기록 날짜의 일)을 서버에 넣는다.
                   그날 가계부 기록은 서버가 만든다(DB 함수 record_due_fixed_expenses + pg_cron 매시간, 한국 시간, 한 달에 한 번, 태그 '고정지출')
                   settings/ = 설정 화면. api/settingsStore = 설정 저장·조회의 유일한 입구(user_settings),
                   typeVisibility = 숨긴 타입 계산(순수 함수), hooks/useUserSettings = 설정 훅 + 켜진 타입(useVisibleTypes)
@@ -93,7 +95,8 @@ src/
                   records/sample/ = 체험하기 예시 기록(오늘 기준 최근 2주, 순수 함수)·예시 고정지출(결제일이 오늘과 겹치지 않게) + 넣기(addSampleRecords)
                   records/api/recordOutbox = 오프라인 작성 대기열 보내기(순서대로 id upsert, 서버 거절만 멈춤),
                   records/sync/ = 앱 틀의 OutboxSync(언제 보낼지·실패 토스트), OfflineBanner, OfflineWarmup(로그인 뒤 주요 화면 미리 받기)
-                  records/routes/ = 기록 화면 주소 만들기·읽기(recordRoutes)와 주소에서 값을 읽어 화면을 고르는 *FromUrl
+                  records/routes/ = 기록 화면 주소 만들기·읽기(recordRoutes)와 주소에서 값을 읽어 화면을 고르는 *FromUrl,
+                  createForms = 새로 쓰기에서 타입별 폼 등록표(가계부 → 고정지출 체크 폼). RecordForm은 fieldAddon·onCreated 자리만 연다
                   search/ = 검색 화면. searchState = 주소(?q=&type=&sort=&period=…) 해석·만들기, searchFilters = 필터 시트(타입 설정 filterFields + 필드 정의로 칸 생성·기간·거르기·칩 문구), searchResults = 타입 칩 건수·거르기·검색어 강조(순수 함수),
                   SearchView(모바일 페이지 / PC는 records/overview/RecordsSidePanel이 왼쪽 목록 자리에). 검색어 필터 글자는 records/api/searchQuery
   lib/supabase/   Supabase 클라이언트 (client.ts = 브라우저용, server.ts = 서버용, admin.ts = secret 키 관리자용·서버 전용), database.types.ts = DB 타입(자동 생성, 직접 수정 금지)
