@@ -178,6 +178,9 @@ export default function NakiScreen() {
 
   const limit = quota.data?.limit;
   const remaining = quota.data?.remaining;
+  // 오늘 횟수를 다 씀: 입력칸을 끄고 안내 글자로 이유를 알린다 (2026-10-23 사용자 요청: 다 쓴 채로 화면을 열면
+  // 보내기 버튼만 꺼져 있어 고장으로 보였다. 위쪽 "오늘 0/10회"만으로는 알아채기 어렵다)
+  const isOutOfQuota = remaining === 0;
 
   return (
     // data-chat-screen: 입력 중에는 이 상자를 100dvh로 늘려 입력 줄을 키보드 바로 위에 붙인다 (globals.css)
@@ -328,14 +331,19 @@ export default function NakiScreen() {
               }
             }}
             maxLength={MAX_NAKI_QUESTION_LENGTH}
-            disabled={!isOnline}
-            // 문구는 시안 AI (2026-10-23 사용자 결정). 예시 질문은 빈 화면이 따로 보여 주니 입력칸은 할 일만 말한다
+            disabled={!isOnline || isOutOfQuota}
+            // 문구는 시안 AI (2026-10-23 사용자 결정). 예시 질문은 빈 화면이 따로 보여 주니 입력칸은 할 일만 말한다.
+            // 횟수를 다 쓴 안내는 입력칸 폭(모바일 약 18자)에 맞춰 짧게: 자세한 안내는 질문했을 때 대화에 나온다(failureMessage)
             placeholder={
               !isOnline
                 ? '오프라인에서는 쓸 수 없어요'
-                : isAsking
-                  ? '답변을 기다리는 중…'
-                  : '기록에 대해 물어보세요'
+                : isOutOfQuota
+                  ? quota.data?.isGuest
+                    ? '오늘 질문을 다 썼어요 · 로그인하면 더'
+                    : '오늘 질문을 다 썼어요 · 내일 다시'
+                  : isAsking
+                    ? '답변을 기다리는 중…'
+                    : '기록에 대해 물어보세요'
             }
             enterKeyHint='send'
             className='min-w-0 flex-1 bg-transparent text-body text-fg-primary outline-none placeholder:text-fg-secondary disabled:text-fg-disabled'
@@ -358,7 +366,7 @@ export default function NakiScreen() {
             <button
               type='submit'
               aria-label='보내기'
-              disabled={!isOnline || draft.trim() === '' || remaining === 0}
+              disabled={!isOnline || draft.trim() === '' || isOutOfQuota}
               className='flex size-11 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground disabled:bg-surface-pressed disabled:text-fg-disabled'
             >
               <ArrowUp
