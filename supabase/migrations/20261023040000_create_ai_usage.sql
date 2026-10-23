@@ -74,14 +74,14 @@ returns void
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 begin
   update public.ai_usage
   set count = greatest(count - 1, 0)
   where user_id = p_user_id
     and day = (now() at time zone 'Asia/Seoul')::date;
 end;
-$;
+$$;
 
 -- 오늘 남은 횟수와 한도 (화면 "오늘 N/20회"). 줄이 없으면 한도 그대로
 create or replace function public.get_ai_quota()
