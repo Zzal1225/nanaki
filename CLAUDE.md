@@ -121,6 +121,8 @@ tests/e2e/          Playwright E2E (npm run test:e2e). CI가 같은 로컬 Supab
                     visual.spec.ts = 화면 비교, 기준 이미지는 visual.spec.ts-snapshots/ (CI 리눅스에서만 만든다:
                     화면을 바꾸면 CI가 실패하며 visual-snapshots 아티팩트를 올린다 → 내려받아 확인 → 바뀐 이미지만 커밋)
 supabase/migrations/ DB 구조(SQL). 새 파일은 npm run db:new, 적용은 npm run db:push, 타입은 npm run db:types
+supabase/functions/  Edge Function(Deno). send-routine-reminders = 루틴 알림 보내기(pg_cron 10분마다, @negrel/webpush, 404·410 구독 삭제).
+                     Deno 본체는 앱 tsc에서 빠진다(tsconfig exclude) → 순수 함수는 _shared/에 두고 앱 vitest가 테스트한다. 배포는 npx supabase functions deploy
 tokens/tokens.json   디자인 토큰의 유일한 원본. 바꾸면 src/app/globals.css를 맞춘다
 docs/real-device-checklist.md  아이폰 실기기에서만 확인할 것 (자동화 못 하는 것만, 레이아웃·입력·서비스 워커·로그인 PR 뒤)
 design/              시안 참고용. 앱 코드에서 import하지 않고 ESLint 대상도 아님 (README.md 참고)

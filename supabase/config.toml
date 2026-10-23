@@ -375,6 +375,11 @@ authorization_url_path = "/oauth/consent"
 # Allow dynamic client registration
 allow_dynamic_registration = false
 
+# 35b 루틴 알림 보내기: pg_cron(pg_net)이 부른다. 사용자 JWT가 없으므로 JWT 검사를 끄고,
+# 함수가 직접 Vault 비밀 값(x-reminder-secret 헤더)을 확인한다
+[functions.send-routine-reminders]
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.

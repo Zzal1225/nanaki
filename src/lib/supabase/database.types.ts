@@ -195,6 +195,32 @@ export type Database = {
         };
         Relationships: [];
       };
+      routine_reminders_sent: {
+        Row: {
+          day: string;
+          routine_id: string;
+          sent_at: string;
+        };
+        Insert: {
+          day: string;
+          routine_id: string;
+          sent_at?: string;
+        };
+        Update: {
+          day?: string;
+          routine_id?: string;
+          sent_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'routine_reminders_sent_routine_id_fkey';
+            columns: ['routine_id'];
+            isOneToOne: false;
+            referencedRelation: 'routines';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       routines: {
         Row: {
           created_at: string;
@@ -257,6 +283,17 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      claim_due_routine_reminders: {
+        Args: { p_now?: string };
+        Returns: {
+          day: string;
+          done_count: number;
+          goal: Json;
+          routine_id: string;
+          routine_name: string;
+          user_id: string;
+        }[];
+      };
       delete_expired_guests: { Args: never; Returns: number };
       get_ai_usage: {
         Args: { p_day: string; p_user_key: string };
