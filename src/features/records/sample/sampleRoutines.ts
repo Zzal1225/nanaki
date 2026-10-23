@@ -27,6 +27,7 @@ export function buildSampleRoutines(
     schedule: { kind: 'weekly', days: [0, 1, 2, 3, 4, 5, 6] },
     goal: { kind: 'count', target: WATER_TARGET, unit: '잔' },
     endedOn: null,
+    remindAt: null,
   };
   const stretch: Routine = {
     id: ids.stretch,
@@ -35,6 +36,7 @@ export function buildSampleRoutines(
     schedule: { kind: 'weekly', days: [1, 3, 5] },
     goal: { kind: 'check' },
     endedOn: null,
+    remindAt: null,
   };
 
   function check(

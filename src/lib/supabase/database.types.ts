@@ -126,6 +126,33 @@ export type Database = {
         };
         Relationships: [];
       };
+      push_subscriptions: {
+        Row: {
+          auth: string;
+          created_at: string;
+          endpoint: string;
+          id: string;
+          p256dh: string;
+          user_id: string;
+        };
+        Insert: {
+          auth: string;
+          created_at?: string;
+          endpoint: string;
+          id?: string;
+          p256dh: string;
+          user_id?: string;
+        };
+        Update: {
+          auth?: string;
+          created_at?: string;
+          endpoint?: string;
+          id?: string;
+          p256dh?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       records: {
         Row: {
           created_at: string;
@@ -175,6 +202,7 @@ export type Database = {
           goal: Json;
           id: string;
           name: string;
+          remind_at: string | null;
           schedule: Json;
           start_date: string;
           updated_at: string;
@@ -186,6 +214,7 @@ export type Database = {
           goal: Json;
           id?: string;
           name: string;
+          remind_at?: string | null;
           schedule: Json;
           start_date: string;
           updated_at?: string;
@@ -197,6 +226,7 @@ export type Database = {
           goal?: Json;
           id?: string;
           name?: string;
+          remind_at?: string | null;
           schedule?: Json;
           start_date?: string;
           updated_at?: string;
@@ -238,6 +268,10 @@ export type Database = {
       };
       refund_ai_quota: {
         Args: { p_day: string; p_user_key: string };
+        Returns: undefined;
+      };
+      save_push_subscription: {
+        Args: { p_auth: string; p_endpoint: string; p_p256dh: string };
         Returns: undefined;
       };
       use_ai_quota: {

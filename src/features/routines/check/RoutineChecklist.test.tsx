@@ -24,6 +24,7 @@ const WATER: Routine = {
   schedule: { kind: 'weekly', days: [0, 1, 2, 3, 4, 5, 6] },
   goal: { kind: 'count', target: 8, unit: '잔' },
   endedOn: null,
+  remindAt: null,
 };
 const STRETCH: Routine = {
   ...WATER,

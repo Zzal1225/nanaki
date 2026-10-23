@@ -86,7 +86,9 @@ src/
                   만들기는 가계부 쓰기의 체크에서만: 기록은 폼이 저장하고, 같은 내용의 규칙(매달 기록 날짜의 일)을 서버에 넣는다.
                   그날 가계부 기록은 서버가 만든다(DB 함수 record_due_fixed_expenses + pg_cron 매시간, 한국 시간, 한 달에 한 번, 태그 '고정지출')
                   settings/ = 설정 화면. api/settingsStore = 설정 저장·조회의 유일한 입구(user_settings),
-                  typeVisibility = 숨긴 타입 계산(순수 함수), hooks/useUserSettings = 설정 훅 + 켜진 타입(useVisibleTypes)
+                  typeVisibility = 숨긴 타입 계산(순수 함수), hooks/useUserSettings = 설정 훅 + 켜진 타입(useVisibleTypes), PushDeviceSection = 이 기기 알림 끄기(받는 중일 때만)
+                  push/ = 루틴 푸시 알림 받기(step3, 35a). api/pushStore = 이 기기 구독 저장·삭제의 유일한 입구(권한 묻기·save_push_subscription, NEXT_PUBLIC_VAPID_PUBLIC_KEY 없으면 알림 UI 숨김),
+                  pushSupport = 이 기기에서 받을 수 있는지(아이폰은 홈 화면 앱만, 순수 함수), hooks/useThisDevicePush. 루틴 폼의 알림 칸은 routines/form/RemindInput(10분 단위)
                   calendar/ = 홈 캘린더. calendarState = 주소(?date=) 해석·만들기와 공통 탐색(이전·다음 달, 키보드 이동),
                   useCalendar = 상태(고른 날짜) + 바꾸는 함수(history.replaceState), CalendarGrid(월 캘린더, role=grid, roving tabindex),
                   CalendarHeader(달 이동 + 오늘 아이콘 TodayButton), DaySummary(하루 요약)
@@ -107,6 +109,7 @@ src/
                   search/ = 검색 화면. searchState = 주소(?q=&type=&sort=&period=…) 해석·만들기, searchFilters = 필터 시트(타입 설정 filterFields + 필드 정의로 칸 생성·기간·거르기·칩 문구), searchResults = 타입 칩 건수·거르기·검색어 강조(순수 함수),
                   SearchView(모바일 페이지 / PC는 records/overview/RecordsSidePanel이 왼쪽 목록 자리에). 검색어 필터 글자는 records/api/searchQuery
   lib/supabase/   Supabase 클라이언트 (client.ts = 브라우저용, server.ts = 서버용, admin.ts = secret 키 관리자용·서버 전용), database.types.ts = DB 타입(자동 생성, 직접 수정 금지)
+  lib/pushPayload  푸시 알림 내용 { title, body, url, tag } 읽기 (서비스 워커가 쓰고, 보내는 Edge Function이 같은 모양으로 보낸다)
   lib/sentry/     Sentry 공통 설정(sentryOptions: 켜는 조건, 개인 데이터 수집 끔). instrumentation(-client).ts와 app/global-error.tsx가 쓴다
   lib/db/         기기 사본(Dexie). localDb = 계정마다 IndexedDB(서버 줄 그대로), sync = (updated_at, id) 커서로 바뀐 것만 받기,
                   currentLocalDb = 지금 계정의 사본. 기록·루틴 조회는 recordStore·routineStore가 이걸 거쳐 사본에서 읽는다

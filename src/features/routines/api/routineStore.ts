@@ -32,6 +32,8 @@ export function toRoutine(row: RoutineRow): Routine | null {
     schedule: row.schedule,
     goal: row.goal,
     endedOn: row.ended_on,
+    // DB time은 'HH:MM:SS'로 온다. 앱은 'HH:MM'. 알림 칸이 생기기 전에 받아 둔 사본 줄에는 칸이 없어 undefined
+    remindAt: row.remind_at ? row.remind_at.slice(0, 5) : null,
   });
   if (!result.success) {
     console.warn('[routines] 검증 실패로 루틴을 건너뜀', row.id);
@@ -49,6 +51,7 @@ export function toRoutineInsert(routine: Routine): RoutineInsert {
     schedule: routine.schedule,
     goal: routine.goal,
     ended_on: routine.endedOn,
+    remind_at: routine.remindAt,
   };
 }
 
@@ -146,7 +149,7 @@ export async function createRoutine(
   return toRoutineOrThrow(data);
 }
 
-// 이름·시작일·반복·목표만 고친다. 그만둔 날은 endRoutine이 따로 맡는다.
+// 이름·시작일·반복·목표·알림 시각만 고친다. 그만둔 날은 endRoutine이 따로 맡는다.
 // 반복을 바꾸면 지난 달성률도 새 규칙으로 다시 계산된다 (규칙을 버전별로 쌓지 않는다, 감수한 점)
 export async function updateRoutine(
   id: string,
@@ -160,6 +163,7 @@ export async function updateRoutine(
       start_date: values.startDate,
       schedule: values.schedule,
       goal: values.goal,
+      remind_at: values.remindAt,
     })
     .eq('id', id)
     .select()

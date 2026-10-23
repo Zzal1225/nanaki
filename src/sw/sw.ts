@@ -11,6 +11,7 @@ import {
   PAGE_CACHE_PREFIX,
   warmPageCache,
 } from '../lib/offlinePages';
+import { parsePushPayload } from '../lib/pushPayload';
 
 // 서비스 워커: 브라우저와 네트워크 사이에서 요청을 가로채, 연결이 없어도 화면 틀(HTML·JS·CSS)을 내준다.
 // 기록 데이터는 여기서 저장하지 않는다 (IndexedDB 사본, src/lib/db). 여기는 "화면을 여는 것"만 맡는다.
@@ -136,6 +137,55 @@ self.addEventListener('message', (event) => {
         fetchPage: (path) => fetch(path, { credentials: 'same-origin' }),
       }),
     ),
+  );
+});
+
+// ── 푸시 알림 (35a 받기, 보내기는 35b Edge Function) ──────────────
+// 알림 아이콘: 앱 아이콘(나키 아바타) 원 그대로
+const NOTIFICATION_ICON = '/icons/nanaki-icon-192.png';
+
+function readPushJson(event: PushEvent): unknown {
+  try {
+    return event.data?.json();
+  } catch {
+    return null;
+  }
+}
+
+// 받은 푸시마다 알림을 띄운다 (구독할 때 userVisibleOnly로 약속했다. 띄우지 않으면 브라우저가 구독을 끊을 수 있다)
+self.addEventListener('push', (event) => {
+  const payload = parsePushPayload(readPushJson(event));
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: NOTIFICATION_ICON,
+      tag: payload.tag,
+      data: { url: payload.url },
+    }),
+  );
+});
+
+// 알림을 누르면 앱을 연다. 이미 열린 창이 있으면 그 창을 앞으로 가져와 그 주소로 옮기고, 없으면 새 창
+// (홈 화면 앱은 창이 하나라 새로 띄우지 않고 그 앱이 열린다)
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const { url } = parsePushPayload(event.notification.data);
+  const target = new URL(url, self.location.origin).href;
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({
+        type: 'window',
+        includeUncontrolled: true,
+      });
+      const existing = windows[0];
+      if (existing) {
+        await existing.focus();
+        // 서비스 워커가 맡지 않은 창(uncontrolled)은 navigate가 실패한다 → 창만 앞으로
+        await existing.navigate(target).catch(() => null);
+        return;
+      }
+      await self.clients.openWindow(target);
+    })(),
   );
 });
 

@@ -58,6 +58,7 @@ describe('RoutineForm', () => {
       ...values,
       id: 'new-id',
       endedOn: null,
+      remindAt: null,
     }));
     vi.mocked(updateRoutine).mockReset();
     replace.mockReset();
@@ -143,6 +144,7 @@ describe('RoutineForm', () => {
       schedule: { kind: 'weekly', days: [1, 3, 5] },
       goal: { kind: 'check' },
       endedOn: null,
+      remindAt: null,
     };
     vi.mocked(updateRoutine).mockResolvedValue(routine);
     renderForm({ mode: 'edit', routine, doneHref: '/back' });

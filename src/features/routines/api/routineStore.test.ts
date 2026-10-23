@@ -24,11 +24,20 @@ const ROW = {
   schedule: { kind: 'monthly', day: 31 },
   goal: { kind: 'check' },
   ended_on: null,
+  remind_at: null,
   created_at: '',
   updated_at: '',
 };
 
 describe('toRoutine', () => {
+  it('알림 시각: DB time "21:30:00" → "21:30", 칸이 없는 옛 사본 줄은 알림 없음', () => {
+    expect(toRoutine({ ...ROW, remind_at: '21:30:00' })?.remindAt).toBe(
+      '21:30',
+    );
+    const oldRow: Partial<typeof ROW> = { ...ROW };
+    delete oldRow.remind_at;
+    expect(toRoutine(oldRow as typeof ROW)?.remindAt).toBeNull();
+  });
   it('DB 줄(snake_case, Json) → 검사를 통과한 루틴', () => {
     expect(toRoutine(ROW)).toEqual({
       id: ROW.id,
@@ -37,6 +46,7 @@ describe('toRoutine', () => {
       schedule: { kind: 'monthly', day: 31 },
       goal: { kind: 'check' },
       endedOn: null,
+      remindAt: null,
     });
   });
   it('모양이 틀린 반복(DB는 종류만 검사)은 null로 건너뛴다', () => {
@@ -50,7 +60,12 @@ describe('toRoutine', () => {
     const insert = toRoutineInsert(routine);
     expect(insert).not.toHaveProperty('user_id');
     expect(
-      toRoutine({ ...ROW, ...insert, ended_on: insert.ended_on ?? null }),
+      toRoutine({
+        ...ROW,
+        ...insert,
+        ended_on: insert.ended_on ?? null,
+        remind_at: insert.remind_at ?? null,
+      }),
     ).toEqual(routine);
   });
 });

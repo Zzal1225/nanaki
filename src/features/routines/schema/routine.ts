@@ -41,6 +41,14 @@ export const goalSchema = z.discriminatedUnion('kind', [
 ]);
 export type Goal = z.infer<typeof goalSchema>;
 
+// 알림 시각 (35a): 한국 시각 'HH:MM', 10분 단위만 (2026-10-23 사용자 결정, DB check와 같은 규칙).
+// 보내는 작업이 10분마다 돌아서 그 사이 시각은 언제 울릴지 애매하다. 분의 끝자리가 0인지를 정규식으로 본다
+export const REMIND_MINUTE_STEP = 10;
+export const remindAtSchema = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):[0-5]0$/, { error: '10분 단위로 골라 주세요' })
+  .nullable();
+
 export const routineSchema = z.object({
   id: z.uuid(),
   name: z
@@ -59,6 +67,8 @@ export const routineSchema = z.object({
   goal: goalSchema,
   // 그만둔 날. 이 날부터 일정이 없다. null = 진행 중
   endedOn: z.iso.date().nullable(),
+  // 알림 시각. null = 알림 없음. 알림은 이 기기가 아니라 구독한 모든 기기로 간다 (push_subscriptions)
+  remindAt: remindAtSchema,
 });
 export type Routine = z.infer<typeof routineSchema>;
 
@@ -87,4 +97,23 @@ export function formatGoal(goal: Goal): string {
 // DB가 "그만둔 날 >= 시작일"을 검사하고, 시작일 = 그만둔 날이면 일정이 하루도 없는 루틴이 된다
 export function toEndedOn(routine: Routine, today: string): string {
   return today < routine.startDate ? routine.startDate : today;
+}
+
+// 알림 시각 선택지: 00:00부터 23:50까지 10분마다 (144개). 폼의 고르기 칸이 쓴다
+export function listRemindTimes(): string[] {
+  const times: string[] = [];
+  for (let minutes = 0; minutes < 24 * 60; minutes += REMIND_MINUTE_STEP) {
+    const hour = String(Math.floor(minutes / 60)).padStart(2, '0');
+    const minute = String(minutes % 60).padStart(2, '0');
+    times.push(`${hour}:${minute}`);
+  }
+  return times;
+}
+
+// '21:30' → '오후 9:30' (한국어 앱의 시각 표기). 자정은 '오전 12:00', 정오는 '오후 12:00'
+export function formatRemindTime(remindAt: string): string {
+  const [hour, minute] = remindAt.split(':').map(Number);
+  const period = hour < 12 ? '오전' : '오후';
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${period} ${hour12}:${String(minute).padStart(2, '0')}`;
 }
