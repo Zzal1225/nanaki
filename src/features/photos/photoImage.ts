@@ -15,12 +15,17 @@ const ENCODE_QUALITY = 0.8;
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 export const PHOTO_ACCEPT = ACCEPTED_TYPES.join(',');
 
-export type PhotoFileCheck = 'ok' | 'heic' | 'unsupported';
+// 받는 최대 크기 (시안 P6: 최대 20MB). 휴대폰 원본(수 MB)은 넉넉히 들어오고, 그보다 크면 기기에서 그림을 펼칠 때
+// 메모리가 모자라 탭이 죽을 수 있다 (4000×3000 그림 하나 = 펼치면 약 48MB)
+export const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
 
-// 파일 형식 확인. HEIC는 type이 비어 오는 브라우저가 있어 확장자도 본다
+export type PhotoFileCheck = 'ok' | 'heic' | 'unsupported' | 'tooLarge';
+
+// 파일 형식·크기 확인. HEIC는 type이 비어 오는 브라우저가 있어 확장자도 본다
 export function checkPhotoFile(file: {
   type: string;
   name: string;
+  size?: number;
 }): PhotoFileCheck {
   const name = file.name.toLowerCase();
   if (
@@ -31,7 +36,8 @@ export function checkPhotoFile(file: {
   ) {
     return 'heic';
   }
-  return ACCEPTED_TYPES.includes(file.type) ? 'ok' : 'unsupported';
+  if (!ACCEPTED_TYPES.includes(file.type)) return 'unsupported';
+  return (file.size ?? 0) > MAX_PHOTO_BYTES ? 'tooLarge' : 'ok';
 }
 
 export const PHOTO_FILE_MESSAGE: Record<
@@ -40,6 +46,7 @@ export const PHOTO_FILE_MESSAGE: Record<
 > = {
   heic: 'HEIC 사진은 올릴 수 없어요. 아이폰 설정 > 카메라 > 포맷에서 "높은 호환성"을 고르거나 JPG로 저장해 주세요',
   unsupported: 'JPG, PNG, WebP 사진만 올릴 수 있어요',
+  tooLarge: '20MB보다 큰 사진은 올릴 수 없어요',
 };
 
 // 비율을 지키며 긴 변을 max 안으로 (작은 사진은 키우지 않는다)

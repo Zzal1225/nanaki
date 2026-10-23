@@ -7,6 +7,7 @@ import {
 import {
   createPhotoUrls,
   deletePhoto,
+  findLatestPhoto,
   listPhotosOfRecord,
   PHOTO_URL_EXPIRES_SECONDS,
   uploadPhoto,
@@ -20,6 +21,8 @@ export const photoKeys = {
   all: ['photos'] as const,
   ofRecord: (recordId: string) =>
     [...photoKeys.all, 'record', recordId] as const,
+  latest: (kind: PhotoKind, excludeRecordId: string | null) =>
+    [...photoKeys.all, 'latest', kind, excludeRecordId] as const,
   urls: (paths: readonly string[]) =>
     [...photoKeys.all, 'urls', ...paths] as const,
 };
@@ -32,6 +35,20 @@ export function useRecordPhotos(recordId: string, isEnabled: boolean) {
   return useQuery({
     queryKey: photoKeys.ofRecord(recordId),
     queryFn: isEnabled ? () => listPhotosOfRecord(recordId) : skipToken,
+  });
+}
+
+// 같은 자세의 지난 사진 (맞춰 자르기의 겹치기). isEnabled: 자르기 창이 열려 있고 온라인일 때만
+export function useLatestPhoto(
+  kind: PhotoKind,
+  excludeRecordId: string | undefined,
+  isEnabled: boolean,
+) {
+  return useQuery({
+    queryKey: photoKeys.latest(kind, excludeRecordId ?? null),
+    queryFn: isEnabled
+      ? () => findLatestPhoto(kind, excludeRecordId)
+      : skipToken,
   });
 }
 
@@ -62,8 +79,8 @@ export function useUploadPhoto(recordId: string) {
       if (input.replacing) await deletePhoto(input.replacing);
       return photo;
     },
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: photoKeys.ofRecord(recordId) }),
+    // 기록의 사진만이 아니라 photos 전체: 방금 올린 사진이 다음 자르기의 "지난 사진"이 된다
+    onSettled: () => queryClient.invalidateQueries({ queryKey: photoKeys.all }),
   });
 }
 

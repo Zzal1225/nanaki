@@ -15,6 +15,16 @@ describe('올릴 수 있는 사진인지', () => {
     expect(checkPhotoFile({ type: '', name: 'IMG_1.heic' })).toBe('heic');
   });
 
+  it('20MB를 넘으면 받지 않는다', () => {
+    const MB = 1024 * 1024;
+    expect(
+      checkPhotoFile({ type: 'image/jpeg', name: 'a.jpg', size: 20 * MB }),
+    ).toBe('ok');
+    expect(
+      checkPhotoFile({ type: 'image/jpeg', name: 'a.jpg', size: 20 * MB + 1 }),
+    ).toBe('tooLarge');
+  });
+
   it('그 밖의 형식은 받지 않는다', () => {
     expect(checkPhotoFile({ type: 'image/gif', name: 'a.gif' })).toBe(
       'unsupported',

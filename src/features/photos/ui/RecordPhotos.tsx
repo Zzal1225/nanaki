@@ -16,7 +16,7 @@ import {
   useRecordPhotos,
   useUploadPhoto,
 } from '../hooks/usePhotos';
-import PhotoFileButton from './PhotoFileButton';
+import PhotoPickButton from './PhotoPickButton';
 import PhotoViewer from './PhotoViewer';
 import { photoErrorMessage } from './photoError';
 
@@ -91,9 +91,13 @@ export default function RecordPhotos({ recordId, kinds }: RecordPhotosProps) {
             const isUploading =
               upload.isPending && upload.variables?.kind === kind;
             return (
-              <PhotoFileButton
+              <PhotoPickButton
                 key={kind}
+                kind={kind}
+                excludeRecordId={recordId}
                 onPick={(file) => void add(kind, file)}
+                onError={setError}
+                onStart={() => setError(null)}
                 disabled={upload.isPending || photos.isPending}
                 className='flex aspect-[3/4] flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-surface text-body-sm font-medium text-fg-secondary hover:bg-surface-hover'
               >
@@ -103,7 +107,7 @@ export default function RecordPhotos({ recordId, kinds }: RecordPhotosProps) {
                   strokeWidth={ICON_STROKE_WIDTH}
                 />
                 {isUploading ? '올리는 중…' : `${label} 사진`}
-              </PhotoFileButton>
+              </PhotoPickButton>
             );
           })}
         </div>
