@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   dueDateInMonth,
+  formatMonthDay,
   isDueDatePassed,
   nextDueDate,
 } from './fixedExpenseDates';
@@ -29,5 +30,10 @@ describe('고정지출 결제일', () => {
     expect(nextDueDate(23, '2026-10-23', '2026-10-23')).toBe('2026-11-23');
     // 12월 → 다음 해 1월
     expect(nextDueDate(5, '2026-12-20', null)).toBe('2027-01-05');
+  });
+
+  it('날짜 글자: 앞의 0 없이', () => {
+    expect(formatMonthDay('2026-10-05')).toBe('10월 5일');
+    expect(formatMonthDay('2027-01-31')).toBe('1월 31일');
   });
 });

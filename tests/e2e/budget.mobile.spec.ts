@@ -45,7 +45,11 @@ test('가계부 카드 → 예산 정하기 → 전체·분류별 예산 → 카
   await expect(page).toHaveURL(/\/budget\?month=\d{4}-\d{2}$/);
   // name은 부분 일치라 "10월 예산"·"분류별 예산" 제목도 잡힌다 → 화면 제목(h1)만 정확히
   await expect(
-    page.getByRole('heading', { level: 1, name: '예산', exact: true }),
+    page.getByRole('heading', {
+      level: 1,
+      name: '예산 · 고정지출',
+      exact: true,
+    }),
   ).toBeVisible();
   // 예산 화면도 기록 탭에 속한다
   await expect(bottomTab(page, '기록')).toHaveAttribute('aria-current', 'page');
@@ -80,4 +84,69 @@ test('가계부 카드 → 예산 정하기 → 전체·분류별 예산 → 카
   await expect(
     page.getByRole('link', { name: /예산 600,000원/ }),
   ).toBeVisible();
+});
+
+test('예산 화면의 고정지출: 체험 예시 → 추가 → 수정 → 해지', async ({
+  page,
+}) => {
+  await page.goto('/login');
+  await page.getByRole('button', { name: '로그인 없이 체험하기' }).click();
+  await expect(page).toHaveURL('/');
+
+  await bottomTab(page, '기록').click();
+  await page
+    .locator('a[href^="/records/type/expense"]')
+    .filter({ visible: true })
+    .first()
+    .click();
+  await page.getByRole('link', { name: '예산 정하기' }).click();
+
+  // 체험 계정에는 예시 고정지출 2개가 있다 (records/sample/sampleFixedExpenses)
+  const list = page.getByRole('region', { name: '고정지출' });
+  await expect(list.getByRole('button', { name: /통신비/ })).toBeVisible();
+  await expect(list.getByRole('button', { name: /넷플릭스/ })).toBeVisible();
+  await expect(list.getByText(/이번 달 고정지출 -68,500원/)).toBeVisible();
+
+  // 추가. 이번 달 결제일이 이미 지났으면 "이번 달 지출은?"을 묻는다 (기본: 다음 결제일부터).
+  // 날짜는 브라우저의 오늘로 정한다: 1일이면 지난 결제일이 없어 묻지 않는다
+  const todayDay = await page.evaluate(() => new Date().getDate());
+  const day = todayDay > 1 ? 1 : 28;
+  await list.getByRole('button', { name: '고정지출 추가' }).click();
+  const sheet = page.getByRole('dialog', { name: '고정지출 추가' });
+  await sheet.getByLabel('이름').fill('월세');
+  await sheet.getByLabel('금액').fill('700000');
+  await sheet.getByLabel('매달 며칠').fill(String(day));
+  if (todayDay > 1) {
+    await expect(
+      sheet.getByRole('radio', { name: '다음 결제일부터 기록하기' }),
+    ).toBeChecked();
+  }
+  await sheet
+    .getByRole('radiogroup', { name: '분류' })
+    .getByRole('radio', { name: '생활' })
+    .click();
+  await expectNoProblems(page, '고정지출 추가 시트');
+  await sheet.getByRole('button', { name: '저장' }).click();
+  await expect(sheet).toBeHidden();
+  const rent = list.getByRole('button', { name: /월세/ });
+  await expect(rent).toContainText('-700,000원');
+
+  // 수정: 줄을 누르면 시트
+  await rent.click();
+  const edit = page.getByRole('dialog', { name: '고정지출 수정' });
+  await edit.getByLabel('금액').fill('650000');
+  await edit.getByRole('button', { name: '저장' }).click();
+  await expect(edit).toBeHidden();
+  await expect(rent).toContainText('-650,000원');
+
+  // 해지: 확인 창 뒤 목록에서 빠진다
+  await rent.click();
+  await page
+    .getByRole('dialog', { name: '고정지출 수정' })
+    .getByRole('button', { name: '해지' })
+    .click();
+  const confirm = page.getByRole('alertdialog', { name: '월세를 해지할까요?' });
+  await confirm.getByRole('button', { name: '해지' }).click();
+  await expect(list.getByRole('button', { name: /월세/ })).toHaveCount(0);
+  await expectNoProblems(page, '예산 · 고정지출 화면');
 });
