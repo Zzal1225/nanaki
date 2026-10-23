@@ -44,6 +44,9 @@ test('+ → 가계부 쓰기 → 홈 요약 → 상세 → 수정 → 삭제·�
     .getByRole('radio', { name: '식비' })
     .click();
   await page.getByLabel('제목').fill('편의점');
+  // 글자를 치는 동안 저장 줄은 화면 아래에 붙지 않고 폼 끝 제자리에 있다 (키보드 위로 떠서 메모 칸을 가렸다, PR #86).
+  // 입력을 마치면(포커스가 떠나면) 다시 아래에 붙어 홈 막대에 가리지 않고 보인다
+  await page.getByLabel('제목').blur();
   await expect(page.getByRole('button', { name: '저장' })).toBeInViewport();
   await page.getByRole('button', { name: '저장' }).click();
 

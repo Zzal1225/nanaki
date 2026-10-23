@@ -166,6 +166,32 @@ describe('SearchView', () => {
     ).toBeDefined();
   });
 
+  it('결과가 없던 검색 뒤 새 검색어를 찾는 동안 "없어요"를 먼저 보이지 않는다', async () => {
+    vi.mocked(searchRecords).mockResolvedValue({
+      entries: [],
+      isTruncated: false,
+    });
+    navigation.search = 'q=없는말';
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const tree = () => (
+      <QueryClientProvider client={queryClient}>
+        <SearchView />
+      </QueryClientProvider>
+    );
+    const { rerender } = render(tree());
+    await screen.findByText("'없는말'에 맞는 기록이 없어요");
+
+    // 새 검색은 아직 끝나지 않았다
+    vi.mocked(searchRecords).mockReturnValue(new Promise(() => {}));
+    navigation.search = 'q=커피';
+    rerender(tree());
+
+    expect(screen.queryByText(/에 맞는 기록이 없어요/)).toBeNull();
+    expect(document.querySelector('[aria-busy="true"]')).not.toBeNull();
+  });
+
   it('한도를 넘으면 일부만 보인다고 알린다', async () => {
     vi.mocked(searchRecords).mockResolvedValue({
       entries: [COFFEE],

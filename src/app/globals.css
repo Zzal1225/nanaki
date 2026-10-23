@@ -171,6 +171,25 @@
     [data-hide-while-typing] {
     display: none;
   }
+
+  /* 작성 폼의 저장 버튼 줄: 평소엔 화면 아래에 붙어 있지만(sticky), 글자를 치는 동안은 폼 맨 끝 제자리로.
+     아이폰 홈 화면 앱에서 키보드가 뜨면 화면 아래 붙은 줄이 키보드 위로 떠서 메모 칸 한가운데를 가렸다 (2026-10-23 아이폰 확인).
+     하단 탭·+ 버튼을 숨기는 것과 같은 이유 (키보드가 떠도 레이아웃 높이는 그대로라 바닥 기준 위치가 어긋난다) */
+  :root:has(
+      :is(
+        input:not(
+          [type='checkbox'],
+          [type='radio'],
+          [type='date'],
+          [type='button'],
+          [type='submit']
+        ),
+        textarea
+      ):focus
+    )
+    [data-unstick-while-typing] {
+    position: static;
+  }
 }
 
 /* ---------- 4. Tailwind 연결 ---------- */

@@ -213,7 +213,11 @@ function SearchViewContent() {
             다시 시도
           </Button>
         </div>
-      ) : search.isPending ? (
+      ) : search.isPending ||
+        // 새 검색어를 찾는 동안은 이전 결과를 남겨 둔다(keepPreviousData, 깜박임 방지). 그런데 이전 결과가 0개면
+        // 아래 문구가 새 검색어로 "'편의점간식'에 맞는 기록이 없어요"를 먼저 그렸다가 결과로 바뀌었다 (2026-10-23 아이폰 확인).
+        // 남겨 둔 결과가 비었을 때만 불러오는 중으로 본다: 결과가 있으면 그대로 두는 편이 덜 깜박인다
+        (search.isPlaceholderData && results.length === 0) ? (
         <div aria-busy='true' className='flex flex-col gap-2 px-4 pt-6 md:px-6'>
           <div className='h-17 animate-pulse rounded-lg bg-surface-hover' />
           <div className='h-17 animate-pulse rounded-lg bg-surface-hover' />
