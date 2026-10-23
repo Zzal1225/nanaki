@@ -7,7 +7,7 @@ import {
   type PhotoKind,
 } from '@/features/records/schema/photoKinds';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
-import PhotoFileButton from './PhotoFileButton';
+import PhotoPickButton from './PhotoPickButton';
 
 // 고른 사진 한 장: 올릴 파일 + 미리보기 주소(URL.createObjectURL). 주소를 만들고 닫는 일은 들고 있는 쪽(RecordFormWithPhotos)이 한다
 export type PickedPreview = { file: File; url: string };
@@ -17,6 +17,7 @@ type NewRecordPhotosProps = {
   picks: Partial<Record<PhotoKind, PickedPreview>>;
   onPick: (kind: PhotoKind, file: File) => void;
   onRemove: (kind: PhotoKind) => void;
+  onError: (message: string | null) => void;
   isOnline: boolean;
   isDisabled: boolean;
   error: string | null;
@@ -30,6 +31,7 @@ export default function NewRecordPhotos({
   picks,
   onPick,
   onRemove,
+  onError,
   isOnline,
   isDisabled,
   error,
@@ -46,9 +48,12 @@ export default function NewRecordPhotos({
           const picked = picks[kind];
           if (!picked) {
             return (
-              <PhotoFileButton
+              <PhotoPickButton
                 key={kind}
+                kind={kind}
                 onPick={(file) => onPick(kind, file)}
+                onError={onError}
+                onStart={() => onError(null)}
                 disabled={!canPick}
                 className='flex aspect-[3/4] flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-surface text-body-sm font-medium text-fg-secondary hover:bg-surface-hover'
               >
@@ -58,14 +63,17 @@ export default function NewRecordPhotos({
                   strokeWidth={ICON_STROKE_WIDTH}
                 />
                 {`${label} 사진`}
-              </PhotoFileButton>
+              </PhotoPickButton>
             );
           }
           // 바꾸기(사진을 누름)와 빼기(×)를 형제로 둔다: label 안에 button을 넣으면 누르는 곳이 겹쳐 빼기를 눌러도 파일 창이 열린다
           return (
             <div key={kind} className='relative aspect-[3/4]'>
-              <PhotoFileButton
+              <PhotoPickButton
+                kind={kind}
                 onPick={(file) => onPick(kind, file)}
+                onError={onError}
+                onStart={() => onError(null)}
                 disabled={!canPick}
                 className='block size-full overflow-hidden rounded-lg bg-surface-hover'
               >
@@ -79,7 +87,7 @@ export default function NewRecordPhotos({
                 <span className='absolute bottom-2 left-2 rounded-full bg-overlay px-2 py-0.5 text-caption font-semibold text-white'>
                   {label}
                 </span>
-              </PhotoFileButton>
+              </PhotoPickButton>
               <button
                 type='button'
                 onClick={() => onRemove(kind)}

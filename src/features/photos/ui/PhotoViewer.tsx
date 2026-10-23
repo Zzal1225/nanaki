@@ -12,7 +12,7 @@ import {
   usePhotoUrls,
   useUploadPhoto,
 } from '../hooks/usePhotos';
-import PhotoFileButton from './PhotoFileButton';
+import PhotoPickButton from './PhotoPickButton';
 import { photoErrorMessage } from './photoError';
 
 type PhotoViewerProps = {
@@ -100,13 +100,17 @@ function ViewerBody({ photo, onClose }: { photo: Photo; onClose: () => void }) {
         </p>
       )}
       <div className='grid grid-cols-2 gap-2'>
-        <PhotoFileButton
+        <PhotoPickButton
+          kind={photo.kind}
+          excludeRecordId={photo.recordId}
           onPick={(file) => void replace(file)}
+          onError={setError}
+          onStart={() => setError(null)}
           disabled={upload.isPending}
           className='inline-flex min-h-11 items-center justify-center rounded-md border border-border bg-surface text-body-sm font-semibold text-fg-primary hover:bg-surface-hover'
         >
           {upload.isPending ? '올리는 중…' : '바꾸기'}
-        </PhotoFileButton>
+        </PhotoPickButton>
         <Button variant='secondary' onClick={() => setIsConfirming(true)}>
           지우기
         </Button>

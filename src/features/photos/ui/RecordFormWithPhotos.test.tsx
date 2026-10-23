@@ -21,6 +21,20 @@ vi.mock('@/features/records/api/recordStore', () => ({
 vi.mock('../api/attachNewRecordPhotos', () => ({
   attachNewRecordPhotos: vi.fn(),
 }));
+// 맞춰 자르기(37c1)의 캔버스 부분은 jsdom에 없어 가짜로: 고른 사진은 자르기 창을 거쳐 CROPPED가 된다
+// vi.hoisted: vi.mock은 파일 맨 위로 끌어올려져서, 그 안에서 쓰는 값도 함께 올려야 한다
+const CROPPED = vi.hoisted(
+  () => new File(['c'], 'front.jpg', { type: 'image/jpeg' }),
+);
+vi.mock('../photoCrop', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  readImageSize: vi.fn(async () => ({ width: 1200, height: 1600 })),
+  renderCroppedPhoto: vi.fn(async () => CROPPED),
+}));
+vi.mock('../api/photoStore', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  findLatestPhoto: vi.fn(async () => null),
+}));
 const replace = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace }) }));
 
@@ -47,6 +61,13 @@ function pickFile(slotText: string | RegExp, file: File) {
   fireEvent.change(input, { target: { files: [file] } });
 }
 
+// 고르고 → 자르기 창에서 완료까지
+async function pickAndCrop(slotText: string, file: File) {
+  pickFile(slotText, file);
+  fireEvent.click(await screen.findByRole('button', { name: '완료' }));
+  await screen.findByText(`${slotText} 바꾸기`);
+}
+
 function fillWaistAndSave() {
   fireEvent.change(screen.getByLabelText('허리둘레 (선택)'), {
     target: { value: '78' },
@@ -68,6 +89,12 @@ describe('RecordFormWithPhotos (체형 쓰기 + 사진)', () => {
     // jsdom에는 blob 주소 만들기가 없다
     URL.createObjectURL = vi.fn(() => 'blob:preview');
     URL.revokeObjectURL = vi.fn();
+    // 자르기 창이 틀 크기를 잴 때 쓴다 (jsdom에 없다)
+    globalThis.ResizeObserver = class {
+      observe() {}
+      disconnect() {}
+      unobserve() {}
+    };
   });
   afterEach(() => {
     cleanup();
@@ -76,14 +103,14 @@ describe('RecordFormWithPhotos (체형 쓰기 + 사진)', () => {
 
   it('고른 사진을 미리 보여 주고, 저장하면 새 기록 id로 붙이러 간 뒤 이동한다', async () => {
     renderForm();
-    pickFile('정면 사진', JPG);
-    expect(screen.getByText('정면 사진 바꾸기')).toBeTruthy();
+    await pickAndCrop('정면 사진', JPG);
 
     fillWaistAndSave();
 
     await waitFor(() => expect(replace).toHaveBeenCalledWith('/'));
+    // 올리는 것은 원본이 아니라 맞춰 자른 사진
     expect(attachNewRecordPhotos).toHaveBeenCalledWith('new-id', [
-      { kind: 'front', file: JPG },
+      { kind: 'front', file: CROPPED },
     ]);
     expect(useToastStore.getState().toast).toBeNull();
   });
@@ -97,7 +124,7 @@ describe('RecordFormWithPhotos (체형 쓰기 + 사진)', () => {
 
   it('뺀 사진은 올리지 않고 미리보기 주소를 닫는다', async () => {
     renderForm();
-    pickFile('정면 사진', JPG);
+    await pickAndCrop('정면 사진', JPG);
     fireEvent.click(screen.getByRole('button', { name: '정면 사진 빼기' }));
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:preview');
     expect(screen.getByText('정면 사진')).toBeTruthy();
@@ -120,7 +147,7 @@ describe('RecordFormWithPhotos (체형 쓰기 + 사진)', () => {
       failedKinds: ['front'],
     });
     renderForm();
-    pickFile('정면 사진', JPG);
+    await pickAndCrop('정면 사진', JPG);
     fillWaistAndSave();
 
     await waitFor(() => expect(replace).toHaveBeenCalledWith('/'));
