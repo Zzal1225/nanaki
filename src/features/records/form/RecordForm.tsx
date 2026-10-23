@@ -195,8 +195,13 @@ export default function RecordForm(props: RecordFormProps) {
         })}
       />
 
-      {/* 모바일에서 저장 버튼이 하단 탭 바로 위에 붙어 있게 한다 (--tab-bar-height에 홈 막대 여백이 이미 들어 있다) */}
-      <div className='sticky bottom-(--tab-bar-height) -mx-4 flex flex-col gap-2 bg-bg px-4 py-3 md:bottom-0 md:-mx-6 md:px-6'>
+      {/* 모바일에서 저장 버튼이 하단 탭 바로 위에 붙어 있게 한다 (--tab-bar-height에 홈 막대 여백이 이미 들어 있다).
+          글자를 치는 동안은 붙지 않고 폼 끝 제자리에 놓인다 (data-unstick-while-typing, globals.css) */}
+      <div
+        data-unstick-while-typing
+        // -mt-3: 폼 칸 사이 간격(24px)에 이 줄의 위 여백(12px)이 더해져 마지막 칸과 저장 버튼 사이가 멀어 보였다 (2026-10-23 사용자) → 합쳐 24px
+        className='sticky bottom-(--tab-bar-height) -mx-4 -mt-3 flex flex-col gap-2 bg-bg px-4 py-3 md:bottom-0 md:-mx-6 md:px-6'
+      >
         {saving.error && (
           <p role='alert' className='text-caption text-danger'>
             저장하지 못했어요. 잠시 후 다시 시도해 주세요.

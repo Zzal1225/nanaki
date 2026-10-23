@@ -84,8 +84,9 @@ export default function HomeCalendar() {
     : [];
 
   return (
-    // 모바일 아래 여백: 하단 탭은 main이 비워 두고, 여기서는 스피드 다이얼(56px)에 마지막 줄이 가리지 않게 더 비운다
-    <div className='flex flex-col pb-24 md:pb-6 lg:h-dvh lg:flex-row lg:gap-6 lg:p-6'>
+    // 모바일 아래 여백(하단 탭 + 스피드 다이얼)은 앱 틀의 main이 모든 화면에 같이 비운다 (--fab-clearance).
+    // 예전엔 여기서도 pb-24를 더해 홈만 여백이 두 번(96 + 88px) 들어갔다 (2026-10-23 사용자: "여백이 너무 심하다")
+    <div className='flex flex-col md:pb-6 lg:h-dvh lg:flex-row lg:gap-6 lg:p-6'>
       <section
         aria-labelledby={titleId}
         className='flex flex-col lg:min-w-0 lg:flex-1'

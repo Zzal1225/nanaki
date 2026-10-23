@@ -15,7 +15,11 @@ export default function AppLayout({ children }: LayoutProps<'/'>) {
   return (
     // 기록 데이터는 로그인 뒤 화면에서만 쓰므로 Provider도 이 틀 안에만 둔다
     <QueryProvider>
-      <div className='flex min-h-dvh'>
+      {/* shrink-0: body는 세로 flex 상자이고, 홈 화면 앱에서는 body 높이가 화면 높이로 고정된다(globals.css, #77).
+          그러면 이 틀이 화면 높이까지 눌려(min-h-dvh가 flex 항목의 "내용보다 작아지지 않음"을 덮어씀) 내용이 아래 여백 자리를 차지했다.
+          본문 끝 여백(+ 버튼·키보드)이 사라져 루틴 +/−가 + 버튼에 가리고, 키보드가 메모 칸을 가렸다 (2026-10-23 아이폰 진단: body 스크롤 높이 = 화면 높이 793).
+          사파리 탭은 body 높이가 고정이 아니라 생기지 않았다 */}
+      <div className='flex min-h-dvh shrink-0'>
         <Sidebar action={<SidebarNewRecordMenu />} />
         {/* 모바일은 하단 탭과 떠 있는 + 버튼이 위를 덮으므로 그만큼 아래를 비운다 (globals.css --fab-clearance).
             키보드가 떠 있으면 그 높이(--keyboard-inset, KeyboardInset)도 더해 맨 아래 입력칸을 키보드 위로 올릴 공간을 만든다 */}
