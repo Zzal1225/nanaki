@@ -19,6 +19,7 @@ import {
   type NakiQuota,
 } from '../nakiApi';
 import { useNakiCustomNames } from '../hooks/useNakiCustomNames';
+import type { NakiAggregate } from '../nakiAggregate';
 import NakiAnswer from './NakiAnswer';
 import NakiAvatar from '@/shared/ui/NakiAvatar';
 import TypingExamples from './TypingExamples';
@@ -31,6 +32,7 @@ type Turn =
       question: string;
       status: 'answered';
       state: SearchState | null;
+      aggregate: NakiAggregate;
     }
   | {
       id: number;
@@ -149,6 +151,7 @@ export default function NakiScreen() {
           question: trimmed,
           status: 'answered',
           state: result.state,
+          aggregate: result.aggregate,
         });
         setRemaining(result.remaining);
       } else {
@@ -286,7 +289,10 @@ export default function NakiScreen() {
                         {failureMessage(turn)}
                       </p>
                     ) : turn.state ? (
-                      <NakiAnswer state={turn.state} />
+                      <NakiAnswer
+                        state={turn.state}
+                        aggregate={turn.aggregate}
+                      />
                     ) : (
                       // 해석하지 못함: 탓하지 않고 물을 수 있는 모양을 보여 준다
                       <div className='flex flex-col gap-3 pt-1.5'>

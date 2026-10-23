@@ -4,6 +4,7 @@ import {
   type RecordType,
 } from '@/features/records/schema/recordTypes';
 import { isDateString } from '@/shared/date/calendar';
+import { LIST_AGGREGATE, NAKI_INTENTS } from './nakiAggregate';
 import { EMPTY_CUSTOM_NAMES, nakiCustomNamesSchema } from './nakiCustomNames';
 
 // 나키 API(/api/naki)의 요청·응답 모양. 서버와 브라우저가 같은 스키마를 쓴다:
@@ -47,6 +48,10 @@ const searchStateSchema = z.object({
 export const nakiAnswerSchema = z.object({
   // null = 잘 이해하지 못했어요
   state: searchStateSchema.nullable(),
+  // 34e 무엇을 계산할지 (서버가 걸렀다, nakiAggregate). 없으면 목록: 새 화면이 예전 서버 응답을 받아도 그린다
+  aggregate: z
+    .object({ intent: z.enum(NAKI_INTENTS), field: z.string().nullable() })
+    .default(LIST_AGGREGATE),
   remaining: z.number().int(),
 });
 

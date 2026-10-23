@@ -28,6 +28,9 @@ function deps(overrides: Partial<NakiQuestionDeps> = {}): NakiQuestionDeps {
         selects: [{ field: 'category', values: ['외식'] }],
         ranges: [],
         ratingMin: null,
+        // 34e: 계산 조건도 걸러서 돌려준다
+        intent: 'sum',
+        metric: 'amount',
       },
     }),
     ...overrides,
@@ -41,6 +44,7 @@ describe('나키 질문 처리 (서버)', () => {
       status: 200,
       body: {
         remaining: 9,
+        aggregate: { intent: 'sum', field: 'amount' },
         state: {
           keyword: '',
           type: 'expense',
@@ -136,7 +140,11 @@ describe('나키 질문 처리 (서버)', () => {
     });
     expect(await handleNakiQuestion(BODY, d)).toEqual({
       status: 200,
-      body: { state: null, remaining: 9 },
+      body: {
+        state: null,
+        aggregate: { intent: 'list', field: null },
+        remaining: 9,
+      },
     });
     expect(d.refundQuota).not.toHaveBeenCalled();
   });

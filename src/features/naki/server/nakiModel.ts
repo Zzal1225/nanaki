@@ -49,6 +49,8 @@ const FAKE_OUTPUT: NakiAiOutput = {
   selects: [],
   ranges: [],
   ratingMin: null,
+  intent: 'list',
+  metric: null,
 };
 
 export function isNakiModelConfigured(): boolean {

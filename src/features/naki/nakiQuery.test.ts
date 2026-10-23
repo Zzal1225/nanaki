@@ -18,6 +18,8 @@ function output(values: Partial<NakiAiOutput>): NakiAiOutput {
     selects: [],
     ranges: [],
     ratingMin: null,
+    intent: null,
+    metric: null,
     ...values,
   };
 }

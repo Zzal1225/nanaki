@@ -34,13 +34,20 @@ import {
 } from '@/shared/date/month';
 import { useToday } from '@/shared/date/useToday';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
-import { formatNakiSummary, summarizeNakiResults } from '../nakiSummary';
+import type { NakiAggregate } from '../nakiAggregate';
+import {
+  formatNakiSummary,
+  orderForPreview,
+  summarizeNakiResults,
+} from '../nakiSummary';
 
 // 답 안에 바로 보여 줄 기록 수 (2026-10-23 사용자 결정: 대화가 길어지지 않게 3개 + 기록 탭에서 모두 보기)
 const PREVIEW_COUNT = 3;
 
 type NakiAnswerProps = {
   state: SearchState;
+  // 무엇을 계산할지 (34e, 서버가 거름). 계산은 여기서 찾은 기록으로 한다
+  aggregate: NakiAggregate;
 };
 
 // 기간 칩 글자. 한 달 전체면 "2026년 9월"(시안), 아니면 검색 칩과 같은 "09.01 (화) ~ 09.15 (화)"
@@ -55,7 +62,7 @@ function formatNakiPeriod(period: PeriodFilter, fallback: string): string {
 
 // 나키의 답 하나 (시안 AI): "이렇게 이해했어요" 칩 → 우리가 계산한 한 줄 → 기록 3개 → 기록 탭에서 모두 보기.
 // 칩이 핵심이다: AI가 질문을 잘못 이해했으면 사용자가 칩을 보고 바로 알아챈다 (결과만 보여 주면 틀린 것을 모른다)
-export default function NakiAnswer({ state }: NakiAnswerProps) {
+export default function NakiAnswer({ state, aggregate }: NakiAnswerProps) {
   const today = useToday();
   const visibleTypes = useVisibleTypes();
   const pendingIds = usePendingRecordIds();
@@ -70,6 +77,9 @@ export default function NakiAnswer({ state }: NakiAnswerProps) {
     state.type,
     visibleTypes,
   );
+  const summary = summarizeNakiResults(results, state.type, aggregate);
+  // 최고·최저면 그 기록을 맨 위에 (답의 근거를 바로 보이게)
+  const preview = orderForPreview(results, summary).slice(0, PREVIEW_COUNT);
   const typeStyle = state.type ? RECORD_TYPE_STYLE[state.type] : null;
   const conditionChips = [
     ...describeFilters(state.type, state.period, state.fields).map((chip) =>
@@ -141,7 +151,7 @@ export default function NakiAnswer({ state }: NakiAnswerProps) {
       ) : (
         <>
           <p className='text-body font-semibold text-fg-primary tabular-nums'>
-            {formatNakiSummary(summarizeNakiResults(results, state.type))}
+            {formatNakiSummary(summary)}
             {/* 검색은 한 번에 최근 300건까지 본다. 넘으면 합계가 일부 기록 기준이라는 것을 숨기지 않는다 */}
             {search.data?.isTruncated && (
               <span className='ml-1 text-caption font-medium text-fg-secondary'>
@@ -151,7 +161,7 @@ export default function NakiAnswer({ state }: NakiAnswerProps) {
           </p>
           {results.length > 0 && (
             <ul className='flex flex-col gap-2'>
-              {results.slice(0, PREVIEW_COUNT).map((entry) => (
+              {preview.map((entry) => (
                 <li key={entry.id}>
                   <RecentRecordItem
                     type={entry.type}

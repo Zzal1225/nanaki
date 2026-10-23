@@ -21,6 +21,7 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:e2e": "playwright test",
     "lighthouse": "node scripts/lighthouse.mts && lhci assert",
+    "naki:eval": "node scripts/naki-eval.mjs",
     "perf:calendar": "node scripts/calendar-perf.mts"
   },
   "dependencies": {
