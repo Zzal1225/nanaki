@@ -24,20 +24,20 @@
 
 ## 2. 기술 스택
 
-| 영역               | 선택                                                                                                                                                                                  |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 프레임워크         | Next.js (App Router) + TypeScript (strict)                                                                                                                                            |
-| PWA                | Serwist                                                                                                                                                                               |
-| 로컬 저장·오프라인 | Dexie.js (IndexedDB) + outbox 동기화 (step2). 기준 데이터는 서버, `updatedAt`은 서버가 붙이고 충돌은 마지막 저장 우선                                                                 |
-| 서버 상태          | TanStack Query                                                                                                                                                                        |
-| UI 상태            | Zustand                                                                                                                                                                               |
-| 폼·검증            | React Hook Form + Zod                                                                                                                                                                 |
-| 스타일·컴포넌트    | Tailwind CSS + Radix UI, 캘린더는 date-fns로 직접 구현                                                                                                                                |
-| 백엔드             | Supabase (Postgres + RLS, Auth, Storage 비공개 버킷, Edge Function, pg_cron)                                                                                                          |
-| AI                 | 무료 티어 모델, Next.js Route Handler에서 호출, 어댑터 파일 하나로 감싼다. 질문과 필드 정의(이름·종류·기본 선택지)만 보내고 필터 JSON을 받아 Zod로 검증 후 RLS 권한으로 Supabase 조회 |
-| 알림               | pg_cron + Edge Function + Web Push                                                                                                                                                    |
-| 테스트             | Vitest, Testing Library (+ jsdom: 훅·컴포넌트 테스트용 가짜 브라우저 환경), Playwright (E2E + 375/768/1024/1280/1440 + 1280×700 + 터치 기기 프리셋 화면 비교)                         |
-| CI/CD·운영         | GitHub Actions, Lighthouse CI, Vercel (기본 도메인), Sentry (step2)                                                                                                                   |
+| 영역               | 선택                                                                                                                                                                                                                                                                                            |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 프레임워크         | Next.js (App Router) + TypeScript (strict)                                                                                                                                                                                                                                                      |
+| PWA                | Serwist                                                                                                                                                                                                                                                                                         |
+| 로컬 저장·오프라인 | Dexie.js (IndexedDB) + outbox 동기화 (step2). 기준 데이터는 서버, `updatedAt`은 서버가 붙이고 충돌은 마지막 저장 우선                                                                                                                                                                           |
+| 서버 상태          | TanStack Query                                                                                                                                                                                                                                                                                  |
+| UI 상태            | Zustand                                                                                                                                                                                                                                                                                         |
+| 폼·검증            | React Hook Form + Zod                                                                                                                                                                                                                                                                           |
+| 스타일·컴포넌트    | Tailwind CSS + Radix UI, 캘린더는 date-fns로 직접 구현                                                                                                                                                                                                                                          |
+| 백엔드             | Supabase (Postgres + RLS, Auth, Storage 비공개 버킷, Edge Function, pg_cron)                                                                                                                                                                                                                    |
+| AI                 | Gemini 무료 등급 + Vercel AI SDK(ai, @ai-sdk/google), Next.js Route Handler에서 호출, 어댑터 파일 하나로 감싼다(ESLint로 강제). 질문과 필드 정의(이름·종류·기본 선택지)만 보내고 조건 JSON을 받아 Zod로 검증·허용된 것만 남긴 뒤 검색과 같은 길(기기 사본)로 찾는다. 하루 횟수는 DB 함수가 센다 |
+| 알림               | pg_cron + Edge Function + Web Push                                                                                                                                                                                                                                                              |
+| 테스트             | Vitest, Testing Library (+ jsdom: 훅·컴포넌트 테스트용 가짜 브라우저 환경), Playwright (E2E + 375/768/1024/1280/1440 + 1280×700 + 터치 기기 프리셋 화면 비교)                                                                                                                                   |
+| CI/CD·운영         | GitHub Actions, Lighthouse CI, Vercel (기본 도메인), Sentry (step2)                                                                                                                                                                                                                             |
 
 - 위 목록에 없는 라이브러리를 추가하려면 먼저 사용자에게 **이유와 대안**을 제시하고 승인을 받는다.
 - AI 제공자 SDK는 어댑터 파일 밖에서 import하지 않는다. API 키는 서버(Route Handler)에만 둔다. 사용자가 직접 입력한 선택지(`customOptions`)와 기록 내용은 AI에 보내지 않는다.
@@ -57,7 +57,8 @@ src/
   app/            라우트 (Next.js App Router). globals.css = 디자인 토큰 CSS 변수 + Tailwind 연결
                   auth/callback/ = 구글 로그인 뒤 code를 세션으로 바꾸는 Route Handler
                   api/account/ = 계정 삭제 Route Handler (DELETE, secret 키로 본인 계정만). API는 proxy가 로그인 화면으로 보내지 않고 스스로 401
-                  (app)/ = 로그인 뒤 화면 묶음(/, /records, /records/new, /records/view?id=, /records/edit?id=, /records/type/[type], /records/search, /settings, /budget?month=, /fixed-expenses).
+                  api/naki/ = 나키 Route Handler (POST 질문 → 조건, GET 오늘 남은 횟수). 처리 순서는 features/naki/server/handleNakiQuestion
+                  (app)/ = 로그인 뒤 화면 묶음(/, /records, /records/new, /records/view?id=, /records/edit?id=, /records/type/[type], /records/search, /settings, /budget?month=, /fixed-expenses, /naki).
                   records/layout.tsx = PC에서 목록(왼쪽) + 상세·폼(오른쪽) 패널. 주소에 안 나타나는 괄호 폴더
                   serwist/sw.js/ = 서비스 워커 파일을 빌드 때 한 번 만드는 Route Handler('use cache'), manifest.ts = 설치 정보,
                   ~offline/ = 연결도 저장본도 없을 때의 대체 화면
@@ -67,7 +68,11 @@ src/
                   layout/ = 사이드바·하단 탭(메뉴 목록은 navItems.ts 한 곳), query/ = TanStack Query Provider,
                   toast/ = 화면을 옮겨도 남는 알림(Zustand 저장소 + Radix Toast, 앱 틀에 하나),
                   network/ = 연결 상태(useOnlineStatus, 화면 안내용), navigation/ = 주소가 틀렸을 때 다른 화면으로 옮기기(useReplaceRoute), date/ = 날짜 도우미(로컬 YYYY-MM-DD, YYYY-MM 달 계산, date-fns 캘린더 계산(calendar.ts), 브라우저에서만 읽는 오늘 useToday)
-  features/       기능 단위 모듈. auth/ = 로그인·로그아웃(authActions), 지금 계정(useCurrentUser). 이후 search, chat ...
+  features/       기능 단위 모듈. auth/ = 로그인·로그아웃(authActions), 지금 계정(useCurrentUser).
+                  naki/ = AI 챗봇 나키(step3). nakiQuery = AI 답 모양(Zod)·AI에 보낼 필드 정의·지시문·AI 답 → 검색 조건(허용된 타입·칸·연산자만),
+                  nakiApi = API 요청·응답 스키마(서버·브라우저 공용), nakiSummary = 합계·건수 한 줄, nakiLimits = 하루 횟수 규칙(환경 변수, 한국 날짜, DB 결과 읽기), api/nakiClient = 브라우저의 유일한 입구,
+                  server/nakiModel = AI 제공자 어댑터(이 파일만 ai·@ai-sdk/* import, ESLint로 강제), server/handleNakiQuestion = 로그인·횟수·AI·되돌리기 순서,
+                  ui/ = NakiScreen(대화는 메모리만, 안내 3종), NakiAnswer("이렇게 이해했어요" 칩·계산 한 줄·기록 3개·기록 탭에서 보기), TypingExamples(빈 화면 예시 질문 타이핑). 찾기는 검색과 같은 길(기기 사본)
                   budget/ = 가계부 예산(step3, 달마다 따로). api/budgetStore = 예산 저장·조회의 유일한 입구(그 달이 없으면 가장 최근 달을 이어받음),
                   budgetProgress = 쓴 돈·남은 돈·남은 날·분류별 초과·예산 없는 분류(순수 함수), budgetText = 문구, schema/budget = Zod,
                   budgetRoutes = 예산 화면 주소(/budget?month=, 입구는 가계부 요약 카드의 예산 줄 하나), hooks/useBudget = 조회·저장 훅,

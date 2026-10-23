@@ -23,6 +23,8 @@ export const WARMUP_PATHS: readonly string[] = [
   '/budget',
   // 고정지출 (33d). 주소에 값이 없어 한 장
   '/fixed-expenses',
+  // 나키 (step3). 오프라인에서 열면 "오프라인에서는 쓸 수 없어요" 안내와 검색으로 가는 길을 보여 준다
+  '/naki',
 ];
 
 // 앱을 연 직후에는 첫 화면 요청과 겹치지 않게 조금 미룬다

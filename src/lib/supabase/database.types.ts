@@ -39,6 +39,24 @@ export type Database = {
   };
   public: {
     Tables: {
+      ai_usage: {
+        Row: {
+          count: number;
+          day: string;
+          key: string;
+        };
+        Insert: {
+          count?: number;
+          day: string;
+          key: string;
+        };
+        Update: {
+          count?: number;
+          day?: string;
+          key?: string;
+        };
+        Relationships: [];
+      };
       budgets: {
         Row: {
           category_amounts: Json;
@@ -210,9 +228,26 @@ export type Database = {
     };
     Functions: {
       delete_expired_guests: { Args: never; Returns: number };
+      get_ai_usage: {
+        Args: { p_day: string; p_user_key: string };
+        Returns: number;
+      };
       record_due_fixed_expenses: {
         Args: { p_today?: string };
         Returns: number;
+      };
+      refund_ai_quota: {
+        Args: { p_day: string; p_user_key: string };
+        Returns: undefined;
+      };
+      use_ai_quota: {
+        Args: {
+          p_day: string;
+          p_global_limit: number;
+          p_user_key: string;
+          p_user_limit: number;
+        };
+        Returns: string;
       };
     };
     Enums: {
