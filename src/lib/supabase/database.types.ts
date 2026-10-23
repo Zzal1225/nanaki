@@ -344,7 +344,7 @@ export type Database = {
         Returns: number;
       };
       list_orphan_photo_files: {
-        Args: { p_limit?: number; p_min_age?: unknown };
+        Args: { p_limit?: number; p_min_age?: string };
         Returns: string[];
       };
       record_due_fixed_expenses: {

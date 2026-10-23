@@ -43,9 +43,11 @@ type FormOutput = z.output<FormSchema>;
 // 새로 쓰기의 date·doneHref: 홈 캘린더에서 고른 날에 쓰기 시작하면 그 날짜로 채우고, 닫거나 저장하면 그 날로 돌아간다
 // 새로 쓰기에만 있는 덧붙임 자리 (타입별 기능이 폼 안을 몰라도 끼어들 수 있게. 폼은 어떤 타입의 무엇인지 모른다):
 // - fieldAddon: 그 이름의 입력칸 옆에 붙일 것 (가계부 금액 옆 "고정지출" 체크, features/fixedExpenses)
+// - section: 메모 아래·저장 버튼 위의 구역 하나 (눈바디 정면·측면 사진, features/photos). 칸 하나 옆이 아니라 폭 전체가 필요해서 fieldAddon과 따로 둔다
 // - onCreated: 기록을 저장한 뒤 할 일. 여기서 난 실패는 기록 저장을 되돌리지 않는다 (부르는 쪽이 알아서 알린다)
 export type CreateFormExtras = {
   fieldAddon?: { name: string; node: ReactNode };
+  section?: ReactNode;
   onCreated?: (entry: RecordEntry) => Promise<void>;
 };
 
@@ -226,6 +228,9 @@ export default function RecordForm(props: RecordFormProps) {
           setValueAs: emptyToNull,
         })}
       />
+
+      {/* 선택 입력(태그·메모)과 같은 줄기에 둔다: 사진도 "(선택)"이고, 저장 버튼 바로 위라 고른 뒤 바로 저장한다 */}
+      {props.mode === 'create' && props.section}
 
       {/* 모바일에서 저장 버튼이 하단 탭 바로 위에 붙어 있게 한다 (--tab-bar-height에 홈 막대 여백이 이미 들어 있다).
           글자를 치는 동안은 붙지 않고 폼 끝 제자리에 놓인다 (data-unstick-while-typing, globals.css) */}

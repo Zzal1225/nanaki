@@ -89,7 +89,8 @@ src/
                   typeVisibility = 숨긴 타입 계산(순수 함수), hooks/useUserSettings = 설정 훅 + 켜진 타입(useVisibleTypes), PushDeviceSection = 이 기기 알림 끄기(받는 중일 때만)
                   photos/ = 사진(step4: 눈바디·후기). api/photoStore = 사진 저장·조회·삭제의 유일한 입구(비공개 버킷 photos, 서명 링크 10분, 온라인 전용),
                   photoImage = 형식 확인(JPG·PNG·WebP, HEIC 안내)·EXIF 회전·다시 인코딩(위치 정보 제거)·긴 변 1600 + 썸네일 400 WebP(못 만들면 JPEG). 계정 삭제 API가 사진 파일을 먼저 지운다.
-                  hooks/usePhotos(서명 링크는 닫히기 2분 전에 새로), ui/RecordPhotos = 상세의 사진 칸(타입 설정 photoKinds대로, 오프라인·대기열이면 안내), PhotoViewer(시트: 크게 보기·바꾸기·지우기)
+                  hooks/usePhotos(서명 링크는 닫히기 2분 전에 새로), ui/RecordPhotos = 상세의 사진 칸(타입 설정 photoKinds대로, 오프라인·대기열이면 안내), PhotoViewer(시트: 크게 보기·바꾸기·지우기),
+                  쓰기 화면: ui/RecordFormWithPhotos(고른 사진은 메모리만) + NewRecordPhotos(표시), api/attachNewRecordPhotos = 저장 뒤 기록 보내기 → 서버에 간 것 확인 → 한 장씩 올리기
                   push/ = 루틴 푸시 알림 받기(step3, 35a). api/pushStore = 이 기기 구독 저장·삭제의 유일한 입구(권한 묻기·save_push_subscription, NEXT_PUBLIC_VAPID_PUBLIC_KEY 없으면 알림 UI 숨김),
                   pushSupport = 이 기기에서 받을 수 있는지(아이폰은 홈 화면 앱만, 순수 함수), hooks/useThisDevicePush. 루틴 폼의 알림 칸은 routines/form/RemindInput(10분 단위)
                   calendar/ = 홈 캘린더. calendarState = 주소(?date=) 해석·만들기와 공통 탐색(이전·다음 달, 키보드 이동),
@@ -108,7 +109,7 @@ src/
                   records/api/recordOutbox = 오프라인 작성 대기열 보내기(순서대로 id upsert, 서버 거절만 멈춤),
                   records/sync/ = 앱 틀의 OutboxSync(언제 보낼지·실패 토스트), OfflineBanner, OfflineWarmup(로그인 뒤 주요 화면 미리 받기)
                   records/routes/ = 기록 화면 주소 만들기·읽기(recordRoutes)와 주소에서 값을 읽어 화면을 고르는 *FromUrl,
-                  createForms = 새로 쓰기에서 타입별 폼 등록표(가계부 → 고정지출 체크 폼). RecordForm은 fieldAddon·onCreated 자리만 연다
+                  createForms = 새로 쓰기에서 타입별 폼 등록표(가계부 → 고정지출 체크 폼, photoKinds가 있는 타입 → 사진 칸 폼). RecordForm은 fieldAddon·section·onCreated 자리만 연다
                   search/ = 검색 화면. searchState = 주소(?q=&type=&sort=&period=…) 해석·만들기, searchFilters = 필터 시트(타입 설정 filterFields + 필드 정의로 칸 생성·기간·거르기·칩 문구), searchResults = 타입 칩 건수·거르기·검색어 강조(순수 함수),
                   SearchView(모바일 페이지 / PC는 records/overview/RecordsSidePanel이 왼쪽 목록 자리에). 검색어 필터 글자는 records/api/searchQuery
   lib/supabase/   Supabase 클라이언트 (client.ts = 브라우저용, server.ts = 서버용, admin.ts = secret 키 관리자용·서버 전용), database.types.ts = DB 타입(자동 생성, 직접 수정 금지)
