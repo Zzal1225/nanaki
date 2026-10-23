@@ -1,8 +1,10 @@
 import type { PhotoKind } from './photoKinds';
-import { BODY_FIELDS } from './body';
+import type { RecordEntry } from './recordEntry';
+import { BODY_CONTENT_HINT, BODY_FIELDS } from './body';
 import { EXPENSE_FIELDS } from './expense';
 import {
   bodyFormSchema,
+  bodyFormSchemaFor,
   expenseRecordSchema,
   reviewRecordSchema,
   routineRecordSchema,
@@ -63,6 +65,11 @@ export const RECORD_TYPE_CONFIG = {
     formSchema: bodyFormSchema,
     // 눈바디 (step4): 정면·측면 한 장씩
     photoKinds: ['front', 'side'],
+    // 2026-10-24 사용자 결정: 칸마다 "(선택)" 대신 위에 한 줄, 태그·메모는 쓰지 않는다 (재는 값과 사진만 남기는 기록)
+    contentHint: BODY_CONTENT_HINT,
+    hidesTagsAndMemo: true,
+    // 사진 장수를 알아야 "1개 이상"을 검사한다 (사진은 폼 값이 아니다)
+    formSchemaWithPhotos: bodyFormSchemaFor,
   },
   // 루틴 체크 기록. 다른 타입과 달리 작성 폼으로 쓰지 않는다:
   // "새로 쓰기"는 루틴(규칙) 만들기 화면으로 가고(createHref), 체크는 홈·루틴 상세의 체크 버튼이 만든다.
@@ -96,7 +103,49 @@ type RecordTypeConfig = {
   formSchema: unknown;
   // 이 타입에 붙는 사진 칸 (step4, 종류마다 한 장). 없으면 사진 없음
   photoKinds?: readonly PhotoKind[];
+  // 폼 위 안내 한 줄. 있으면 칸마다 "(선택)"을 붙이지 않는다 (무엇이 필요한지 이 한 줄이 말한다)
+  contentHint?: string;
+  // 태그·메모 칸을 그리지 않는다. 예전에 적힌 값은 고쳐 저장해도 그대로 남는다 (폼 처음 값에 들어 있다)
+  hidesTagsAndMemo?: boolean;
+  // 사진 장수를 받아 폼 스키마를 만든다 (사진이 내용으로 쳐지는 타입). 없으면 formSchema 그대로
+  formSchemaWithPhotos?: (photoCount: number) => unknown;
 };
+
+// 타입이 정한 칸 중 하나라도 채워졌는지. 아니면 이 기록의 내용은 사진뿐이다 (체형: 체중·허리둘레 없이 눈바디만).
+// 타입 이름으로 가르지 않고 칸 정의로 본다: 필수 칸이 있는 타입(가계부·후기)은 늘 참이다
+export function hasFieldValues(entry: RecordEntry): boolean {
+  const config: RecordTypeConfig = RECORD_TYPE_CONFIG[entry.type];
+  const fields = entry.fields as Record<string, unknown>;
+  return (config.fields as readonly { name: string }[]).some(
+    (field) => fields[field.name] !== undefined,
+  );
+}
+
+// 폼 위 안내 한 줄 (없으면 null)
+export function getContentHint(type: RecordType): string | null {
+  const config: RecordTypeConfig = RECORD_TYPE_CONFIG[type];
+  return config.contentHint ?? null;
+}
+
+// 폼 검사 스키마. photoCount를 주면(사진 칸이 있는 폼) 사진도 내용으로 치는 스키마를 쓴다.
+// 형 변환: formSchemaWithPhotos는 같은 타입의 formSchema와 같은 모양을 돌려준다 (bodyFormSchema = bodyFormSchemaFor(0))
+export function getFormSchema(
+  type: RecordType,
+  photoCount?: number,
+): (typeof RECORD_TYPE_CONFIG)[RecordType]['formSchema'] {
+  const config: RecordTypeConfig = RECORD_TYPE_CONFIG[type];
+  if (photoCount !== undefined && config.formSchemaWithPhotos) {
+    return config.formSchemaWithPhotos(
+      photoCount,
+    ) as (typeof RECORD_TYPE_CONFIG)[RecordType]['formSchema'];
+  }
+  return RECORD_TYPE_CONFIG[type].formSchema;
+}
+
+export function hidesTagsAndMemo(type: RecordType): boolean {
+  const config: RecordTypeConfig = RECORD_TYPE_CONFIG[type];
+  return config.hidesTagsAndMemo ?? false;
+}
 
 // 사진 칸 (없으면 빈 배열). createHref처럼 넓은 모양으로 읽는다
 export function getPhotoKinds(type: RecordType): readonly PhotoKind[] {

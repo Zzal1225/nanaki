@@ -237,7 +237,7 @@ describe('RecordForm (체형)', () => {
     expect(screen.getByRole('heading', { name: '체형 기록' })).toBeTruthy();
     expect(screen.queryByLabelText(/^제목/)).toBeNull();
 
-    fireEvent.change(screen.getByLabelText('허리둘레 (선택)'), {
+    fireEvent.change(screen.getByLabelText('허리둘레'), {
       target: { value: '78' },
     });
     fireEvent.click(screen.getByRole('button', { name: '저장' }));
@@ -250,19 +250,47 @@ describe('RecordForm (체형)', () => {
     });
   });
 
-  it('체중과 허리둘레를 둘 다 적으면 저장하지 않고 "하나만" 안내', async () => {
+  // 2026-10-24 사용자 결정: 칸마다 "(선택)" 대신 위에 한 줄, 태그·메모 없음
+  it('위에 "1개 이상" 안내 한 줄, 칸 이름에 (선택) 없음, 태그·메모 칸 없음', () => {
     renderForm('body');
-    fireEvent.change(screen.getByLabelText('체중 (선택)'), {
+    expect(
+      screen.getByText('체중, 허리둘레, 사진 중 1개 이상 입력'),
+    ).toBeTruthy();
+    expect(screen.getByLabelText('체중')).toBeTruthy();
+    expect(screen.queryByText(/(선택)/)).toBeNull();
+    expect(screen.queryByLabelText(/^태그/)).toBeNull();
+    expect(screen.queryByLabelText(/^메모/)).toBeNull();
+  });
+
+  it('체중과 허리둘레를 둘 다 적으면 한 기록으로 저장한다', async () => {
+    renderForm('body');
+    fireEvent.change(screen.getByLabelText('체중'), {
       target: { value: '68.4' },
     });
-    fireEvent.change(screen.getByLabelText('허리둘레 (선택)'), {
+    fireEvent.change(screen.getByLabelText('허리둘레'), {
       target: { value: '78' },
     });
     fireEvent.click(screen.getByRole('button', { name: '저장' }));
 
+    await waitFor(() => expect(createRecord).toHaveBeenCalled());
+    expect(vi.mocked(createRecord).mock.calls[0][0]).toMatchObject({
+      title: '체중·허리둘레',
+      fields: { weight: 68.4, waist: 78 },
+    });
+  });
+
+  it('다 비우면 "1개 이상" 안내, 저장하지 않는다 (사진 칸이 없는 폼 = 사진 0장)', async () => {
+    renderForm('body');
+    fireEvent.click(screen.getByRole('button', { name: '저장' }));
     expect(
-      await screen.findByText('체중과 허리둘레 중 하나만 입력해 주세요'),
+      await screen.findByText('체중, 허리둘레, 사진 중 1개 이상 입력해 주세요'),
     ).toBeTruthy();
     expect(createRecord).not.toHaveBeenCalled();
+  });
+
+  it('다른 타입은 그대로: 가계부는 태그·메모 칸이 있다', () => {
+    renderForm('expense');
+    expect(screen.getByLabelText(/^메모/)).toBeTruthy();
+    expect(screen.queryByText('체중, 허리둘레, 사진 중 1개 이상 입력')).toBeNull();
   });
 });

@@ -3,18 +3,22 @@
 // 'use client' 이유: 기록을 브라우저에서 불러온다 (step2에서 오프라인 저장소로 바꿀 자리)
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useToastStore } from '@/shared/toast/toastStore';
 import { formatDisplayDate } from '@/shared/date/formatDisplayDate';
 import RecordPhotos from '@/features/photos/ui/RecordPhotos';
 import Button from '@/shared/ui/Button';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
+import { useDiscardRecord } from '../hooks/useDeleteRecord';
 import { useRecord } from '../hooks/useRecord';
 import {
   getPhotoKinds,
+  hasFieldValues,
   isEditableType,
   RECORD_TYPE_CONFIG,
 } from '../schema/recordTypes';
 import { formatFieldValue } from '../ui/fieldView';
-import { getHeadlineField, getListValue } from '../ui/recordPresentation';
+import { getHeadlineFields, getListValue } from '../ui/recordPresentation';
 import { RECORD_TYPE_STYLE } from '../ui/recordTypeStyle';
 import DetailRow from './DetailRow';
 import RecordActions from './RecordActions';
@@ -39,6 +43,9 @@ export default function RecordDetail({
   originQuery = '',
 }: RecordDetailProps) {
   const { data: entry, isPending, isError, refetch } = useRecord(id);
+  const router = useRouter();
+  const discardRecord = useDiscardRecord();
+  const showToast = useToastStore((state) => state.showToast);
 
   if (isPending) {
     return (
@@ -84,7 +91,8 @@ export default function RecordDetail({
   const config = RECORD_TYPE_CONFIG[entry.type];
   const style = RECORD_TYPE_STYLE[entry.type];
   const TypeIcon = style.icon;
-  const headlineField = getHeadlineField(entry);
+  const headlineFields = getHeadlineFields(entry);
+  const listValue = getListValue(entry);
   // 화면에 그리기 위해 이름으로 값을 꺼낸다. 이미 검증을 통과한 기록이라 읽기만 한다
   const fieldValues = entry.fields as Record<string, unknown>;
   const back = detailBackTarget(origin, entry.type);
@@ -128,9 +136,12 @@ export default function RecordDetail({
         <h1 className='text-title-lg break-words text-fg-primary'>
           {entry.title}
         </h1>
-        <p className='text-[28px] leading-[34px] font-bold tracking-[-0.01em] text-fg-primary tabular-nums'>
-          {getListValue(entry)}
-        </p>
+        {/* 값이 없는 기록(사진만 있는 체형 기록)은 큰 숫자 줄을 그리지 않는다 */}
+        {listValue && (
+          <p className='text-[28px] leading-[34px] font-bold tracking-[-0.01em] text-fg-primary tabular-nums'>
+            {listValue}
+          </p>
+        )}
       </div>
 
       <dl className='overflow-hidden rounded-lg border border-border bg-surface'>
@@ -141,7 +152,7 @@ export default function RecordDetail({
         </DetailRow>
         {config.fields.map((field) => {
           // 크게 보여 준 값(금액·별점)은 표에서 빼고, 비운 선택 칸은 줄을 그리지 않는다
-          if (field.name === headlineField) return null;
+          if (headlineFields.includes(field.name)) return null;
           const text = formatFieldValue(field, fieldValues[field.name]);
           return text === null ? null : (
             <DetailRow key={field.name} label={field.label}>
@@ -175,7 +186,17 @@ export default function RecordDetail({
 
       {/* 사진 칸은 타입 설정이 정한다 (체형 = 정면·측면, step4). 사진이 없는 타입은 그리지 않는다 */}
       {photoKinds.length > 0 && (
-        <RecordPhotos recordId={entry.id} kinds={photoKinds} />
+        <RecordPhotos
+          recordId={entry.id}
+          kinds={photoKinds}
+          isPhotoOnly={!hasFieldValues(entry)}
+          // 마지막 사진을 지운 뒤: 기록도 지우고(되돌리기 없음, 사진이 이미 없다) 들어온 곳으로
+          onRecordEmptied={async () => {
+            await discardRecord.mutateAsync(entry.id);
+            showToast({ message: '기록을 삭제했어요' });
+            router.replace(back.href);
+          }}
+        />
       )}
     </article>
   );

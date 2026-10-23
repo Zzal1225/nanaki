@@ -4,7 +4,11 @@
 import { recordViewHref } from '../routes/recordRoutes';
 import Link from 'next/link';
 import RecordForm from '../form/RecordForm';
-import { isEditableType } from '../schema/recordTypes';
+import { useRecordPhotos } from '@/features/photos/hooks/usePhotos';
+import { useOnlineStatus } from '@/shared/network/useOnlineStatus';
+import type { RecordEntry } from '../schema/recordEntry';
+import { getPhotoKinds, isEditableType } from '../schema/recordTypes';
+import { usePendingRecordIds } from '../hooks/usePendingRecordIds';
 import { useRecord } from '../hooks/useRecord';
 
 type RecordEditFormProps = {
@@ -70,11 +74,32 @@ export default function RecordEditForm({
     );
   }
 
+  const doneHref = recordViewHref(entry.id, originQuery);
+  if (getPhotoKinds(entry.type).length > 0) {
+    return <EditFormWithPhotoCount entry={entry} doneHref={doneHref} />;
+  }
+  return <RecordForm mode='edit' entry={entry} doneHref={doneHref} />;
+}
+
+// 사진 칸이 있는 타입(체형)을 고칠 때: 이미 붙은 사진 장수를 폼 검사에 넘긴다.
+// 사진만 있는 기록은 숫자를 비운 채로도 저장되고, 사진이 없는 기록은 숫자를 다 지우면 막힌다 (체중·허리둘레·사진 중 1개 이상).
+// 사진을 모를 때(오프라인·아직 서버에 없는 기록·불러오는 중)는 0장으로 본다: 빈 기록이 생기는 쪽보다 막는 쪽이 안전하다
+function EditFormWithPhotoCount({
+  entry,
+  doneHref,
+}: {
+  entry: RecordEntry;
+  doneHref: string;
+}) {
+  const isOnline = useOnlineStatus();
+  const isOnServer = !usePendingRecordIds().has(entry.id);
+  const photos = useRecordPhotos(entry.id, isOnline && isOnServer);
   return (
     <RecordForm
       mode='edit'
       entry={entry}
-      doneHref={recordViewHref(entry.id, originQuery)}
+      doneHref={doneHref}
+      photoCount={photos.data?.length ?? 0}
     />
   );
 }

@@ -13,6 +13,7 @@ import PhotoPickButton from './PhotoPickButton';
 export type PickedPreview = { file: File; url: string };
 
 type NewRecordPhotosProps = {
+  title: string;
   kinds: readonly PhotoKind[];
   picks: Partial<Record<PhotoKind, PickedPreview>>;
   onPick: (kind: PhotoKind, file: File) => void;
@@ -27,6 +28,7 @@ type NewRecordPhotosProps = {
 // 기록이 서버에 생긴 뒤에야 사진을 붙일 수 있어서(photos.record_id), 저장 때까지 기기 메모리에 들고만 있다 (attachNewRecordPhotos).
 // 표시만 맡고 상태는 받는다: 저장 버튼(폼)과 같은 곳에서 고른 사진을 읽어야 해서
 export default function NewRecordPhotos({
+  title,
   kinds,
   picks,
   onPick,
@@ -41,7 +43,7 @@ export default function NewRecordPhotos({
 
   return (
     <section aria-label='사진' className='flex flex-col gap-2'>
-      <h2 className='text-body-sm font-medium text-fg-primary'>사진 (선택)</h2>
+      <h2 className='text-body-sm font-medium text-fg-primary'>{title}</h2>
       <div className='grid grid-cols-2 gap-3'>
         {kinds.map((kind) => {
           const label = PHOTO_KIND_LABEL[kind];

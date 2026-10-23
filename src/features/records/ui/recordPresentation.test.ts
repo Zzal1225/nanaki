@@ -11,7 +11,7 @@ import {
   formatPreviousMonthComparison,
   getDayLabel,
   getDayValue,
-  getHeadlineField,
+  getHeadlineFields,
 } from './recordPresentation';
 
 const BASE = {
@@ -103,17 +103,29 @@ describe('목록 제목: "[분류] 제목" (2026-10-22 사용자 결정)', () =>
     expect(getListTitle(WAIST)).toBe('[허리둘레]');
     expect(getListValue(WAIST)).toBe('78cm');
   });
+  it('체형: 둘 다 적으면 한 줄에, 사진만이면 [눈바디]에 값 없음', () => {
+    const both = { ...WEIGHT, fields: { weight: 68.4, waist: 78 } };
+    expect(getListTitle(both)).toBe('[체중·허리둘레]');
+    expect(getListValue(both)).toBe('68.4kg · 78cm');
+    const photoOnly = { ...WEIGHT, title: '눈바디', fields: {} };
+    expect(getListTitle(photoOnly)).toBe('[눈바디]');
+    expect(getListValue(photoOnly)).toBe('');
+  });
 });
 
 describe('상세 화면: 크게 보여 준 필드 (표에서는 뺀다)', () => {
   it('가계부 금액, 후기 별점, 운동 시간', () => {
-    expect(getHeadlineField(TAXI)).toBe('amount');
-    expect(getHeadlineField(CAFE)).toBe('rating');
-    expect(getHeadlineField(RUN)).toBe('minutes');
+    expect(getHeadlineFields(TAXI)).toEqual(['amount']);
+    expect(getHeadlineFields(CAFE)).toEqual(['rating']);
+    expect(getHeadlineFields(RUN)).toEqual(['minutes']);
   });
-  it('체형은 기록마다: 체중 기록이면 체중, 허리둘레 기록이면 허리둘레', () => {
-    expect(getHeadlineField(WEIGHT)).toBe('weight');
-    expect(getHeadlineField(WAIST)).toBe('waist');
+  it('체형은 기록마다: 적힌 항목 모두 (사진만이면 없음)', () => {
+    expect(getHeadlineFields(WEIGHT)).toEqual(['weight']);
+    expect(getHeadlineFields(WAIST)).toEqual(['waist']);
+    expect(
+      getHeadlineFields({ ...WEIGHT, fields: { weight: 68.4, waist: 78 } }),
+    ).toEqual(['weight', 'waist']);
+    expect(getHeadlineFields({ ...WEIGHT, fields: {} })).toEqual([]);
   });
 });
 
@@ -168,6 +180,10 @@ describe('하루 요약 한 줄', () => {
     expect(getDayValue('body', [WEIGHT, WAIST])).toBe('68.4kg · 허리둘레 78cm');
     expect(getDayValue('body', [EARLIER])).toBe('68.9kg');
     expect(getDayValue('body', [WAIST])).toBe('허리둘레 78cm');
+    // 사진만 찍은 날은 빈 값 대신 눈바디
+    expect(
+      getDayValue('body', [{ ...WEIGHT, title: '눈바디', fields: {} }]),
+    ).toBe('눈바디');
   });
 });
 

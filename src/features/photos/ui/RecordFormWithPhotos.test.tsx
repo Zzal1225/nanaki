@@ -8,7 +8,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createRecord } from '@/features/records/api/recordStore';
+import { createRecord, deleteRecord } from '@/features/records/api/recordStore';
 import { useToastStore } from '@/shared/toast/toastStore';
 import { attachNewRecordPhotos } from '../api/attachNewRecordPhotos';
 import RecordFormWithPhotos from './RecordFormWithPhotos';
@@ -17,6 +17,8 @@ import RecordFormWithPhotos from './RecordFormWithPhotos';
 vi.mock('@/features/records/api/recordStore', () => ({
   createRecord: vi.fn(),
   updateRecord: vi.fn(),
+  deleteRecord: vi.fn(),
+  restoreRecord: vi.fn(),
 }));
 vi.mock('../api/attachNewRecordPhotos', () => ({
   attachNewRecordPhotos: vi.fn(),
@@ -69,7 +71,7 @@ async function pickAndCrop(slotText: string, file: File) {
 }
 
 function fillWaistAndSave() {
-  fireEvent.change(screen.getByLabelText('허리둘레 (선택)'), {
+  fireEvent.change(screen.getByLabelText('허리둘레'), {
     target: { value: '78' },
   });
   fireEvent.click(screen.getByRole('button', { name: '저장' }));
@@ -83,6 +85,7 @@ describe('RecordFormWithPhotos (체형 쓰기 + 사진)', () => {
       id: 'new-id',
     }));
     vi.mocked(attachNewRecordPhotos).mockReset();
+    vi.mocked(deleteRecord).mockReset();
     vi.mocked(attachNewRecordPhotos).mockResolvedValue({ status: 'done' });
     replace.mockReset();
     useToastStore.setState({ toast: null });
@@ -165,5 +168,57 @@ describe('RecordFormWithPhotos (체형 쓰기 + 사진)', () => {
       .closest('label')
       ?.querySelector('input');
     expect(input?.disabled).toBe(true);
+  });
+
+  // 2026-10-24 사용자 결정: 체중·허리둘레·사진 중 1개 이상
+  it('사진만 골라도 저장된다 (제목 "눈바디", 숫자 없음)', async () => {
+    renderForm();
+    await pickAndCrop('정면 사진', JPG);
+    fireEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/'));
+    expect(vi.mocked(createRecord).mock.calls[0]?.[0]).toMatchObject({
+      title: '눈바디',
+      fields: {},
+    });
+    expect(attachNewRecordPhotos).toHaveBeenCalledWith('new-id', [
+      { kind: 'front', file: CROPPED },
+    ]);
+  });
+
+  it('사진만 있는 기록인데 한 장도 못 올리면 방금 저장한 기록을 지우고 폼에 남는다 (빈 기록 방지)', async () => {
+    vi.mocked(attachNewRecordPhotos).mockResolvedValue({
+      status: 'notOnServer',
+    });
+    renderForm();
+    await pickAndCrop('정면 사진', JPG);
+    fireEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      '사진을 올리지 못해 저장하지 않았어요',
+    );
+    // TanStack mutationFn은 두 번째 인자(맥락)도 받아서 첫 인자만 본다
+    expect(vi.mocked(deleteRecord).mock.calls[0]?.[0]).toBe('new-id');
+    expect(replace).not.toHaveBeenCalled();
+  });
+
+  it('숫자가 있으면 사진을 못 올려도 기록은 남긴다', async () => {
+    vi.mocked(attachNewRecordPhotos).mockResolvedValue({
+      status: 'notOnServer',
+    });
+    renderForm();
+    await pickAndCrop('정면 사진', JPG);
+    fillWaistAndSave();
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/'));
+    expect(deleteRecord).not.toHaveBeenCalled();
+  });
+
+  it('아무것도 없으면 저장하지 않고 "1개 이상" 안내', async () => {
+    renderForm();
+    fireEvent.click(screen.getByRole('button', { name: '저장' }));
+    expect(
+      await screen.findByText('체중, 허리둘레, 사진 중 1개 이상 입력해 주세요'),
+    ).toBeTruthy();
+    expect(createRecord).not.toHaveBeenCalled();
   });
 });
