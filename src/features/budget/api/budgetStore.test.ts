@@ -75,6 +75,22 @@ describe('예산 조회', () => {
     expect(server.calls.length).toBe(callsBefore);
   });
 
+  it('예산이 없는 계정도 한 번 받은 뒤 오프라인이면 오류가 아니라 빈 예산 (예산 정하기)', async () => {
+    // 2026-10-23 아이폰 비행기 모드: "없음"은 사본에 남는 줄이 없어서 오프라인에서 오류가 보였다
+    server.respond({ data: null, error: null });
+    await getBudget('2026-10');
+
+    vi.stubGlobal('navigator', { onLine: false });
+    expect(await getBudget('2026-10')).toEqual({
+      budget: { month: '2026-10', total: null, categories: {} },
+      sourceMonth: null,
+    });
+    // 온라인이라 믿었는데 서버에 못 닿는 경우도 같다
+    vi.unstubAllGlobals();
+    server.failNext();
+    expect((await getBudget('2026-11')).sourceMonth).toBeNull();
+  });
+
   it('서버의 분류 예산 모양이 틀리면 믿지 않는다 (jsonb)', async () => {
     server.respond({
       data: { ...SEPTEMBER, category_amounts: { 식비: '많이' } },

@@ -61,7 +61,7 @@ export type LocalFixedExpense = {
   lastRecordedOn: string | null;
 };
 
-// 커서 없이 통째로 받는 사본(고정지출)을 "한 번이라도 받았는지". 빈 사본이 "없음"인지 "아직 못 받음"인지 가린다.
+// 커서 없이 받는 사본(고정지출, 예산)을 "한 번이라도 받았는지". 빈 사본이 "없음"인지 "아직 못 받음"인지 가린다.
 // 계정마다 다른 데이터베이스 안에 두어 계정을 바꿔도 섞이지 않는다 (localStorage였다면 계정끼리 공유된다)
 export type PullMark = { name: string; pulledAt: string };
 
