@@ -43,7 +43,10 @@ test('가계부 카드 → 예산 정하기 → 전체·분류별 예산 → 카
   // 체험 계정은 예산이 없다 → "예산 정하기"
   await page.getByRole('link', { name: '예산 정하기' }).click();
   await expect(page).toHaveURL(/\/budget\?month=\d{4}-\d{2}$/);
-  await expect(page.getByRole('heading', { name: '예산' })).toBeVisible();
+  // name은 부분 일치라 "10월 예산"·"분류별 예산" 제목도 잡힌다 → 화면 제목(h1)만 정확히
+  await expect(
+    page.getByRole('heading', { level: 1, name: '예산', exact: true }),
+  ).toBeVisible();
   // 예산 화면도 기록 탭에 속한다
   await expect(bottomTab(page, '기록')).toHaveAttribute('aria-current', 'page');
   await expectNoProblems(page, '예산 화면 (예산 없음)');
