@@ -15,6 +15,7 @@ import {
 } from '@/features/search/searchState';
 import { isDateString } from '@/shared/date/calendar';
 import { formatDisplayDate } from '@/shared/date/formatDisplayDate';
+import { EMPTY_CUSTOM_NAMES, type NakiCustomNames } from './nakiCustomNames';
 
 // 나키: 질문 → AI가 만든 조건 → 우리 검색 조건(SearchState). AI는 조건만 만들고, 찾기·계산은 우리가 한다 (README 6).
 // 이 파일은 순수 함수만: 서버(Route Handler)와 브라우저가 함께 쓰고, AI 없이 테스트한다.
@@ -53,13 +54,15 @@ export type NakiAiOutput = z.infer<typeof nakiAiOutputSchema>;
 
 // ── AI에 보낼 것: 필드 정의만 ──────────────────────────
 
-// 칸 하나의 정의 (이름·종류·단위·기본 선택지). 사용자가 직접 입력한 선택지와 기록 내용은 보내지 않는다 (CLAUDE.md, README 6)
+// 칸 하나의 정의 (이름·종류·단위·기본 선택지 + 사용자가 만든 선택지 이름). 기록 내용은 보내지 않는다 (CLAUDE.md, README 6).
+// 사용자 선택지는 2026-10-23부터 보낸다 (사용자 결정, nakiCustomNames). 기본 선택지와 나눠 둬 AI가 둘을 구분하게
 export type NakiFieldDescription = {
   name: string;
   label: string;
   kind: FieldFilter['kind'];
   unit?: string;
   options?: readonly string[];
+  userOptions?: readonly string[];
 };
 
 export type NakiTypeDescription = {
@@ -70,17 +73,27 @@ export type NakiTypeDescription = {
 
 export function describeTypesForAi(
   types: readonly RecordType[],
+  customNames: NakiCustomNames = EMPTY_CUSTOM_NAMES,
 ): NakiTypeDescription[] {
   return types.map((type) => ({
     type,
     label: RECORD_TYPE_CONFIG[type].label,
-    fields: getFilterFields(type).map(({ def, kind }) => ({
-      name: def.name,
-      label: def.label,
-      kind,
-      ...(def.unit ? { unit: def.unit } : {}),
-      ...(def.options ? { options: def.options } : {}),
-    })),
+    fields: getFilterFields(type).map(({ def, kind }) => {
+      // 켜진 타입의 직접 입력 칸에 맞는 이름만 쓴다 (요청이 보낸 타입·칸 이름은 믿지 않고 여기서 맞춰 본다)
+      const userOptions = def.allowCustom
+        ? customNames.fields.find(
+            (item) => item.type === type && item.field === def.name,
+          )?.values
+        : undefined;
+      return {
+        name: def.name,
+        label: def.label,
+        kind,
+        ...(def.unit ? { unit: def.unit } : {}),
+        ...(def.options ? { options: def.options } : {}),
+        ...(userOptions?.length ? { userOptions } : {}),
+      };
+    }),
   }));
 }
 
@@ -88,6 +101,7 @@ export function describeTypesForAi(
 export function buildNakiInstructions(
   today: string,
   types: readonly NakiTypeDescription[],
+  tags: readonly string[] = [],
 ): string {
   return [
     '너는 개인 기록 앱 nanaki의 검색 도우미다. 사용자의 질문을 기록 검색 조건으로만 바꾼다.',
@@ -95,9 +109,9 @@ export function buildNakiInstructions(
     `오늘은 ${formatDisplayDate(today)}이다. 날짜는 'YYYY-MM-DD'로, 끝 날짜를 포함한다. 한 주는 일요일에 시작한다.`,
     '"지난달"은 지난달 1일부터 말일까지, "이번 달"은 이번 달 1일부터 말일까지, "올해"는 1월 1일부터 12월 31일까지다.',
     'type과 field는 아래 목록에 있는 이름만 쓴다.',
-    // 2026-10-23 실제 모델 시험: 직접 만든 분류(예: Ott)는 기본 선택지에 없어 AI가 모른다(직접 입력값은 보내지 않는다).
-    // 칸 조건에 넣으면 분류만 보지만, keyword는 제목·메모·태그·분류를 다 찾아 "유튜브" 같은 제목도 맞는다
-    '말이 기본 선택지 하나에 속하면 그 선택지를 선택 칸 조건으로 쓴다 (예: 외식비·점심값 → 분류 식비, 헬스장 → 종목 헬스). 어느 기본 선택지에도 속하지 않는 말(사용자가 직접 만든 분류일 수 있다, 예: OTT)은 keyword로 넣는다. keyword는 제목·메모·태그·분류를 모두 찾는다.',
+    // userOptions = 사용자가 직접 만든 선택지 이름(예: Ott, 2026-10-23부터 보냄). 같은 말이면 그 값을 칸 조건으로 (비교는 대소문자 무시, searchFilters).
+    // 어느 선택지에도 없는 말은 keyword: 칸 조건은 그 칸만 보지만 keyword는 제목·메모·태그·분류를 다 찾아 놓치지 않는다
+    '말이 기본 선택지(options)나 사용자 선택지(userOptions) 하나와 같거나 그에 속하면 그 값을 선택 칸 조건으로 쓴다 (예: 외식비·점심값 → 분류 식비, 헬스장 → 종목 헬스, userOptions에 Ott가 있으면 OTT → 분류 Ott). 어느 선택지에도 속하지 않는 말은 keyword로 넣는다. keyword는 제목·메모·태그·분류를 모두 찾는다.',
     // 실제 모델 시험(2026-10-23, gemini-3.5-flash-lite)에서 "외식비"를 분류 식비 + 검색어 "외식"으로 겹쳐 넣어,
     // 제목에 "외식"이 없는 식비 기록이 빠졌다. 칸 조건으로 나타낸 말은 검색어에 다시 넣지 말라고 정해 준다
     '칸 조건(타입·분류 같은 선택 칸)으로 나타낸 말은 keyword에 다시 넣지 않는다. keyword는 칸으로 나타낼 수 없는 이름(가게·상품·장소 이름 등)일 때만 쓴다.',
@@ -106,6 +120,12 @@ export function buildNakiInstructions(
     '"내가 구독 중인 ○○는?", "○○ 뭐 있어?", "○○ 언제 했지?"처럼 사용자가 자기 지출·활동·물건을 묻는 질문은 모두 기록 찾기다.',
     '인사·조언·일반 지식처럼 사용자의 기록과 상관없는 질문만 understood를 false로 한다.',
     `기록 타입과 칸: ${JSON.stringify(types)}`,
+    // 태그는 칸이 아니라 검색어로 찾는다 (matchesKeyword가 태그를 하나씩 비교한다)
+    ...(tags.length > 0
+      ? [
+          `사용자 태그: ${JSON.stringify(tags)}. 질문의 말이 태그와 같으면 그 태그를 keyword로 넣는다.`,
+        ]
+      : []),
   ].join('\n');
 }
 

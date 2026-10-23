@@ -8,7 +8,10 @@ import {
   within,
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { searchRecords } from '@/features/records/api/recordStore';
+import {
+  listAllRecordsNewestFirst,
+  searchRecords,
+} from '@/features/records/api/recordStore';
 import type { RecordEntry } from '@/features/records/schema/recordEntry';
 import { getUserSettings } from '@/features/settings/api/settingsStore';
 import { askNaki, getNakiQuota } from '../api/nakiClient';
@@ -22,6 +25,7 @@ vi.mock('../api/nakiClient', () => ({
 vi.mock('@/features/records/api/recordStore', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   searchRecords: vi.fn(),
+  listAllRecordsNewestFirst: vi.fn(),
   listPendingRecordIds: vi.fn().mockResolvedValue([]),
 }));
 vi.mock('@/features/settings/api/settingsStore', () => ({
@@ -92,6 +96,11 @@ describe('NakiScreen', () => {
       isTruncated: false,
     });
     vi.mocked(getUserSettings).mockResolvedValue({ hiddenTypes: [] });
+    // 사용자가 만든 분류(외식: 기본 선택지에 없다)·태그 이름을 모을 기기 사본
+    vi.mocked(listAllRecordsNewestFirst).mockResolvedValue([
+      { ...LUNCH, tags: ['회사'] },
+      COFFEE,
+    ]);
     // jsdom에는 화면 배치가 없다 (새 답이 붙으면 맨 아래로 스크롤)
     Element.prototype.scrollIntoView = vi.fn();
     // jsdom에는 matchMedia가 없다. "동작 줄이기"로 두어 예시 질문 타이핑 없이 바로 다 보이게 (타이핑은 TypingExamples.test)
@@ -137,11 +146,15 @@ describe('NakiScreen', () => {
     expect(link.getAttribute('href')).toContain('/records/search?');
     expect(link.getAttribute('href')).toContain('category=');
     expect(await screen.findByText(/오늘 19\/20회/)).toBeTruthy();
-    // AI에는 질문·오늘·켜진 타입만 간다
+    // AI에는 질문·오늘·켜진 타입 + 사용자가 만든 이름만 간다 (제목·금액·메모·날짜는 없다)
     expect(vi.mocked(askNaki).mock.calls[0][0]).toEqual({
       question: '지난달 외식비 얼마였어?',
       today: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
       types: ['expense', 'review', 'workout', 'body', 'routine'],
+      customNames: {
+        fields: [{ type: 'expense', field: 'category', values: ['외식'] }],
+        tags: ['회사'],
+      },
     });
   });
 
@@ -248,7 +261,7 @@ describe('NakiScreen', () => {
     renderScreen();
     expect(
       screen.getByText(
-        '질문 문장만 AI 제공자(Google)에 보내요. 기록 내용은 보내지 않아요.',
+        '질문 문장과 내가 만든 분류·태그 이름만 AI 제공자(Google)에 보내요. 기록 내용은 보내지 않아요.',
       ),
     ).toBeTruthy();
   });

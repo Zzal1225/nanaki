@@ -4,6 +4,7 @@ import {
   type RecordType,
 } from '@/features/records/schema/recordTypes';
 import { isDateString } from '@/shared/date/calendar';
+import { EMPTY_CUSTOM_NAMES, nakiCustomNamesSchema } from './nakiCustomNames';
 
 // 나키 API(/api/naki)의 요청·응답 모양. 서버와 브라우저가 같은 스키마를 쓴다:
 // 서버는 받은 요청을, 브라우저는 받은 응답을 이 스키마로 검사한다 (주고받는 값을 믿지 않는다)
@@ -27,6 +28,8 @@ export const nakiRequestSchema = z.object({
       }),
     )
     .pipe(z.array(z.custom<RecordType>()).min(1)),
+  // 사용자가 만든 분류·태그 이름 (기록 내용은 없다, nakiCustomNames). 없으면 빈 목록: 예전 브라우저가 보낸 요청도 받는다
+  customNames: nakiCustomNamesSchema.default(EMPTY_CUSTOM_NAMES),
 });
 export type NakiRequest = z.infer<typeof nakiRequestSchema>;
 
