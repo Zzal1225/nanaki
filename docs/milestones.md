@@ -157,7 +157,7 @@ step1·2와 같은 Lighthouse 12.8.2와, 프로젝트의 Lighthouse 13.5.0으로
 | 2      | 86   | 3.9초 | 1.1초 | 170ms | 0   |
 | 3      | 84   | 4.0초 | 2.0초 | 170ms | 0   |
 
-- **step2(95, LCP 2.6초)보다 낮아졌다.** LCP 요소가 글자("nanaki")에서 #92의 아바타 로고 그림(112px)으로 바뀌었고, LCP 3.9초 중 그림 요청이 늦게 시작한 시간(Load Delay)이 1.76초(45%)다. 그림 자체는 7KiB, 받는 데 36ms. 버전 차이가 아닌 것은 12.8.2로 다시 재서 확인했다. 고치는 일은 다음 작업(전후 수치와 함께)
+- **step2(95, LCP 2.6초)보다 낮아졌다.** LCP 요소가 글자("nanaki")에서 #92의 아바타 로고 그림(112px)으로 바뀌었고, LCP 3.9초 중 그림 요청이 늦게 시작한 시간(Load Delay)이 1.76초(45%)다. 그림 자체는 7KiB, 받는 데 36ms. 버전 차이가 아닌 것은 12.8.2로 다시 재서 확인했다. 이어서 조사해 보니 실제로 느리게 만든 측정(devtools)에서는 LCP = 첫 그리기 = 1.6초(성능 97)로, 점수 하락은 기본 방식(simulate)의 추정 때문이었다 → 코드는 바꾸지 않음 ([performance.md](performance.md) "step3 마무리")
 
 **로그인 뒤 화면** (Lighthouse CI, [main bd3d4ee](https://github.com/Zzal1225/nanaki/actions/runs/39938332952): 테스트용 로컬 Supabase에 붙인 build, Lighthouse 13.5.0, 모바일 simulate, 처음 방문, 체험하기 예시 기록, 3회 가운데 값)
 
