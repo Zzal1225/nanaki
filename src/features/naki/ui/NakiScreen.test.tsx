@@ -155,7 +155,7 @@ describe('NakiScreen', () => {
     expect(input.placeholder).toBe('기록에 대해 물어보세요');
     askByTyping('지난달 외식비 얼마였어?');
 
-    expect(await screen.findByText('조건을 만들고 있어요')).toBeTruthy();
+    expect(await screen.findByText('기록을 찾고 있어요')).toBeTruthy();
     expect(screen.queryByRole('list', { name: '찾은 조건' })).toBeNull();
     expect(input.placeholder).toBe('답변을 기다리는 중…');
   });

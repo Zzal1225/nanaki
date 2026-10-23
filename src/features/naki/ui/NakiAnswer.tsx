@@ -85,7 +85,7 @@ export default function NakiAnswer({ state }: NakiAnswerProps) {
   const detailQuery = toSearchParams(state);
 
   return (
-    <div className='flex flex-col gap-3 rounded-lg bg-surface p-4 shadow-card'>
+    <div className='flex flex-col gap-3 pt-1.5'>
       <div className='flex flex-col gap-2'>
         <span className='flex items-center gap-1 text-caption font-semibold text-accent'>
           <Sparkles

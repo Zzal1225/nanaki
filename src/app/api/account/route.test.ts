@@ -19,7 +19,8 @@ const getUser = vi.fn();
 const signOut = vi.fn();
 
 function deleteRequest(origin: string | null = APP_ORIGIN) {
-  const headers = new Headers();
+  // 실제 요청에는 Host 헤더가 늘 있다 (테스트의 new Request는 붙이지 않는다). 출처 검사가 Host와 비교한다 (lib/http/isSameOrigin)
+  const headers = new Headers({ host: new URL(APP_ORIGIN).host });
   if (origin) headers.set('origin', origin);
   return new Request(`${APP_ORIGIN}/api/account`, {
     method: 'DELETE',

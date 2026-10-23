@@ -177,7 +177,11 @@ export default function NakiScreen() {
   const remaining = quota.data?.remaining;
 
   return (
-    <div className='mx-auto flex min-h-[calc(100dvh-var(--tab-bar-height))] w-full max-w-(--chat-max-width) flex-col md:min-h-dvh'>
+    // data-chat-screen: 입력 중에는 이 상자를 100dvh로 늘려 입력 줄을 키보드 바로 위에 붙인다 (globals.css)
+    <div
+      data-chat-screen
+      className='mx-auto flex min-h-[calc(100dvh-var(--tab-bar-height))] w-full max-w-(--chat-max-width) flex-col md:min-h-dvh'
+    >
       <header className='sticky top-0 z-20 flex h-14 items-center gap-2 bg-bg px-4 md:px-6 lg:mt-4'>
         <h1 className='flex items-center gap-1.5 text-title text-fg-primary'>
           나키
@@ -250,14 +254,15 @@ export default function NakiScreen() {
                 <p className='max-w-[85%] self-end rounded-lg rounded-br-sm bg-accent px-4 py-2 text-body text-accent-foreground'>
                   {turn.question}
                 </p>
-                {/* AI가 말하는 줄: 왼쪽에 나키 아바타, 오른쪽에 답 (시안). 사용자 질문은 오른쪽 말풍선 */}
+                {/* AI가 말하는 줄: 왼쪽에 나키 아바타, 오른쪽에 답 (시안). 사용자 질문은 오른쪽 말풍선.
+                    답은 카드 없이 바탕에 바로 (2026-10-23 사용자 결정: 시안대로 흰 카드를 없앰). 첫 줄은 아바타(32px) 높이에 맞춘다 */}
                 <div className='flex items-start gap-2'>
                   <NakiAvatar size={32} />
                   <div className='min-w-0 flex-1'>
                     {turn.status === 'loading' ? (
                       <p
                         aria-live='polite'
-                        className='flex items-center gap-2 rounded-lg bg-surface p-4 text-body-sm text-fg-secondary shadow-card'
+                        className='flex min-h-8 items-center gap-2 text-body-sm text-fg-secondary'
                       >
                         <Sparkles
                           aria-hidden='true'
@@ -265,12 +270,12 @@ export default function NakiScreen() {
                           strokeWidth={ICON_STROKE_WIDTH}
                           className='animate-pulse text-accent'
                         />
-                        조건을 만들고 있어요
+                        기록을 찾고 있어요
                       </p>
                     ) : turn.status === 'failed' ? (
                       <p
                         role='alert'
-                        className='rounded-lg bg-surface p-4 text-body-sm text-fg-primary shadow-card'
+                        className='pt-1.5 text-body-sm text-fg-primary'
                       >
                         {failureMessage(turn)}
                       </p>
@@ -278,7 +283,7 @@ export default function NakiScreen() {
                       <NakiAnswer state={turn.state} />
                     ) : (
                       // 해석하지 못함: 탓하지 않고 물을 수 있는 모양을 보여 준다
-                      <div className='flex flex-col gap-3 rounded-lg bg-surface p-4 shadow-card'>
+                      <div className='flex flex-col gap-3 pt-1.5'>
                         <p className='text-body-sm text-fg-primary'>
                           잘 이해하지 못했어요. 이렇게 물어봐 주세요.
                         </p>
@@ -297,10 +302,12 @@ export default function NakiScreen() {
         <div ref={endRef} />
       </div>
 
-      {/* 입력창: 하단 탭 바로 위에 붙는다. 글자를 치는 동안은 붙지 않고 제자리(맨 끝)에 (작성 폼 저장 줄과 같은 이유, globals.css) */}
+      {/* 입력창: 하단 탭 바로 위에 붙는다. 글자를 치는 동안은 붙지 않고 제자리(맨 끝)에 (작성 폼 저장 줄과 같은 이유, globals.css).
+          data-chat-input: 여기에 포커스하면 본문 끝 여백(하단 탭·홈 막대 자리)을 없앤다. 키보드 위에 90px 빈칸이 보였다 (globals.css, 2026-10-23 아이폰 진단) */}
       <form
         onSubmit={handleSubmit}
         data-unstick-while-typing
+        data-chat-input
         className='sticky bottom-(--tab-bar-height) border-t border-border bg-bg px-4 py-3 md:bottom-0 md:px-6'
       >
         <div className='flex items-center gap-2 rounded-full border border-border bg-surface py-1 pr-1 pl-4 focus-within:border-accent focus-within:ring-1 focus-within:ring-accent'>
@@ -376,7 +383,7 @@ function ExampleQuestions({
   onPick: (question: string) => void;
 }) {
   return (
-    <ul aria-label='예시 질문' className='flex flex-col items-center gap-2'>
+    <ul aria-label='예시 질문' className='flex flex-col items-start gap-2'>
       {examples.map((example) => (
         <li key={example.question}>
           <button
