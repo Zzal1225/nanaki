@@ -24,6 +24,19 @@ export function isPushConfigured(): boolean {
   return VAPID_PUBLIC_KEY !== '';
 }
 
+// 서비스 워커가 준비되기를 이만큼만 기다린다. serviceWorker.ready는 등록된 워커가 없으면 영원히 기다린다
+// (개발 서버는 워커를 끈다, layout.tsx): 그러면 알림 스위치가 아무 안내 없이 멈춰 있었다 (2026-10-23 사용자 확인)
+const SERVICE_WORKER_WAIT_MS = 10_000;
+
+function readyRegistration(): Promise<ServiceWorkerRegistration | null> {
+  return Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise<null>((resolve) =>
+      setTimeout(() => resolve(null), SERVICE_WORKER_WAIT_MS),
+    ),
+  ]);
+}
+
 // 이 기기에서 알림 받기를 켠다. 알림 권한을 묻는 브라우저 창이 뜰 수 있다.
 // 버튼을 누른 처리 안에서 바로 불러야 한다: 아이폰은 사용자 동작 없이 권한을 물으면 무시한다 → requestPermission을 맨 먼저
 export async function subscribeThisDevice(): Promise<PushSetupResult> {
@@ -33,7 +46,8 @@ export async function subscribeThisDevice(): Promise<PushSetupResult> {
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') return 'denied';
   try {
-    const registration = await navigator.serviceWorker.ready;
+    const registration = await readyRegistration();
+    if (!registration) return 'failed';
     const subscription =
       (await registration.pushManager.getSubscription()) ??
       (await registration.pushManager.subscribe({
