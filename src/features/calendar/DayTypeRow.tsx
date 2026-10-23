@@ -1,7 +1,10 @@
+'use client';
+
+// 'use client' 이유: 펼친 뒤 목록이 + 버튼에 가리면 스크롤한다 (요소 위치는 브라우저에서만 안다)
 import { ChevronDown } from 'lucide-react';
 import { recordViewHref } from '@/features/records/routes/recordRoutes';
 import Link from 'next/link';
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import type { RecordType } from '@/features/records/schema/recordTypes';
 import PendingBadge from '@/features/records/ui/PendingBadge';
 import { RECORD_TYPE_STYLE } from '@/features/records/ui/recordTypeStyle';
@@ -47,15 +50,39 @@ export default function DayTypeRow({
   const style = RECORD_TYPE_STYLE[type];
   const Icon = style.icon;
   const listId = `day-${type}-records`;
+  const rowRef = useRef<HTMLLIElement>(null);
+  // 사용자가 눌러서 펼쳤을 때만 스크롤한다. 날짜를 바꾸거나 처음 그릴 때 화면이 저절로 움직이면 어지럽다
+  const isOpenedByTapRef = useRef(false);
+
+  // 펼친 목록 끝이 떠 있는 + 버튼·하단 탭에 가리면 그만큼만 올린다 (2026-10-23 사용자 제안: 홈 루틴 +/−가 + 버튼에 가림).
+  // block: 'nearest' = 이미 다 보이면 움직이지 않고, 아래가 잘렸으면 끝이 보일 만큼만. 가릴 높이는 li의 scroll-margin-bottom으로 알려 준다
+  useEffect(() => {
+    if (!isOpen || !isOpenedByTapRef.current) return;
+    isOpenedByTapRef.current = false;
+    const reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+    rowRef.current?.scrollIntoView({
+      block: 'nearest',
+      behavior: reduceMotion ? 'auto' : 'smooth',
+    });
+  }, [isOpen]);
 
   return (
-    <li className='border-t border-border first:border-t-0'>
+    <li
+      ref={rowRef}
+      // 스크롤 기준에서 빼 둘 아래 자리: 본문 끝 여백과 같은 값(하단 탭 + + 버튼). PC는 둘 다 0이라 그대로 끝에 맞춘다
+      className='scroll-mb-[calc(var(--tab-bar-height)+var(--fab-clearance))] border-t border-border first:border-t-0'
+    >
       <button
         type='button'
         // 화면 읽기 프로그램에 "펼침/접힘"과 펼쳐지는 목록을 알려 준다
         aria-expanded={isOpen}
         aria-controls={listId}
-        onClick={onToggle}
+        onClick={() => {
+          isOpenedByTapRef.current = !isOpen;
+          onToggle();
+        }}
         className='flex min-h-13 w-full items-center gap-3 pr-2 pl-3 text-left hover:bg-surface-hover active:bg-surface-pressed'
       >
         <span

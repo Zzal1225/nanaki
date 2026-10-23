@@ -31,25 +31,31 @@ export default function TextArea({
       >
         {label}
       </label>
-      <textarea
-        id={inputId}
-        maxLength={maxLength}
-        aria-invalid={hasError}
-        aria-describedby={`${counterId}${hasError ? ` ${errorId}` : ''}`}
-        className={`min-h-28 resize-y rounded-md border bg-surface px-4 py-3 text-body text-fg-primary outline-none placeholder:text-fg-secondary ${
-          hasError
-            ? 'border-danger ring-1 ring-danger'
-            : 'border-border focus:border-accent focus:ring-1 focus:ring-accent'
-        } ${className}`}
-        {...rest}
-      />
-      {/* 오류가 없을 때도 글자 수는 오른쪽에 붙어 있게 한다 */}
-      <div className='flex items-start justify-between gap-2 text-caption'>
-        <FieldError id={errorId} message={error} />
-        <span id={counterId} className='ml-auto text-fg-secondary tabular-nums'>
+      {/* 글자 수는 칸 안 오른쪽 아래에 둔다 (2026-10-23 사용자 요청: 칸 밖 한 줄이 아래 저장 버튼과의 여백을 키웠다).
+          pb-8로 마지막 줄이 글자 수 밑으로 들어가지 않게 자리를 비운다 */}
+      <div className='relative flex flex-col'>
+        <textarea
+          id={inputId}
+          maxLength={maxLength}
+          aria-invalid={hasError}
+          aria-describedby={`${counterId}${hasError ? ` ${errorId}` : ''}`}
+          className={`min-h-28 resize-y rounded-md border bg-surface px-4 pt-3 pb-8 text-body text-fg-primary outline-none placeholder:text-fg-secondary ${
+            hasError
+              ? 'border-danger ring-1 ring-danger'
+              : 'border-border focus:border-accent focus:ring-1 focus:ring-accent'
+          } ${className}`}
+          {...rest}
+        />
+        {/* pointer-events-none: 글자 수 위를 눌러도 칸에 포커스가 간다. bg-surface: 길게 쓴 글이 스크롤되며 밑으로 지나가도 읽히게.
+            right-4: PC의 크기 조절 손잡이(오른쪽 아래 모서리)와 겹치지 않게 */}
+        <span
+          id={counterId}
+          className='pointer-events-none absolute right-4 bottom-2 bg-surface text-caption text-fg-secondary tabular-nums'
+        >
           {length}/{maxLength}
         </span>
       </div>
+      <FieldError id={errorId} message={error} />
     </div>
   );
 }

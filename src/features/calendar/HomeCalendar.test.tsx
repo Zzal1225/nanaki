@@ -90,8 +90,14 @@ function cellOf(label: RegExp) {
   return within(screen.getByRole('grid')).getByRole('button', { name: label });
 }
 
+// jsdom에는 화면 배치가 없어 scrollIntoView·matchMedia가 없다. 펼칠 때 스크롤(DayTypeRow)이 부르므로 채워 두고, 불렸는지만 본다
+const scrollIntoView = vi.fn();
+
 describe('HomeCalendar', () => {
   beforeEach(() => {
+    scrollIntoView.mockReset();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    window.matchMedia = vi.fn().mockReturnValue({ matches: false });
     vi.mocked(listRecords).mockReset();
     vi.mocked(listRecords).mockResolvedValue([LUNCH, CAFE]);
     vi.mocked(getUserSettings).mockResolvedValue({ hiddenTypes: [] });
