@@ -1,20 +1,21 @@
 'use client';
 
-// 'use client' 이유: 끌어 옮기기(포인터)·틀 크기 재기(ResizeObserver)·캔버스로 결과 만들기가 모두 브라우저에서 일어난다
+// 'use client' 이유: 끌어 옮기기(포인터)·틀 크기 재기(useFittedFrame)·캔버스로 결과 만들기가 모두 브라우저에서 일어난다
 import { Layers, X } from 'lucide-react';
 import { Dialog } from 'radix-ui';
-import { useEffect, useRef, useState, type PointerEvent } from 'react';
+import { useRef, useState, type PointerEvent } from 'react';
 import {
   PHOTO_KIND_LABEL,
   type PhotoKind,
 } from '@/features/records/schema/photoKinds';
+import { formatMonthDotDay } from '@/shared/date/formatDisplayDate';
 import { useOnlineStatus } from '@/shared/network/useOnlineStatus';
 import Button from '@/shared/ui/Button';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import StepSlider from '@/shared/ui/StepSlider';
+import { useFittedFrame } from '../hooks/useFittedFrame';
 import { useLatestPhoto, usePhotoUrls } from '../hooks/usePhotos';
 import {
-  CROP_ASPECT,
   clampView,
   dragView,
   formatPercent,
@@ -142,28 +143,7 @@ function CropEditor({
     ? latestUrls.data?.get(latestPhoto.path)
     : undefined;
 
-  // 틀 크기: 무대(남은 칸)에 3:4가 꽉 들어가는 가장 큰 크기. CSS aspect-ratio만으로는 높이·너비 둘 다 제한될 때
-  // 비율이 깨져서 직접 잰다. 끌어 옮기기에서 px → 비율 바꾸기에도 이 크기를 쓴다
-  const stageRef = useRef<HTMLDivElement>(null);
-  const [frame, setFrame] = useState({ width: 0, height: 0 });
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage) return;
-    const observer = new ResizeObserver(([entry]) => {
-      if (!entry) return;
-      const { width, height } = entry.contentRect;
-      const fitted =
-        width / height > CROP_ASPECT
-          ? { width: height * CROP_ASPECT, height }
-          : { width, height: width / CROP_ASPECT };
-      setFrame({
-        width: Math.floor(fitted.width),
-        height: Math.floor(fitted.height),
-      });
-    });
-    observer.observe(stage);
-    return () => observer.disconnect();
-  }, []);
+  const { stageRef, frame } = useFittedFrame<HTMLDivElement>();
 
   // 끌어 옮기기: 누른 채 움직인 만큼. 손가락이 틀 밖으로 나가도 계속 따라오게 포인터를 붙잡는다(setPointerCapture)
   const dragRef = useRef<{ x: number; y: number } | null>(null);
@@ -244,7 +224,7 @@ function CropEditor({
                 strokeWidth={ICON_STROKE_WIDTH}
                 className='text-accent'
               />
-              {`지난 사진 ${formatShortDate(latest.data.occurredAt)} 겹침`}
+              {`지난 사진 ${formatMonthDotDay(latest.data.occurredAt)} 겹침`}
             </span>
           )}
         </div>
@@ -318,10 +298,4 @@ function CropEditor({
       </div>
     </div>
   );
-}
-
-// "2026-10-12" → "10.12" (시안의 지난 사진 칩)
-function formatShortDate(date: string): string {
-  const [, month, day] = date.split('-');
-  return `${Number(month)}.${day}`;
 }

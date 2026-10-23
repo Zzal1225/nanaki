@@ -3,6 +3,7 @@ import {
   formatDayHeading,
   formatDisplayDate,
   formatMonthDayLabel,
+  formatMonthDotDay,
   formatShortDate,
 } from './formatDisplayDate';
 
@@ -17,6 +18,13 @@ describe('formatDisplayDate', () => {
   it('빈 값·형식이 틀린 값은 빈 글자', () => {
     expect(formatDisplayDate('')).toBe('');
     expect(formatDisplayDate('2026/10/16')).toBe('');
+  });
+});
+
+describe('formatMonthDotDay', () => {
+  it('요일 없이 MM.DD (사진 위 칩)', () => {
+    expect(formatMonthDotDay('2026-09-05')).toBe('09.05');
+    expect(formatMonthDotDay('x')).toBe('');
   });
 });
 
