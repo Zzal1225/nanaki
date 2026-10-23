@@ -14,6 +14,35 @@ const STATUS = {
   unavailable: 503,
 } as const;
 
+// Storage는 한 번에 지울 수 있는 파일 수에 한도가 있어 나눠 지운다
+const REMOVE_BATCH = 100;
+
+// 이 사람의 사진 파일(보기용·썸네일)을 모두 지운다. 하나라도 실패하면 false: 계정 삭제를 멈춰 몸 사진이 남은 채 계정만 사라지지 않게
+async function removePhotoFiles(
+  admin: ReturnType<typeof createSupabaseAdminClient>,
+  userId: string,
+): Promise<boolean> {
+  const { data, error } = await admin
+    .from('photos')
+    .select('path, thumb_path')
+    .eq('user_id', userId);
+  if (error) {
+    console.error('[account] 사진 목록 실패', error.message);
+    return false;
+  }
+  const paths = data.flatMap((row) => [row.path, row.thumb_path]);
+  for (let start = 0; start < paths.length; start += REMOVE_BATCH) {
+    const { error: removeError } = await admin.storage
+      .from('photos')
+      .remove(paths.slice(start, start + REMOVE_BATCH));
+    if (removeError) {
+      console.error('[account] 사진 파일 삭제 실패', removeError.message);
+      return false;
+    }
+  }
+  return true;
+}
+
 // 내 계정 지우기. auth.users 줄을 지우면 records·user_settings는 DB의 on delete cascade로 함께 지워진다.
 // 브라우저 키(publishable)로는 사용자를 지울 수 없어서, 서버에서 secret 키로 한다.
 // 누구를 지울지는 요청 본문이 아니라 로그인 세션에서만 정한다: 본문에 id를 받으면 남의 계정을 지울 수 있다
@@ -38,6 +67,11 @@ export async function DELETE(request: Request) {
   }
 
   const admin = createSupabaseAdminClient(secretKey);
+  // 사진 파일을 먼저 지운다 (step4): 줄(photos)은 계정과 함께 cascade로 지워지지만, Storage 파일은 DB에서 지울 수 없다.
+  // 사용자를 먼저 지우면 어느 파일이 그 사람 것인지 알려 줄 줄이 사라져 몸 사진이 남는다
+  if (!(await removePhotoFiles(admin, data.user.id))) {
+    return new NextResponse(null, { status: STATUS.failed });
+  }
   const { error } = await admin.auth.admin.deleteUser(data.user.id);
   if (error) {
     // 사용자에게는 "다시 시도"만 보이므로, 원인은 서버 로그로 남긴다

@@ -57,9 +57,10 @@ jobs:
       - run: npm ci
 
       # Supabase CLI는 devDependencies에 있어 npx로 같은 버전을 쓴다.
-      # 테스트에 필요 없는 서비스(실시간·파일 저장소·관리 화면 등)는 띄우지 않아 시간을 줄인다
+      # 테스트에 필요 없는 서비스(실시간·이미지 변환·관리 화면 등)는 띄우지 않아 시간을 줄인다.
+      # 파일 저장소(storage-api)는 step4부터 띄운다: 사진 버킷·정책을 통합 테스트로 확인하고, 사진 버킷을 만드는 마이그레이션이 storage 스키마를 쓴다
       - name: 로컬 Supabase 시작
-        run: npx supabase start -x realtime,storage-api,imgproxy,studio,edge-runtime,logflare,vector,supavisor,postgres-meta
+        run: npx supabase start -x realtime,imgproxy,studio,edge-runtime,logflare,vector,supavisor,postgres-meta
 
       # 주소·키는 매번 로컬에서 새로 만들어지는 테스트용 값이라 비밀이 아니다
       - name: 테스트용 주소·키를 환경 변수로
