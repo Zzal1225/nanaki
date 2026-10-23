@@ -319,8 +319,13 @@ export default function NakiScreen() {
             }}
             maxLength={MAX_NAKI_QUESTION_LENGTH}
             disabled={!isOnline}
+            // 문구는 시안 AI (2026-10-23 사용자 결정). 예시 질문은 빈 화면이 따로 보여 주니 입력칸은 할 일만 말한다
             placeholder={
-              isOnline ? '지난달 외식비 얼마였어?' : '연결되면 물어볼 수 있어요'
+              !isOnline
+                ? '오프라인에서는 쓸 수 없어요'
+                : isAsking
+                  ? '답변을 기다리는 중…'
+                  : '기록에 대해 물어보세요'
             }
             enterKeyHint='send'
             className='min-w-0 flex-1 bg-transparent text-body text-fg-primary outline-none placeholder:text-fg-secondary disabled:text-fg-disabled'

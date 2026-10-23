@@ -145,6 +145,30 @@ describe('기록 거르기', () => {
       }),
     ).toBe(false);
   });
+  it('선택 값은 대소문자·공백을 무시하고 비교한다 (직접 입력한 분류 "Ott"를 나키가 "OTT"로 불러도)', () => {
+    const ott: RecordEntry = {
+      ...BASE,
+      id: '4',
+      type: 'expense',
+      title: '유튜브',
+      fields: { amount: 14900, category: 'Ott' },
+    };
+    expect(
+      matchesFieldFilters(ott, {
+        category: { kind: 'select', values: ['OTT'] },
+      }),
+    ).toBe(true);
+    expect(
+      matchesFieldFilters(ott, {
+        category: { kind: 'select', values: ['o t t'] },
+      }),
+    ).toBe(true);
+    expect(
+      matchesFieldFilters(ott, {
+        category: { kind: 'select', values: ['OTT구독'] },
+      }),
+    ).toBe(false);
+  });
   it('그 칸이 비어 있는 기록은 그 칸 필터에서 빠진다 (결제수단을 안 쓴 가계부)', () => {
     expect(
       matchesFieldFilters(GIFT, {

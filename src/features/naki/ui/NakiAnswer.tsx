@@ -12,6 +12,7 @@ import {
   getListTitle,
   getListValue,
 } from '@/features/records/ui/recordPresentation';
+import { RECORD_TYPE_STYLE } from '@/features/records/ui/recordTypeStyle';
 import {
   applyFieldFilters,
   describeFilters,
@@ -69,16 +70,8 @@ export default function NakiAnswer({ state }: NakiAnswerProps) {
     state.type,
     visibleTypes,
   );
-  const chips = [
-    ...(state.type
-      ? [
-          {
-            id: 'type',
-            label: '타입',
-            value: RECORD_TYPE_CONFIG[state.type].label,
-          },
-        ]
-      : []),
+  const typeStyle = state.type ? RECORD_TYPE_STYLE[state.type] : null;
+  const conditionChips = [
     ...describeFilters(state.type, state.period, state.fields).map((chip) =>
       chip.id === 'period' && state.period
         ? { ...chip, value: formatNakiPeriod(state.period, chip.value) }
@@ -102,13 +95,34 @@ export default function NakiAnswer({ state }: NakiAnswerProps) {
           />
           이렇게 이해했어요
         </span>
-        <ul aria-label='찾은 조건' className='flex flex-wrap gap-1.5'>
-          {chips.map((chip) => (
+        {/* 칩 모양은 시안 AI (2026-10-23 사용자 결정): 타입은 그 타입의 색·아이콘으로 다른 조건과 한눈에 갈라 보이게,
+            나머지는 흰 바탕 + 초록 테두리. 기간은 값만 봐도 기간이라 이름표를 숨긴다(sr-only: 화면 읽기 프로그램에는 읽힌다) */}
+        <ul aria-label='찾은 조건' className='flex flex-wrap gap-2'>
+          {state.type && typeStyle && (
+            <li
+              className={`inline-flex h-7 items-center gap-1 rounded-full pr-3 pl-2 text-caption font-semibold ${typeStyle.subtleBgClass} ${typeStyle.textClass}`}
+            >
+              <typeStyle.icon
+                aria-hidden='true'
+                size={14}
+                strokeWidth={ICON_STROKE_WIDTH}
+              />
+              <span className='sr-only'>타입</span>
+              {RECORD_TYPE_CONFIG[state.type].label}
+            </li>
+          )}
+          {conditionChips.map((chip) => (
             <li
               key={chip.id}
-              className='inline-flex h-7 items-center gap-1 rounded-full bg-surface-hover px-3 text-caption text-fg-primary'
+              className='inline-flex h-7 items-center gap-1 rounded-full border border-accent bg-surface px-3 text-caption text-fg-primary tabular-nums'
             >
-              <span className='text-fg-secondary'>{chip.label}</span>
+              <span
+                className={
+                  chip.id === 'period' ? 'sr-only' : 'text-fg-secondary'
+                }
+              >
+                {chip.label}
+              </span>
               <span className='font-semibold'>{chip.value}</span>
             </li>
           ))}
