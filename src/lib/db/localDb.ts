@@ -42,12 +42,20 @@ export type OutboxOp = {
 // 설정(숨긴 타입)의 사본. 한 계정에 한 줄이라 키는 늘 'user'
 export type LocalSettings = { key: 'user'; hiddenTypes: string[] };
 
+// 예산의 사본 (step3). 한 달에 한 줄이라 키는 달('YYYY-MM'). 오프라인에서도 가계부 요약의 예산이 보이게
+export type LocalBudget = {
+  month: string;
+  total: number | null;
+  categories: Record<string, number>;
+};
+
 export class LocalDb extends Dexie {
   records!: Table<LocalRecordRow, string>;
   routines!: Table<LocalRoutineRow, string>;
   meta!: Table<SyncMeta, SyncedTable>;
   outbox!: Table<OutboxOp, number>;
   settings!: Table<LocalSettings, 'user'>;
+  budgets!: Table<LocalBudget, string>;
 
   constructor(
     name: string,
@@ -73,6 +81,10 @@ export class LocalDb extends Dexie {
     // 3: 설정 사본 (25c-2). 오프라인에서 새로 고쳐도 숨긴 타입이 숨겨진 채로 보이게
     this.version(3).stores({
       settings: 'key',
+    });
+    // 4: 예산 사본 (step3). 키가 달이라 "이 달 이전 중 가장 최근"을 키 순서로 바로 찾는다 (where(':id').belowOrEqual)
+    this.version(4).stores({
+      budgets: 'month',
     });
   }
 }
