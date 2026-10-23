@@ -103,15 +103,18 @@ jobs:
             exit 1
           fi
 
-      # Lighthouse: 같은 빌드를 띄워 로그인·홈·기록 탭을 모바일 모드로 3번씩 잰다 (scripts/lighthouse.mts).
-      # 기준(lighthouserc.json): 접근성·권장사항은 95 미만이면 실패, 성능은 80 미만이면 경고만.
-      # 성능 점수는 CI 서버 상태에 따라 실행마다 몇 점씩 흔들려서, 실패 조건으로 두면 코드와 무관한 빨간불이 뜬다.
-      # SEO는 재지 않는다: 로그인 뒤 화면은 robots.txt로 검색을 막아 두어 낮게 나오는 게 정상이다
       # 32단계: 같은 모바일 E2E를 사파리 엔진(WebKit)으로. 처음에는 경고만(continue-on-error): 흔들림이 없는지 몇 번 본 뒤 실패로 바꾼다.
       # 결과물은 다른 폴더에 둔다: 위 단계의 보고서·화면 비교 결과를 덮지 않게
-      - run: npx playwright install --with-deps webkit
+      # 설치도 경고만 + 5분 제한: 평소 20초인데, 2026-10-23 #90에서 우분투 패키지 서버가 멈춰 두 번 연속 15분 넘게 걸렸고
+      # job 제한(20분)에 걸려 필수 검사 integration 전체가 취소됐다. 경고만인 단계가 병합을 막으면 안 된다
+      - name: WebKit 설치 (경고만)
+        id: webkit_install
+        continue-on-error: true
+        timeout-minutes: 5
+        run: npx playwright install --with-deps webkit
       - name: E2E (WebKit, 경고만)
         id: webkit
+        if: steps.webkit_install.outcome == 'success'
         continue-on-error: true
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ env.SUPABASE_TEST_URL }}
@@ -124,6 +127,9 @@ jobs:
       - name: WebKit 실패 알림
         if: steps.webkit.outcome == 'failure'
         run: echo "::warning::WebKit E2E가 실패했습니다 (아직 경고만). webkit-report 아티팩트에서 원인을 확인하세요."
+      - name: WebKit 설치 실패 알림
+        if: steps.webkit_install.outcome == 'failure'
+        run: echo "::warning::WebKit 설치가 실패해 WebKit E2E를 건너뛰었습니다 (아직 경고만). 대개 패키지 서버 문제라 다시 실행하면 됩니다."
       - uses: actions/upload-artifact@v4
         if: steps.webkit.outcome == 'failure'
         with:
@@ -132,6 +138,10 @@ jobs:
             playwright-report-webkit/
             test-results-webkit/
           retention-days: 7
+      # Lighthouse: 같은 빌드를 띄워 로그인·홈·기록 탭을 모바일 모드로 3번씩 잰다 (scripts/lighthouse.mts).
+      # 기준(lighthouserc.json): 접근성·권장사항은 95 미만이면 실패, 성능은 80 미만이면 경고만.
+      # 성능 점수는 CI 서버 상태에 따라 실행마다 몇 점씩 흔들려서, 실패 조건으로 두면 코드와 무관한 빨간불이 뜬다.
+      # SEO는 재지 않는다: 로그인 뒤 화면은 robots.txt로 검색을 막아 두어 낮게 나오는 게 정상이다
       - name: Lighthouse
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ env.SUPABASE_TEST_URL }}
