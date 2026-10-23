@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { isSameOrigin } from '@/lib/http/isSameOrigin';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseSecretKey } from '@/lib/supabase/env';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -13,18 +14,13 @@ const STATUS = {
   unavailable: 503,
 } as const;
 
-// 다른 사이트가 사용자 몰래 이 주소로 요청을 보내는 것(CSRF)을 막는다. 세션 쿠키가 SameSite=Lax라
-// 다른 사이트의 DELETE에는 쿠키가 실리지 않지만, 되돌릴 수 없는 일이라 Origin도 한 번 더 본다.
-// 브라우저는 fetch DELETE에 Origin을 늘 붙인다
-function isSameOrigin(request: Request): boolean {
-  return request.headers.get('origin') === new URL(request.url).origin;
-}
-
 // 내 계정 지우기. auth.users 줄을 지우면 records·user_settings는 DB의 on delete cascade로 함께 지워진다.
 // 브라우저 키(publishable)로는 사용자를 지울 수 없어서, 서버에서 secret 키로 한다.
 // 누구를 지울지는 요청 본문이 아니라 로그인 세션에서만 정한다: 본문에 id를 받으면 남의 계정을 지울 수 있다
 export async function DELETE(request: Request) {
-  if (!isSameOrigin(request)) {
+  // 다른 사이트가 사용자 몰래 이 주소로 요청을 보내는 것(CSRF)을 막는다. 세션 쿠키가 SameSite=Lax라
+  // 다른 사이트의 DELETE에는 쿠키가 실리지 않지만, 되돌릴 수 없는 일이라 Origin도 한 번 더 본다
+  if (!isSameOrigin(request.headers)) {
     return new NextResponse(null, { status: STATUS.otherOrigin });
   }
 

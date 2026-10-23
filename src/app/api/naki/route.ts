@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { isSameOrigin } from '@/lib/http/isSameOrigin';
 import {
   parseQuotaResult,
   readNakiLimits,
@@ -22,11 +23,6 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 // AI 응답을 기다리는 최대 시간. 넘으면 실패로 보고 횟수를 되돌린다 (무료 등급은 가끔 오래 걸린다)
 const MODEL_TIMEOUT_MS = 20_000;
 
-// 다른 사이트가 사용자 몰래 이 주소로 질문을 보내 횟수를 쓰게 하는 것을 막는다 (계정 삭제 API와 같은 확인)
-function isSameOrigin(request: Request): boolean {
-  return request.headers.get('origin') === new URL(request.url).origin;
-}
-
 async function getSessionUser() {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.getUser();
@@ -35,7 +31,8 @@ async function getSessionUser() {
 }
 
 export async function POST(request: Request) {
-  if (!isSameOrigin(request)) {
+  // 다른 사이트가 사용자 몰래 이 주소로 질문을 보내 횟수를 쓰게 하는 것을 막는다 (계정 삭제 API와 같은 확인)
+  if (!isSameOrigin(request.headers)) {
     return NextResponse.json({ error: 'badRequest' }, { status: 403 });
   }
   const secretKey = getSupabaseSecretKey();
