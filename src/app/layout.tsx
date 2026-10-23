@@ -14,7 +14,8 @@ export const metadata: Metadata = {
     '가계부·후기·운동·루틴·체형을 하나의 캘린더에 기록하는 자기관리 앱',
   // 아이폰 "홈 화면에 추가": 주소창 없이 열고, 홈 화면 이름은 nanaki. 매니페스트는 app/manifest.ts를 Next가 자동으로 연결한다
   appleWebApp: { capable: true, title: 'nanaki', statusBarStyle: 'default' },
-  // 아이폰 홈 화면 아이콘은 매니페스트가 아니라 apple-touch-icon(PNG 180×180)을 읽는다. SVG는 쓰지 않는다
+  // 아이폰 홈 화면 아이콘은 매니페스트가 아니라 apple-touch-icon(PNG 180×180)을 읽는다. SVG는 쓰지 않는다.
+  // 투명한 곳은 검게 칠해지고 모서리는 iOS가 둥글게 자르므로, 원 밖까지 초록으로 채운 정사각형을 준다 (manifest.ts)
   icons: { apple: '/icons/nanaki-icon-180.png' },
 };
 

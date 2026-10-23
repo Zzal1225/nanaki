@@ -15,9 +15,17 @@ export default function manifest(): MetadataRoute.Manifest {
     display: 'standalone',
     background_color: '#f7f7f8',
     theme_color: '#2e7d4f',
-    // PNG 512(사용자가 만든 아이콘)를 먼저 둔다: 설치 화면·스플래시는 PNG를 더 넓게 지원한다.
-    // SVG는 크기 무관(sizes: any) 대비책, maskable은 기기가 원·둥근 사각형으로 잘라도 그림이 남게 안쪽 80%에만 그렸다
+    // 앱 아이콘 = 나키 아바타 (2026-10-23 사용자 결정, 전에는 새싹 선 그림). 원본은 public/icons/naki-avatar-512.png 하나이고
+    // 아래 PNG는 그것으로 만든 것: any = 원 그대로(밖은 투명), maskable·아이폰(layout.tsx) = 원 밖을 같은 초록(#2e7d4f)으로 채운 정사각형.
+    // 아바타의 초록이 테마색과 같아 채운 곳과 원의 경계가 보이지 않고, 그림은 안쪽 80% 원(maskable 안전 영역) 안에 있어 기기가 잘라도 남는다.
+    // 192·512 둘 다: 크롬의 설치 조건이 두 크기를 요구한다 (예전 SVG(sizes: any)가 하던 대비책을 PNG 크기로 대신)
     icons: [
+      {
+        src: '/icons/nanaki-icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'any',
+      },
       {
         src: '/icons/nanaki-icon-512.png',
         sizes: '512x512',
@@ -25,15 +33,9 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: 'any',
       },
       {
-        src: '/icons/icon.svg',
-        sizes: 'any',
-        type: 'image/svg+xml',
-        purpose: 'any',
-      },
-      {
-        src: '/icons/icon-maskable.svg',
-        sizes: 'any',
-        type: 'image/svg+xml',
+        src: '/icons/nanaki-icon-maskable-512.png',
+        sizes: '512x512',
+        type: 'image/png',
         purpose: 'maskable',
       },
     ],
