@@ -34,6 +34,30 @@ import PhotoFileButton from './PhotoFileButton';
 
 type Facing = 'user' | 'environment';
 
+// 마지막으로 쓴 카메라(전면·후면)를 이 기기에 기억한다. 화면 편의일 뿐이라 브라우저 저장소에 두고,
+// 못 읽으면(사생활 보호 모드 등) 기본값으로 시작한다
+const FACING_STORAGE_KEY = 'nanaki:camera-facing';
+// 기본은 후면 (2026-10-24 아이폰 확인 뒤 사용자 지적): 눈바디는 거울 앞 전신샷이 흔하고, 그때 화면은 나를, 후면 카메라는 거울을 본다.
+// 처음엔 "실루엣을 보며 맞추려면 전면"이라 생각했지만 거울샷에서도 화면이 나를 향해 실루엣이 보인다
+const DEFAULT_FACING: Facing = 'environment';
+
+function readSavedFacing(): Facing {
+  try {
+    const saved = window.localStorage.getItem(FACING_STORAGE_KEY);
+    return saved === 'user' || saved === 'environment' ? saved : DEFAULT_FACING;
+  } catch {
+    return DEFAULT_FACING;
+  }
+}
+
+function saveFacing(facing: Facing) {
+  try {
+    window.localStorage.setItem(FACING_STORAGE_KEY, facing);
+  } catch {
+    // 저장하지 못해도 이번 촬영에는 지장이 없다
+  }
+}
+
 type CameraDialogProps = {
   open: boolean;
   kind: PhotoKind;
@@ -47,8 +71,10 @@ type CameraDialogProps = {
 
 // 눈바디 촬영 (step4 37c2, 시안 19). 손가락 기기에서만 연다 (useInAppCamera).
 // 카메라 화면은 앱 테마와 상관없이 다크로 고정한다 (tokens.json exceptions.camera-screen): .dark 클래스를 이 화면에만 붙이면
-// 다크 토큰(CSS 변수)이 이 안에서만 바뀐다. 영상은 화면을 꽉 채우고, 가운데 3:4 틀(맞춰 자르기와 같은 틀) 안만 사진이 된다.
-// 틀은 시안에 없지만 넣었다: 실루엣·지난 사진과 같은 자리에 몸이 오도록, 저장될 영역을 눈으로 보여 줘야 해서
+// 다크 토큰(CSS 변수)이 이 안에서만 바뀐다.
+// 영상은 3:4 틀(맞춰 자르기와 같은 틀) 안에만 보여 주고 틀 = 사진이다 (아이폰 기본 카메라의 4:3 모드와 같은 배치).
+// 처음에는 영상을 화면 전체에 채우고 가운데 틀만 잘랐는데, 긴 화면에 맞춰 늘리느라 좌우가 잘리고 틀에서 또 잘려
+// 카메라가 보는 폭의 절반쯤만 사진이 됐다 → 2배 확대된 것처럼 보여 거울 앞에서 전신이 안 들어왔다 (2026-10-24 아이폰 확인)
 export default function CameraDialog({
   open,
   kind,
@@ -97,8 +123,8 @@ function CameraBody({
   onGallery,
 }: CameraBodyProps) {
   const label = PHOTO_KIND_LABEL[kind];
-  // 기본은 전면: 실루엣을 보며 몸을 맞춰야 해서. 휴대폰을 세워 두고 후면으로 찍으려면 전환 + 타이머
-  const [facing, setFacing] = useState<Facing>('user');
+  // 이 화면은 열릴 때만 그려지는 브라우저 컴포넌트라 처음 값에서 저장소를 읽어도 서버와 어긋나지 않는다
+  const [facing, setFacing] = useState<Facing>(readSavedFacing);
   const [timer, setTimer] = useState<TimerSeconds>(0);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [shot, setShot] = useState<{ file: File; url: string } | null>(null);
@@ -233,19 +259,7 @@ function CameraBody({
 
   return (
     <div className='relative flex size-full flex-col'>
-      {/* 영상은 화면 전체(뒤), 위·아래 줄과 틀은 그 위에 얹는다 (시안: 영상이 위·아래 반투명 줄 밑까지 보인다) */}
-      <video
-        ref={videoRef}
-        // 아이폰은 playsInline이 없으면 영상을 전체 화면 재생기로 연다. muted가 있어야 사용자 동작 없이 재생된다
-        playsInline
-        muted
-        autoPlay
-        aria-hidden='true'
-        className='absolute inset-0 size-full object-cover'
-        style={isMirrored ? { transform: 'scaleX(-1)' } : undefined}
-      />
-
-      <div className='relative z-10 flex shrink-0 items-center bg-overlay px-1 pt-[env(safe-area-inset-top)]'>
+      <div className='flex shrink-0 items-center px-1 pt-[env(safe-area-inset-top)]'>
         <Dialog.Close
           aria-label='닫기'
           className='inline-flex size-11 items-center justify-center rounded-md text-fg-primary'
@@ -273,15 +287,25 @@ function CameraBody({
 
       <div
         ref={stageRef}
-        // overflow-hidden: 틀 밖을 어둡게 하는 넓은 그림자가 이 칸 밖(위 줄의 닫기·제목·타이머)까지 덮지 않게 자른다 (로컬 확인에서 위 줄이 흐려졌다)
-        className='relative z-10 flex min-h-0 flex-1 items-center justify-center overflow-hidden p-4'
+        // 여백 없이: 틀이 화면 폭을 다 쓰게 (위·아래 줄을 뺀 높이가 모자란 짧은 휴대폰은 높이에 맞춰 줄어든다)
+        className='relative flex min-h-0 flex-1 items-center justify-center'
       >
         <div
           ref={frameRef}
-          // 틀 밖을 어둡게: 넓은 그림자를 틀 둘레에 퍼뜨린다 (틀 밖은 사진에 들어가지 않는다)
-          className='relative overflow-hidden rounded-lg shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]'
+          className='relative overflow-hidden'
           style={{ width: frame.width, height: frame.height }}
         >
+          <video
+            ref={videoRef}
+            // 아이폰은 playsInline이 없으면 영상을 전체 화면 재생기로 연다. muted가 있어야 사용자 동작 없이 재생된다
+            playsInline
+            muted
+            autoPlay
+            aria-hidden='true'
+            // 카메라 영상(대개 3:4)이 틀(3:4)에 그대로 들어가 잘리는 곳이 없다. 비율이 다른 카메라(16:9 등)만 남는 쪽이 조금 잘린다
+            className='absolute inset-0 size-full object-cover'
+            style={isMirrored ? { transform: 'scaleX(-1)' } : undefined}
+          />
           {shot ? (
             // eslint-disable-next-line @next/next/no-img-element -- 기기 안의 blob 주소라 next/image 최적화를 거칠 수 없다
             <img
@@ -323,15 +347,15 @@ function CameraBody({
               {error}
             </p>
           )}
+          {!shot && !error && (
+            <span className='absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-overlay px-3 py-1.5 text-body-sm whitespace-nowrap text-white'>
+              실루엣에 몸을 맞춰 주세요
+            </span>
+          )}
         </div>
-        {!shot && !error && (
-          <span className='absolute bottom-6 rounded-full bg-overlay px-3 py-1.5 text-body-sm text-white'>
-            실루엣에 몸을 맞춰 주세요
-          </span>
-        )}
       </div>
 
-      <div className='relative z-10 flex shrink-0 flex-col gap-3 bg-overlay px-8 pt-4 pb-[calc(16px+env(safe-area-inset-bottom))]'>
+      <div className='flex shrink-0 flex-col gap-3 px-8 pt-4 pb-[calc(16px+env(safe-area-inset-bottom))]'>
         {shot ? (
           // 높이를 찍기 화면의 아래 줄과 같게(겹치기 44 + 셔터 72 + 갤러리 44 + 간격 24 = 184px): 다르면 틀 크기가 바뀌어 찍은 사진이 튀어 보인다 (로컬 확인)
           <div className='grid h-[184px] grid-cols-2 content-center gap-3'>
@@ -385,9 +409,11 @@ function CameraBody({
               </button>
               <button
                 type='button'
-                onClick={() =>
-                  setFacing(facing === 'user' ? 'environment' : 'user')
-                }
+                onClick={() => {
+                  const next = facing === 'user' ? 'environment' : 'user';
+                  setFacing(next);
+                  saveFacing(next);
+                }}
                 disabled={isCounting}
                 aria-label='카메라 전환'
                 className='flex size-12 items-center justify-center rounded-full bg-surface text-fg-primary disabled:text-fg-disabled'

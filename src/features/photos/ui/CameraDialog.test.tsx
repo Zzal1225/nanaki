@@ -61,6 +61,7 @@ describe('CameraDialog (손가락 기기의 앱 안 카메라)', () => {
   beforeEach(() => {
     onPick.mockReset();
     onError.mockReset();
+    window.localStorage.clear();
     vi.mocked(findLatestPhoto).mockResolvedValue(null);
     // 손가락 기기 + 카메라 API
     window.matchMedia = vi.fn((query: string) => ({
@@ -94,7 +95,7 @@ describe('CameraDialog (손가락 기기의 앱 안 카메라)', () => {
     vi.restoreAllMocks();
   });
 
-  it('칸을 누르면 파일 창 대신 전면 카메라를 연다', async () => {
+  it('칸을 누르면 파일 창 대신 후면 카메라를 연다 (거울 전신샷)', async () => {
     renderButton();
     expect(screen.queryByText('정면 사진')?.closest('label')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: '정면 사진' }));
@@ -104,8 +105,19 @@ describe('CameraDialog (손가락 기기의 앱 안 카메라)', () => {
     ).toBeTruthy();
     expect(getUserMedia).toHaveBeenCalledWith(
       expect.objectContaining({
-        video: expect.objectContaining({ facingMode: 'user' }),
+        video: expect.objectContaining({ facingMode: 'environment' }),
         audio: false,
+      }),
+    );
+  });
+
+  it('마지막으로 쓴 카메라를 기억한다', async () => {
+    window.localStorage.setItem('nanaki:camera-facing', 'user');
+    renderButton();
+    fireEvent.click(screen.getByRole('button', { name: '정면 사진' }));
+    await waitFor(() =>
+      expect(getUserMedia.mock.calls[0]?.[0]).toMatchObject({
+        video: { facingMode: 'user' },
       }),
     );
   });
@@ -158,23 +170,24 @@ describe('CameraDialog (손가락 기기의 앱 안 카메라)', () => {
     expect(await screen.findByRole('button', { name: '사용' })).toBeTruthy();
   });
 
-  it('카메라를 바꾸면 앞 카메라를 끄고 후면을 연다, 닫으면 끈다', async () => {
-    const front = fakeStream();
+  it('카메라를 바꾸면 앞 카메라를 끄고 전면을 연다(기억함), 닫으면 끈다', async () => {
     const back = fakeStream();
-    getUserMedia.mockResolvedValueOnce(front).mockResolvedValueOnce(back);
+    const front = fakeStream();
+    getUserMedia.mockResolvedValueOnce(back).mockResolvedValueOnce(front);
     renderButton();
     fireEvent.click(screen.getByRole('button', { name: '정면 사진' }));
     await waitFor(() => expect(getUserMedia).toHaveBeenCalledTimes(1));
 
     fireEvent.click(screen.getByRole('button', { name: '카메라 전환' }));
     await waitFor(() => expect(getUserMedia).toHaveBeenCalledTimes(2));
-    expect(front.stop).toHaveBeenCalled();
+    expect(back.stop).toHaveBeenCalled();
     expect(getUserMedia.mock.calls[1]?.[0]).toMatchObject({
-      video: { facingMode: 'environment' },
+      video: { facingMode: 'user' },
     });
+    expect(window.localStorage.getItem('nanaki:camera-facing')).toBe('user');
 
     fireEvent.click(screen.getByRole('button', { name: '닫기' }));
-    await waitFor(() => expect(back.stop).toHaveBeenCalled());
+    await waitFor(() => expect(front.stop).toHaveBeenCalled());
   });
 
   it('권한을 거절하면 설정·갤러리 안내, 셔터는 꺼진다', async () => {
