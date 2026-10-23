@@ -291,6 +291,8 @@ describe('RecordForm (체형)', () => {
   it('다른 타입은 그대로: 가계부는 태그·메모 칸이 있다', () => {
     renderForm('expense');
     expect(screen.getByLabelText(/^메모/)).toBeTruthy();
-    expect(screen.queryByText('체중, 허리둘레, 사진 중 1개 이상 입력')).toBeNull();
+    expect(
+      screen.queryByText('체중, 허리둘레, 사진 중 1개 이상 입력'),
+    ).toBeNull();
   });
 });
