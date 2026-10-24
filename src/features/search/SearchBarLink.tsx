@@ -14,13 +14,17 @@ export default function SearchBarLink() {
     >
       <Search
         aria-hidden='true'
+        className='shrink-0'
         size={ICON_SIZE.md}
         strokeWidth={ICON_STROKE_WIDTH}
       />
       {/* 화면 읽기 프로그램에는 "기록 검색"으로 읽힌다 (보이는 글자는 예시) */}
       <span className='sr-only'>기록 검색</span>
       {/* 실제로 찾는 칸을 적는다 (2026-10-22 사용자 결정). 결제수단·대상·종목도 찾지만 375px 검색창에 다 들어가지 않아 "분류"로 묶었다 */}
-      <span aria-hidden='true'>{SEARCH_PLACEHOLDER}</span>
+      {/* 한 줄로, 넘치면 …: 옆에 보고서 버튼이 생겨(step4 40) 375px에서 두 줄로 꺾였다. 문구는 그대로 두고 자른다 */}
+      <span aria-hidden='true' className='min-w-0 truncate'>
+        {SEARCH_PLACEHOLDER}
+      </span>
     </Link>
   );
 }

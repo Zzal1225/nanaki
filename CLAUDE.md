@@ -59,7 +59,7 @@ src/
                   auth/callback/ = 구글 로그인 뒤 code를 세션으로 바꾸는 Route Handler
                   api/account/ = 계정 삭제 Route Handler (DELETE, secret 키로 본인 계정만). API는 proxy가 로그인 화면으로 보내지 않고 스스로 401
                   api/naki/ = 나키 Route Handler (POST 질문 → 조건, GET 오늘 남은 횟수). 처리 순서는 features/naki/server/handleNakiQuestion
-                  (app)/ = 로그인 뒤 화면 묶음(/, /records, /records/new, /records/view?id=, /records/edit?id=, /records/type/[type], /records/search, /settings, /budget?month=, /fixed-expenses, /naki, /body-compare?kind=&from=&to=).
+                  (app)/ = 로그인 뒤 화면 묶음(/, /records, /records/new, /records/view?id=, /records/edit?id=, /records/type/[type], /records/search, /settings, /budget?month=, /fixed-expenses, /naki, /body-compare?kind=&from=&to=, /report · /report?from=&to=&types=).
                   records/layout.tsx = PC에서 목록(왼쪽) + 상세·폼(오른쪽) 패널. 주소에 안 나타나는 괄호 폴더
                   serwist/sw.js/ = 서비스 워커 파일을 빌드 때 한 번 만드는 Route Handler('use cache'), manifest.ts = 설치 정보,
                   ~offline/ = 연결도 저장본도 없을 때의 대체 화면
@@ -75,6 +75,9 @@ src/
                   nakiCustomNames = AI에 보낼 사용자가 만든 분류·태그 이름 모으기(이름만, 각 50개), hooks/useNakiCustomNames, nakiEval.test = 실제 AI 질문 묶음(npm run naki:eval, CI는 건너뜀), nakiLimits = 하루 횟수 규칙(환경 변수, 한국 날짜, DB 결과 읽기), api/nakiClient = 브라우저의 유일한 입구,
                   server/nakiModel = AI 제공자 어댑터(이 파일만 ai·@ai-sdk/* import, ESLint로 강제), server/handleNakiQuestion = 로그인·횟수·AI·되돌리기 순서,
                   ui/ = NakiScreen(대화는 메모리만, 안내 3종), NakiAnswer("이렇게 이해했어요" 칩·계산 한 줄·기록 3개·기록 탭에서 보기), TypingExamples(빈 화면 예시 질문 타이핑). 찾기는 검색과 같은 길(기기 사본)
+                  report/ = 보고서(step4 40). reportModel = 기간 칩·주소(reportHref·parseReportQuery)·제목·개수·운동 묶음·별점 높은 후기·루틴은 오늘까지(순수 함수),
+                  ui/ = ReportFromUrl(조건 없으면 고르기) → ReportSetup(기간·타입) / ReportView(기기 사본으로 카드, 한 달이면 예산 줄) + ReportSections(타입별 카드, 그리기만), ReportEntryLink(기록 탭 검색창 옆).
+                  PDF = window.print(): globals.css 6. 인쇄(@page는 @media 밖, data-print-root 칸과 조상만 남김), 인쇄 중 라이트. 사진·평균 별점 없음
                   budget/ = 가계부 예산(step3, 달마다 따로). api/budgetStore = 예산 저장·조회의 유일한 입구(그 달이 없으면 가장 최근 달을 이어받음),
                   budgetProgress = 쓴 돈·남은 돈·남은 날·분류별 초과·예산 없는 분류(순수 함수), budgetText = 문구, schema/budget = Zod,
                   budgetRoutes = 예산 화면 주소(/budget?month=, 입구는 가계부 요약 카드의 예산 줄 하나), hooks/useBudget = 조회·저장 훅,

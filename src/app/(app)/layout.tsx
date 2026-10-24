@@ -22,8 +22,9 @@ export default function AppLayout({ children }: LayoutProps<'/'>) {
       <div className='flex min-h-dvh shrink-0'>
         <Sidebar action={<SidebarNewRecordMenu />} />
         {/* 모바일은 하단 탭과 떠 있는 + 버튼이 위를 덮으므로 그만큼 아래를 비운다 (globals.css --fab-clearance).
-            키보드가 떠 있으면 그 높이(--keyboard-inset, KeyboardInset)도 더해 맨 아래 입력칸을 키보드 위로 올릴 공간을 만든다 */}
-        <main className='min-w-0 flex-1 pb-[calc(var(--tab-bar-height)+var(--fab-clearance)+var(--keyboard-inset,0px))] md:pb-0'>
+            키보드가 떠 있으면 그 높이(--keyboard-inset, KeyboardInset)도 더해 맨 아래 입력칸을 키보드 위로 올릴 공간을 만든다.
+            인쇄(보고서 PDF)에는 탭·버튼이 없어서 비운다: 남겨 두면 끝에 빈 쪽이 생길 수 있다 */}
+        <main className='min-w-0 flex-1 pb-[calc(var(--tab-bar-height)+var(--fab-clearance)+var(--keyboard-inset,0px))] md:pb-0 print:pb-0'>
           {/* 오프라인일 때만 화면 맨 위에 안내 (모든 기록 화면 공통) */}
           <OfflineBanner />
           {children}
