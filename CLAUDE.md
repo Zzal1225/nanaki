@@ -59,7 +59,7 @@ src/
                   auth/callback/ = 구글 로그인 뒤 code를 세션으로 바꾸는 Route Handler
                   api/account/ = 계정 삭제 Route Handler (DELETE, secret 키로 본인 계정만). API는 proxy가 로그인 화면으로 보내지 않고 스스로 401
                   api/naki/ = 나키 Route Handler (POST 질문 → 조건, GET 오늘 남은 횟수). 처리 순서는 features/naki/server/handleNakiQuestion
-                  (app)/ = 로그인 뒤 화면 묶음(/, /records, /records/new, /records/view?id=, /records/edit?id=, /records/type/[type], /records/search, /settings, /budget?month=, /fixed-expenses, /naki).
+                  (app)/ = 로그인 뒤 화면 묶음(/, /records, /records/new, /records/view?id=, /records/edit?id=, /records/type/[type], /records/search, /settings, /budget?month=, /fixed-expenses, /naki, /body-compare?kind=&from=&to=).
                   records/layout.tsx = PC에서 목록(왼쪽) + 상세·폼(오른쪽) 패널. 주소에 안 나타나는 괄호 폴더
                   serwist/sw.js/ = 서비스 워커 파일을 빌드 때 한 번 만드는 Route Handler('use cache'), manifest.ts = 설치 정보,
                   ~offline/ = 연결도 저장본도 없을 때의 대체 화면
@@ -93,7 +93,9 @@ src/
                   쓰기 화면: ui/RecordFormWithPhotos(고른 사진은 메모리만) + NewRecordPhotos(표시), api/attachNewRecordPhotos = 저장 뒤 기록 보내기 → 서버에 간 것 확인 → 한 장씩 올리기,
                   맞춰 자르기(37c1): 사진 칸 버튼은 모두 ui/PhotoPickButton(고르기·끌어다 놓기 → 확인 → PhotoCropDialog → 3:4 JPEG), photoCrop = 배치 계산(미리보기·캔버스 공용)·결과 만들기,
                   BodySilhouette = 점선 실루엣(자르기·카메라 공용), 지난 사진 = photoStore.findLatestPhoto(같은 자세, 이 기록 날짜와 같거나 앞선 다른 기록 중 가장 늦은 날짜, 지운 기록 제외). 공용 슬라이더 shared/ui/StepSlider(− 막대 + 값),
-                  앱 안 카메라(37c2): hooks/useInAppCamera(기기 능력, 마운트 뒤) → ui/CameraDialog(다크 고정, 영상은 3:4 틀 안에만 = 사진, 후면 카메라만, 타이머), photoCapture = 틀 → 영상 좌표 계산·찍기, hooks/useFittedFrame = 3:4 틀 크기(자르기·카메라 공용)
+                  앱 안 카메라(37c2): hooks/useInAppCamera(기기 능력, 마운트 뒤) → ui/CameraDialog(다크 고정, 영상은 3:4 틀 안에만 = 사진, 후면 카메라만, 타이머), photoCapture = 틀 → 영상 좌표 계산·찍기, hooks/useFittedFrame = 3:4 틀 크기(자르기·카메라 공용),
+                  눈바디 비교(37d): photos/compare/ = bodyCompare(주소·기본 날짜 처음 → 최근·가까운 기록 수치·변화, 순수 함수), CompareSlider(손잡이 끌기·방향키·위치 버튼),
+                  BodyCompareScreen(사진이 있는 날짜만 고르기, 체험 계정은 예시 실루엣 DemoBody), BodyCompareLink(체형 요약 카드·기록 상세 사진 칸의 입구, 비교할 수 있을 때만)
                   push/ = 루틴 푸시 알림 받기(step3, 35a). api/pushStore = 이 기기 구독 저장·삭제의 유일한 입구(권한 묻기·save_push_subscription, NEXT_PUBLIC_VAPID_PUBLIC_KEY 없으면 알림 UI 숨김),
                   pushSupport = 이 기기에서 받을 수 있는지(아이폰은 홈 화면 앱만, 순수 함수), hooks/useThisDevicePush·usePushSupport(마운트 뒤 기기 판단), pushMessages = 켜기 결과 안내 문구. 루틴 폼의 알림 칸은 routines/form/RemindInput(10분 단위, 안내는 스위치 바로 아래)
                   calendar/ = 홈 캘린더. calendarState = 주소(?date=) 해석·만들기와 공통 탐색(이전·다음 달, 키보드 이동),

@@ -148,6 +148,31 @@ export async function findLatestPhoto(
   return { photo: toPhoto(row), occurredAt: data.occurred_at };
 }
 
+// 그 자세 사진이 있는 기록의 날짜와 사진 (눈바디 비교 37d: 날짜 고르기·두 사진). 오래된 날짜부터.
+// 같은 날 기록이 둘이면 둘 다 온다: 화면이 날짜마다 나중에 쓴 기록 하나를 고른다 (pickPhotoByDate)
+export type PhotoOnDate = { date: string; recordId: string; photo: Photo };
+
+export async function listPhotoDates(kind: PhotoKind): Promise<PhotoOnDate[]> {
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase
+    .from('records')
+    .select('id, occurred_at, photos!inner(*)')
+    .eq('photos.kind', kind)
+    .is('deleted_at', null)
+    .order('occurred_at', { ascending: true })
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data.flatMap((row) => {
+    // 같은 기록에 같은 자세가 둘(바꾸기 도중 실패)이면 나중에 올린 것
+    const photo = [...row.photos].sort((a, b) =>
+      a.created_at.localeCompare(b.created_at),
+    )[row.photos.length - 1];
+    return photo
+      ? [{ date: row.occurred_at, recordId: row.id, photo: toPhoto(photo) }]
+      : [];
+  });
+}
+
 // 보여 줄 서명 링크들 (한 번에). 파일 주소 → 링크. 만든 링크는 PHOTO_URL_EXPIRES_SECONDS 뒤 닫힌다
 export async function createPhotoUrls(
   paths: readonly string[],
