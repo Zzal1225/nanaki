@@ -2,7 +2,11 @@
 
 // 'use client' 이유: 시트 열림·사진 바꾸기·지우기 확인이 브라우저에서 일어난다
 import { useState } from 'react';
-import { PHOTO_KIND_LABEL } from '@/features/records/schema/photoKinds';
+import {
+  isGalleryKind,
+  PHOTO_KIND_LABEL,
+  type PhotoKind,
+} from '@/features/records/schema/photoKinds';
 import Button from '@/shared/ui/Button';
 import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 import Sheet from '@/shared/ui/Sheet';
@@ -48,7 +52,7 @@ export default function PhotoViewer({
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
-      title={photo ? `${PHOTO_KIND_LABEL[photo.kind]} 사진` : '사진'}
+      title={photo ? photoTitle(photo.kind) : '사진'}
     >
       {photo && (
         <ViewerBody
@@ -76,7 +80,8 @@ function ViewerBody({
   const remove = useDeletePhoto(photo.recordId);
   const [isConfirming, setIsConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const label = PHOTO_KIND_LABEL[photo.kind];
+  // 갤러리 사진(후기)은 바꾸기 없이 지우기만: 여러 장 중 하나라 지우고 다시 추가하면 된다 (원본 비율, 자르기 없음)
+  const canReplace = !isGalleryKind(photo.kind);
 
   async function replace(file: File) {
     setError(null);
@@ -117,7 +122,7 @@ function ViewerBody({
           // eslint-disable-next-line @next/next/no-img-element -- 몇 분짜리 서명 링크라 next/image 최적화(서버가 다시 받아 저장)를 거치지 않는다
           <img
             src={url}
-            alt={`${label} 사진`}
+            alt={photoTitle(photo.kind)}
             width={photo.width}
             height={photo.height}
             className='size-full object-contain'
@@ -135,18 +140,22 @@ function ViewerBody({
           {error}
         </p>
       )}
-      <div className='grid grid-cols-2 gap-2'>
-        <PhotoPickButton
-          kind={photo.kind}
-          basis={{ recordId: photo.recordId, date: recordDate }}
-          onPick={(file) => void replace(file)}
-          onError={setError}
-          onStart={() => setError(null)}
-          disabled={upload.isPending}
-          className='inline-flex min-h-11 items-center justify-center rounded-md border border-border bg-surface text-body-sm font-semibold text-fg-primary hover:bg-surface-hover'
-        >
-          {upload.isPending ? '올리는 중…' : '바꾸기'}
-        </PhotoPickButton>
+      <div
+        className={`grid gap-2 ${canReplace ? 'grid-cols-2' : 'grid-cols-1'}`}
+      >
+        {canReplace && (
+          <PhotoPickButton
+            kind={photo.kind}
+            basis={{ recordId: photo.recordId, date: recordDate }}
+            onPick={(file) => void replace(file)}
+            onError={setError}
+            onStart={() => setError(null)}
+            disabled={upload.isPending}
+            className='inline-flex min-h-11 items-center justify-center rounded-md border border-border bg-surface text-body-sm font-semibold text-fg-primary hover:bg-surface-hover'
+          >
+            {upload.isPending ? '올리는 중…' : '바꾸기'}
+          </PhotoPickButton>
+        )}
         <Button variant='secondary' onClick={() => setIsConfirming(true)}>
           지우기
         </Button>
@@ -168,4 +177,9 @@ function ViewerBody({
       />
     </div>
   );
+}
+
+// "정면 사진" / "측면 사진" / 후기는 그냥 "사진" (종류 이름이 "사진"이라 붙이면 "사진 사진")
+function photoTitle(kind: PhotoKind): string {
+  return isGalleryKind(kind) ? '사진' : `${PHOTO_KIND_LABEL[kind]} 사진`;
 }

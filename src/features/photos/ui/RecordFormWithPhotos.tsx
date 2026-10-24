@@ -4,10 +4,15 @@
 import { useState } from 'react';
 import RecordForm from '@/features/records/form/RecordForm';
 import type { RecordEntry } from '@/features/records/schema/recordEntry';
-import type { PhotoKind } from '@/features/records/schema/photoKinds';
+import {
+  isGalleryKind,
+  PHOTO_KIND_MAX,
+  type PhotoKind,
+} from '@/features/records/schema/photoKinds';
 import { useDiscardRecord } from '@/features/records/hooks/useDeleteRecord';
 import {
   getContentHint,
+  getPhotoPlacement,
   hasFieldValues,
   type RecordType,
 } from '@/features/records/schema/recordTypes';
@@ -19,6 +24,8 @@ import {
   type PickedPhoto,
 } from '../api/attachNewRecordPhotos';
 import { useObjectUrls } from '../hooks/useObjectUrls';
+import { checkPhotoFile, PHOTO_FILE_MESSAGE } from '../photoImage';
+import NewRecordGallery, { type GalleryPick } from './NewRecordGallery';
 import NewRecordPhotos, { type PickedPreview } from './NewRecordPhotos';
 import { newRecordPhotoNotice } from './photoError';
 
@@ -41,6 +48,8 @@ export default function RecordFormWithPhotos({
   const [picks, setPicks] = useState<Partial<Record<PhotoKind, PickedPreview>>>(
     {},
   );
+  // 갤러리(후기 사진, 여러 장): 고른 순서대로
+  const [galleryPicks, setGalleryPicks] = useState<GalleryPick[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isAttaching, setIsAttaching] = useState(false);
   const isOnline = useOnlineStatus();
@@ -58,6 +67,36 @@ export default function RecordFormWithPhotos({
     setPicks({ ...picks, [kind]: { file, url } });
   }
 
+  // 한 칸에 한 장인 종류(정면·측면)와 여러 장인 종류(후기)를 나눈다 (종류 규칙 PHOTO_KIND_MAX, 타입 이름으로 가르지 않는다)
+  const slotKinds = kinds.filter((kind) => !isGalleryKind(kind));
+  const galleryKind = kinds.find(isGalleryKind);
+  const galleryMax = galleryKind ? PHOTO_KIND_MAX[galleryKind] : 0;
+
+  // 갤러리는 자르기를 거치지 않으니 형식·크기 확인을 여기서 (HEIC 안내). 최대 장수를 넘는 것은 받지 않고 알린다
+  function pickToGallery(files: File[]) {
+    setError(null);
+    const room = galleryMax - galleryPicks.length;
+    const accepted: GalleryPick[] = [];
+    for (const file of files) {
+      const check = checkPhotoFile(file);
+      if (check !== 'ok') {
+        setError(PHOTO_FILE_MESSAGE[check]);
+        continue;
+      }
+      if (accepted.length >= room) {
+        setError(`사진은 ${galleryMax}장까지 붙일 수 있어요`);
+        break;
+      }
+      accepted.push({ file, url: objectUrls.create(file) });
+    }
+    if (accepted.length > 0) setGalleryPicks([...galleryPicks, ...accepted]);
+  }
+
+  function removeFromGallery(url: string) {
+    objectUrls.revoke(url);
+    setGalleryPicks(galleryPicks.filter((pick) => pick.url !== url));
+  }
+
   function remove(kind: PhotoKind) {
     objectUrls.revoke(picks[kind]?.url);
     const next = { ...picks };
@@ -65,10 +104,15 @@ export default function RecordFormWithPhotos({
     setPicks(next);
   }
 
-  const list: PickedPhoto[] = kinds.flatMap((kind) => {
-    const picked = picks[kind];
-    return picked ? [{ kind, file: picked.file }] : [];
-  });
+  const list: PickedPhoto[] = [
+    ...slotKinds.flatMap((kind) => {
+      const picked = picks[kind];
+      return picked ? [{ kind, file: picked.file }] : [];
+    }),
+    ...(galleryKind
+      ? galleryPicks.map((pick) => ({ kind: galleryKind, file: pick.file }))
+      : []),
+  ];
   // 폼 검사(체중·허리둘레·사진 중 1개 이상)에 넘기는 사진 장수. 오프라인이면 0: 사진은 저장 뒤 서버로 올라가는데
   // 오프라인이면 못 올라가서, 사진만 고른 기록이 빈 기록으로 남는다 (2026-10-24 사용자: 빈 껍데기를 막을 것)
   const photoCount = isOnline ? list.length : 0;
@@ -113,21 +157,37 @@ export default function RecordFormWithPhotos({
       date={date}
       doneHref={doneHref}
       photoCount={photoCount}
+      sectionPlacement={getPhotoPlacement(type)}
       section={
-        <NewRecordPhotos
-          // 폼 위에 "체중, 허리둘레, 사진 중 1개 이상" 안내가 있으면 "(선택)"을 붙이지 않는다
-          title={getContentHint(type) ? '사진' : '사진 (선택)'}
-          // 시작 날짜(홈에서 고른 날 또는 오늘). 폼에서 날짜를 바꿔도 따라가지 않는다: 날짜 칸은 폼(RecordForm) 안에 있어서 (감수한 것)
-          recordDate={date ?? toLocalDateString(new Date())}
-          kinds={kinds}
-          picks={picks}
-          onPick={pick}
-          onRemove={remove}
-          onError={setError}
-          isOnline={isOnline}
-          isDisabled={isAttaching}
-          error={error}
-        />
+        <>
+          {slotKinds.length > 0 && (
+            <NewRecordPhotos
+              // 폼 위에 "체중, 허리둘레, 사진 중 1개 이상" 안내가 있으면 "(선택)"을 붙이지 않는다
+              title={getContentHint(type) ? '사진' : '사진 (선택)'}
+              // 시작 날짜(홈에서 고른 날 또는 오늘). 폼에서 날짜를 바꿔도 따라가지 않는다: 날짜 칸은 폼(RecordForm) 안에 있어서 (감수한 것)
+              recordDate={date ?? toLocalDateString(new Date())}
+              kinds={slotKinds}
+              picks={picks}
+              onPick={pick}
+              onRemove={remove}
+              onError={setError}
+              isOnline={isOnline}
+              isDisabled={isAttaching}
+              error={error}
+            />
+          )}
+          {galleryKind && (
+            <NewRecordGallery
+              picks={galleryPicks}
+              max={galleryMax}
+              onPick={pickToGallery}
+              onRemove={removeFromGallery}
+              isOnline={isOnline}
+              isDisabled={isAttaching}
+              error={slotKinds.length > 0 ? null : error}
+            />
+          )}
+        </>
       }
       onCreated={handleCreated}
     />

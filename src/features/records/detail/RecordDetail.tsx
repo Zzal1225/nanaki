@@ -6,13 +6,16 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToastStore } from '@/shared/toast/toastStore';
 import { formatDisplayDate } from '@/shared/date/formatDisplayDate';
+import RecordGallery from '@/features/photos/ui/RecordGallery';
 import RecordPhotos from '@/features/photos/ui/RecordPhotos';
+import { isGalleryKind } from '../schema/photoKinds';
 import Button from '@/shared/ui/Button';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import { useDiscardRecord } from '../hooks/useDeleteRecord';
 import { useRecord } from '../hooks/useRecord';
 import {
   getPhotoKinds,
+  getPhotoPlacement,
   hasFieldValues,
   isEditableType,
   RECORD_TYPE_CONFIG,
@@ -96,7 +99,37 @@ export default function RecordDetail({
   // 화면에 그리기 위해 이름으로 값을 꺼낸다. 이미 검증을 통과한 기록이라 읽기만 한다
   const fieldValues = entry.fields as Record<string, unknown>;
   const back = detailBackTarget(origin, entry.type);
+  // 사진 칸: 한 장짜리 종류(눈바디 정면·측면)는 칸으로, 여러 장인 종류(후기)는 갤러리로 (종류 규칙, 타입 이름으로 가르지 않는다)
   const photoKinds = getPhotoKinds(entry.type);
+  const slotKinds = photoKinds.filter((kind) => !isGalleryKind(kind));
+  const galleryKind = photoKinds.find(isGalleryKind);
+  const isPhotosFirst = getPhotoPlacement(entry.type) === 'afterFields';
+
+  const photoSection = (
+    <>
+      {slotKinds.length > 0 && (
+        <RecordPhotos
+          recordId={entry.id}
+          recordDate={entry.occurredAt}
+          kinds={slotKinds}
+          isPhotoOnly={!hasFieldValues(entry)}
+          // 마지막 사진을 지운 뒤: 기록도 지우고(되돌리기 없음, 사진이 이미 없다) 들어온 곳으로
+          onRecordEmptied={async () => {
+            await discardRecord.mutateAsync(entry.id);
+            showToast({ message: '기록을 삭제했어요' });
+            router.replace(back.href);
+          }}
+        />
+      )}
+      {galleryKind && (
+        <RecordGallery
+          recordId={entry.id}
+          recordDate={entry.occurredAt}
+          kind={galleryKind}
+        />
+      )}
+    </>
+  );
 
   return (
     <article className='mx-auto flex w-full max-w-xl flex-col gap-4 px-4 pt-2 pb-6 md:px-6 lg:pt-6'>
@@ -144,6 +177,9 @@ export default function RecordDetail({
         )}
       </div>
 
+      {/* 후기 사진은 제목·별점 바로 아래 (시안 6, 타입 설정 photoPlacement) */}
+      {isPhotosFirst && photoSection}
+
       <dl className='overflow-hidden rounded-lg border border-border bg-surface'>
         <DetailRow label='날짜'>
           <span className='tabular-nums'>
@@ -185,20 +221,7 @@ export default function RecordDetail({
       </dl>
 
       {/* 사진 칸은 타입 설정이 정한다 (체형 = 정면·측면, step4). 사진이 없는 타입은 그리지 않는다 */}
-      {photoKinds.length > 0 && (
-        <RecordPhotos
-          recordId={entry.id}
-          recordDate={entry.occurredAt}
-          kinds={photoKinds}
-          isPhotoOnly={!hasFieldValues(entry)}
-          // 마지막 사진을 지운 뒤: 기록도 지우고(되돌리기 없음, 사진이 이미 없다) 들어온 곳으로
-          onRecordEmptied={async () => {
-            await discardRecord.mutateAsync(entry.id);
-            showToast({ message: '기록을 삭제했어요' });
-            router.replace(back.href);
-          }}
-        />
-      )}
+      {!isPhotosFirst && photoSection}
     </article>
   );
 }
