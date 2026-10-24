@@ -261,8 +261,8 @@ npm run dev
 
 | 문서 | 내용 |
 | --- | --- |
-| `docs/decisions/` _(예정)_ | 설계 결정과 버린 대안 |
-| `docs/troubleshooting/` _(예정)_ | 문제 → 원인 → 해결 → 결과 |
+| [`docs/decisions/`](docs/decisions/) | 설계 결정과 버린 대안: [오프라인 우선(기기 사본 + 쓰기 대기열)](docs/decisions/2026-10-22-offline-first-replica-and-outbox.md) · [AI에 무엇을 보내고 무엇을 기기에서 할지](docs/decisions/2026-10-23-naki-what-to-send-to-ai.md) · [보고서 PDF는 브라우저 인쇄](docs/decisions/2026-10-24-report-pdf-browser-print.md) · [테스트 전략과 실기기](docs/decisions/2026-10-22-test-strategy-real-device.md) |
+| [`docs/troubleshooting/`](docs/troubleshooting/) | 문제 → 원인 → 해결 → 결과: [1만 건에서 모든 화면 3.3초(동기화 겹쳐 받기)](docs/troubleshooting/2026-10-24-sync-overlap-refetch.md) · [떠난 화면이 숨은 채 남아 생긴 두 버그](docs/troubleshooting/2026-10-24-hidden-routes.md) · [Lighthouse 95→84, 실제로는 안 느려짐](docs/troubleshooting/2026-10-23-login-lcp-simulate.md) · [연 적 없는 화면 오프라인, CI 다섯 번 실패](docs/troubleshooting/2026-10-22-offline-unvisited-screens.md) |
 | [`docs/performance.md`](docs/performance.md) | 성능 측정 환경과 전후 수치 |
 | [`docs/milestones.md`](docs/milestones.md) | step별 테스트 개수, CI, Lighthouse 기록 |
 
