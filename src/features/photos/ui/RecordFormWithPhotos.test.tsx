@@ -162,7 +162,9 @@ describe('RecordFormWithPhotos (체형 쓰기 + 사진)', () => {
   it('오프라인이면 사진을 고를 수 없고 안내한다', () => {
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
     renderForm();
-    expect(screen.getByText(/연결되면 사진을 고를 수 있어요/)).toBeTruthy();
+    expect(
+      screen.getByText('사진은 오프라인 상태에서 저장할 수 없어요.'),
+    ).toBeTruthy();
     const input = screen
       .getByText('정면 사진')
       .closest('label')
@@ -220,5 +222,27 @@ describe('RecordFormWithPhotos (체형 쓰기 + 사진)', () => {
       await screen.findByText('체중, 허리둘레, 사진 중 1개 이상 입력해 주세요'),
     ).toBeTruthy();
     expect(createRecord).not.toHaveBeenCalled();
+  });
+
+  // 2026-10-24 아이폰 확인: 사진을 올리는 동안 저장 버튼이 다시 눌려 기록이 두 개 생겼다
+  it('사진을 올리는 동안 저장 버튼은 로딩이고, 다시 눌러도 기록이 하나만 생긴다', async () => {
+    let finishUpload: (value: { status: 'done' }) => void = () => {};
+    vi.mocked(attachNewRecordPhotos).mockReturnValue(
+      new Promise((resolve) => {
+        finishUpload = resolve;
+      }),
+    );
+    renderForm();
+    await pickAndCrop('정면 사진', JPG);
+    fillWaistAndSave();
+
+    await waitFor(() => expect(attachNewRecordPhotos).toHaveBeenCalled());
+    const save = screen.getByRole('button', { name: '저장' });
+    expect(save.getAttribute('aria-busy')).toBe('true');
+    fireEvent.click(save);
+    expect(createRecord).toHaveBeenCalledTimes(1);
+
+    finishUpload({ status: 'done' });
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/'));
   });
 });
