@@ -48,4 +48,30 @@ test('작성 화면·타입 화면을 닫았다가 다시 열어도 그 화면�
     await sidebar.getByRole('link', { name: '홈', exact: true }).click();
     await expect(page).toHaveURL('/');
   }
+
+  // PC 타입 상세는 왼쪽 목록 자리에 (Issue #30): 그 목록에서 기록을 열어도 왼쪽은 가계부 목록 그대로, 연 기록에 선택 표시.
+  // 예전에는 타입 상세가 오른쪽에 열려 기록을 누르면 보던 목록이 사라졌다
+  await sidebar.getByRole('link', { name: '기록', exact: true }).click();
+  await page
+    .locator('a[href^="/records/type/expense"]')
+    .filter({ visible: true })
+    .first()
+    .click();
+  const list = page.getByRole('complementary', { name: '기록 목록' });
+  await expect(
+    list.getByRole('heading', { level: 1, name: '가계부', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByText('기록을 고르면 여기에 보여요')
+      // 떠난 기록 탭 화면도 숨은 채 같은 안내를 들고 있다(cacheComponents)
+      .filter({ visible: true }),
+  ).toBeVisible();
+  const first = list.getByRole('listitem').getByRole('link').first();
+  await first.click();
+  await expect(page).toHaveURL(/\/records\/view\?.*back=type/);
+  await expect(
+    list.getByRole('heading', { level: 1, name: '가계부', exact: true }),
+  ).toBeVisible();
+  await expect(first).toHaveAttribute('aria-current', 'page');
 });
