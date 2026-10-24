@@ -49,7 +49,9 @@ test('나키: 예시 질문 → 이렇게 이해했어요 칩 + 결과 목록 �
   const chips = page.getByRole('list', { name: '찾은 조건' });
   await expect(page.getByText('이렇게 이해했어요')).toBeVisible();
   await expect(chips).toContainText('가계부');
-  await expect(page.getByText(/합계 -[\d,]+원 · \d+건/)).toBeVisible();
+  // 답은 이름줄 + 큰 값 두 줄 (2026-10-24 #111: 답을 더 뚜렷하게)
+  await expect(page.getByText(/^합계 · \d+건$/)).toBeVisible();
+  await expect(page.getByText(/^-[\d,]+원$/).first()).toBeVisible();
   // 결과 목록: 체험 예시 기록 중 오늘 것 (점심 9,800원)
   await expect(page.getByRole('link', { name: /\[식비\] 점심/ })).toBeVisible();
   // 하루 횟수를 서버가 실제로 셌다
