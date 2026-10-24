@@ -92,8 +92,8 @@ src/
                   hooks/usePhotos(서명 링크는 닫히기 2분 전에 새로), ui/RecordPhotos = 상세의 사진 칸(타입 설정 photoKinds대로, 오프라인·대기열이면 안내), PhotoViewer(시트: 크게 보기·바꾸기·지우기),
                   쓰기 화면: ui/RecordFormWithPhotos(고른 사진은 메모리만) + NewRecordPhotos(표시), api/attachNewRecordPhotos = 저장 뒤 기록 보내기 → 서버에 간 것 확인 → 한 장씩 올리기,
                   맞춰 자르기(37c1): 사진 칸 버튼은 모두 ui/PhotoPickButton(고르기·끌어다 놓기 → 확인 → PhotoCropDialog → 3:4 JPEG), photoCrop = 배치 계산(미리보기·캔버스 공용)·결과 만들기,
-                  BodySilhouette = 점선 실루엣(자르기·카메라 공용), 지난 사진 = photoStore.findLatestPhoto(같은 자세, 지운 기록 제외). 공용 슬라이더 shared/ui/StepSlider(− 막대 + 값),
-                  앱 안 카메라(37c2): hooks/useInAppCamera(기기 능력, 마운트 뒤) → ui/CameraDialog(다크 고정, 영상은 3:4 틀 안에만 = 사진, 기본 후면·마지막 선택 기억, 타이머, 전면은 거울로 보여 주고 실제 방향 저장), photoCapture = 틀 → 영상 좌표 계산·찍기, hooks/useFittedFrame = 3:4 틀 크기(자르기·카메라 공용)
+                  BodySilhouette = 점선 실루엣(자르기·카메라 공용), 지난 사진 = photoStore.findLatestPhoto(같은 자세, 이 기록 날짜와 같거나 앞선 다른 기록 중 가장 늦은 날짜, 지운 기록 제외). 공용 슬라이더 shared/ui/StepSlider(− 막대 + 값),
+                  앱 안 카메라(37c2): hooks/useInAppCamera(기기 능력, 마운트 뒤) → ui/CameraDialog(다크 고정, 영상은 3:4 틀 안에만 = 사진, 후면 카메라만, 타이머), photoCapture = 틀 → 영상 좌표 계산·찍기, hooks/useFittedFrame = 3:4 틀 크기(자르기·카메라 공용)
                   push/ = 루틴 푸시 알림 받기(step3, 35a). api/pushStore = 이 기기 구독 저장·삭제의 유일한 입구(권한 묻기·save_push_subscription, NEXT_PUBLIC_VAPID_PUBLIC_KEY 없으면 알림 UI 숨김),
                   pushSupport = 이 기기에서 받을 수 있는지(아이폰은 홈 화면 앱만, 순수 함수), hooks/useThisDevicePush. 루틴 폼의 알림 칸은 routines/form/RemindInput(10분 단위)
                   calendar/ = 홈 캘린더. calendarState = 주소(?date=) 해석·만들기와 공통 탐색(이전·다음 달, 키보드 이동),

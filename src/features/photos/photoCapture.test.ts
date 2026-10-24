@@ -40,7 +40,7 @@ describe('captureSourceRect (화면의 틀 → 영상 픽셀)', () => {
   const frame = { x: 0, y: 156, width: 375, height: 500 };
 
   it('object-cover로 잘린 만큼을 되돌려 틀 자리를 찾는다', () => {
-    const rect = captureSourceRect({ video, box, frame, isMirrored: false });
+    const rect = captureSourceRect({ video, box, frame });
     expect(rect.x).toBeCloseTo(hiddenLeft / scale);
     expect(rect.y).toBeCloseTo(156 / scale);
     expect(rect.width).toBeCloseTo(375 / scale);
@@ -49,31 +49,11 @@ describe('captureSourceRect (화면의 틀 → 영상 픽셀)', () => {
     expect(rect.width / rect.height).toBeCloseTo(3 / 4);
   });
 
-  it('가운데 틀은 거울로 뒤집어도 같은 자리', () => {
-    const normal = captureSourceRect({ video, box, frame, isMirrored: false });
-    const mirrored = captureSourceRect({ video, box, frame, isMirrored: true });
-    expect(mirrored.x).toBeCloseTo(normal.x);
-  });
-
-  it('왼쪽으로 치우친 틀은 거울이면 영상의 오른쪽에서 자른다', () => {
-    const leftFrame = { x: 0, y: 0, width: 100, height: 100 };
-    const fullBox = { x: 0, y: 0, width: 1080, height: 1440 };
-    expect(
-      captureSourceRect({
-        video,
-        box: fullBox,
-        frame: leftFrame,
-        isMirrored: true,
-      }).x,
-    ).toBeCloseTo(980);
-  });
-
   it('영상 요소가 화면 왼쪽 위에 붙어 있지 않아도 (box 위치를 뺀다)', () => {
     const shifted = captureSourceRect({
       video,
       box: { ...box, y: 20 },
       frame: { ...frame, y: 176 },
-      isMirrored: false,
     });
     expect(shifted.y).toBeCloseTo(156 / scale);
   });

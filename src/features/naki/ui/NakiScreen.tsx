@@ -339,14 +339,15 @@ export default function NakiScreen() {
             maxLength={MAX_NAKI_QUESTION_LENGTH}
             disabled={!isOnline || isOutOfQuota}
             // 문구는 시안 AI (2026-10-23 사용자 결정). 예시 질문은 빈 화면이 따로 보여 주니 입력칸은 할 일만 말한다.
-            // 횟수를 다 쓴 안내는 입력칸 폭(모바일 약 18자)에 맞춰 짧게: 자세한 안내는 질문했을 때 대화에 나온다(failureMessage)
+            // 횟수를 다 쓴 안내는 입력칸 폭에 맞춰 짧게: 자세한 안내는 질문했을 때 대화에 나온다(failureMessage).
+            // "오늘 질문을 다 썼어요 · 로그인하면 더"는 아이폰에서 "더" 뒤가 잘렸다 (2026-10-24 사용자 확인) → 더 줄임
             placeholder={
               !isOnline
                 ? '오프라인에서는 쓸 수 없어요'
                 : isOutOfQuota
                   ? quota.data?.isGuest
-                    ? '오늘 질문을 다 썼어요 · 로그인하면 더'
-                    : '오늘 질문을 다 썼어요 · 내일 다시'
+                    ? '오늘 질문 끝 · 로그인하면 더'
+                    : '오늘 질문 끝 · 내일 다시'
                   : isAsking
                     ? '답변을 기다리는 중…'
                     : '기록에 대해 물어보세요'
@@ -384,10 +385,10 @@ export default function NakiScreen() {
           )}
         </div>
         {/* 개인정보 안내 (2026-10-23 사용자 결정: 개인정보처리방침이 아직 없어 묻기 전에 보이는 곳에 한 줄).
-            같은 날 분류·태그 이름도 보내기로 해서(nakiCustomNames) 문구에 넣었다 */}
+            같은 날 분류·태그 이름도 보내기로 해서(nakiCustomNames) 문구에 넣었다.
+            2026-10-24 사용자: 두 줄이라 길다 → 한 줄로. "만"이 기록 내용(금액·메모 등)은 안 보낸다는 뜻을 담는다 */}
         <p className='mt-2 text-center text-caption text-fg-secondary'>
-          질문 문장과 내가 만든 분류·태그 이름만 AI 제공자(Google)에 보내요.
-          기록 내용은 보내지 않아요.
+          질문과 분류·태그 이름만 Google AI에 보내요
         </p>
       </form>
     </div>

@@ -13,6 +13,7 @@ import { useOnlineStatus } from '@/shared/network/useOnlineStatus';
 import Button from '@/shared/ui/Button';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import StepSlider from '@/shared/ui/StepSlider';
+import type { LatestPhotoBasis } from '../api/photoStore';
 import { useFittedFrame } from '../hooks/useFittedFrame';
 import { useLatestPhoto, usePhotoUrls } from '../hooks/usePhotos';
 import {
@@ -44,8 +45,8 @@ export type CropSource = {
 type PhotoCropDialogProps = {
   source: CropSource | null;
   kind: PhotoKind;
-  // 바꾸기에서 지금 기록의 옛 사진을 "지난 사진"으로 겹치지 않게
-  excludeRecordId?: string;
+  // "지난 사진" 기준: 지금 기록(빼고)과 그 날짜(그날이거나 앞선 기록만)
+  basis: LatestPhotoBasis;
   // "다시 고르기"로 고른 파일이 안 맞을 때의 문구 (창 안에 보인다)
   pickError: string | null;
   onCancel: () => void;
@@ -60,7 +61,7 @@ type PhotoCropDialogProps = {
 export default function PhotoCropDialog({
   source,
   kind,
-  excludeRecordId,
+  basis,
   pickError,
   onCancel,
   onRepick,
@@ -102,7 +103,7 @@ export default function PhotoCropDialog({
               key={source.url}
               source={source}
               kind={kind}
-              excludeRecordId={excludeRecordId}
+              basis={basis}
               pickError={pickError}
               onRepick={onRepick}
               onDone={onDone}
@@ -117,7 +118,7 @@ export default function PhotoCropDialog({
 type CropEditorProps = {
   source: CropSource;
   kind: PhotoKind;
-  excludeRecordId?: string;
+  basis: LatestPhotoBasis;
   pickError: string | null;
   onRepick: (file: File) => void;
   onDone: (file: File) => void;
@@ -126,7 +127,7 @@ type CropEditorProps = {
 function CropEditor({
   source,
   kind,
-  excludeRecordId,
+  basis,
   pickError,
   onRepick,
   onDone,
@@ -136,7 +137,7 @@ function CropEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isOnline = useOnlineStatus();
-  const latest = useLatestPhoto(kind, excludeRecordId, isOnline);
+  const latest = useLatestPhoto(kind, basis, isOnline);
   const latestPhoto = latest.data?.photo;
   const latestUrls = usePhotoUrls(latestPhoto ? [latestPhoto.path] : []);
   const latestUrl = latestPhoto

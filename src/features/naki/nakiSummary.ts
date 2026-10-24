@@ -119,6 +119,37 @@ export function formatNakiSummary(summary: NakiSummary): string {
   }
 }
 
+// 답을 눈에 띄게 두 줄로 (2026-10-24 아이폰 확인 뒤 사용자: "최저 체중 …"이 더 뚜렷하게).
+// 이름줄(작게) + 값(크게): 기록 상세의 큰 숫자와 같은 모양이라 "답 = 이 숫자"가 바로 보인다.
+// 없으면(기록 없음) null → 한 줄 문장(formatNakiSummary) 그대로
+export type NakiSummaryParts = { label: string; value: string };
+
+export function formatNakiSummaryParts(
+  summary: NakiSummary,
+): NakiSummaryParts | null {
+  switch (summary.kind) {
+    case 'empty':
+      return null;
+    case 'count':
+      return { label: '건수', value: `${summary.count}건` };
+    case 'total':
+      return {
+        label: `합계 · ${summary.count}건`,
+        value: formatValue(summary.field, summary.total),
+      };
+    case 'average':
+      return {
+        label: `${summary.field.isRating ? '평균 별점' : '평균'} · ${summary.count}건`,
+        value: formatValue(summary.field, summary.average),
+      };
+    case 'extreme':
+      return {
+        label: `${summary.which === 'max' ? '최고' : '최저'} ${summary.field.label} · ${formatShortDate(summary.entry.occurredAt)}`,
+        value: formatValue(summary.field, summary.value),
+      };
+  }
+}
+
 // 답 아래 미리 보기 순서: 최고·최저면 그 기록을 맨 위에 (답의 근거를 바로 보이게), 그 밖에는 검색 순서 그대로
 export function orderForPreview(
   entries: readonly RecordEntry[],

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { RecordEntry } from '@/features/records/schema/recordEntry';
 import {
   formatNakiSummary,
+  formatNakiSummaryParts,
   orderForPreview,
   summarizeNakiResults,
 } from './nakiSummary';
@@ -117,5 +118,40 @@ describe('나키 답 숫자 한 줄 (짧은 숫자형)', () => {
       '1',
       '2',
     ]);
+  });
+});
+
+describe('나키 답 두 줄 (이름줄 + 큰 값, 2026-10-24)', () => {
+  const parts = (
+    entries: RecordEntry[],
+    type: Parameters<typeof summarizeNakiResults>[1],
+    intent: 'list' | 'sum' | 'count' | 'avg' | 'max' | 'min',
+    field: string | null = null,
+  ) =>
+    formatNakiSummaryParts(
+      summarizeNakiResults(entries, type, { intent, field }),
+    );
+
+  it('최저 체중: 이름줄에 날짜, 큰 값은 숫자만', () => {
+    expect(
+      parts([WEIGHT_HIGH, WEIGHT_LOW, WAIST], 'body', 'min', 'weight'),
+    ).toEqual({
+      label: '최저 체중 · 10.19 (월)',
+      value: '68.4kg',
+    });
+  });
+  it('건수, 평균 별점', () => {
+    expect(
+      parts([review('r1', 4), review('r2', 5)], 'review', 'count'),
+    ).toEqual({
+      label: '건수',
+      value: '2건',
+    });
+    expect(
+      parts([review('r1', 4), review('r2', 5)], 'review', 'avg', 'rating'),
+    ).toMatchObject({ label: '평균 별점 · 2건' });
+  });
+  it('기록이 없으면 두 줄로 나누지 않는다 (문장 그대로)', () => {
+    expect(parts([], 'body', 'min', 'weight')).toBeNull();
   });
 });

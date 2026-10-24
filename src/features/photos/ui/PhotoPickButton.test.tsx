@@ -55,7 +55,7 @@ function renderButton() {
     <QueryClientProvider client={queryClient}>
       <PhotoPickButton
         kind='front'
-        excludeRecordId='r1'
+        basis={{ recordId: 'r1', date: '2026-10-24' }}
         onPick={onPick}
         onError={onError}
         className=''
@@ -121,7 +121,7 @@ describe('PhotoPickButton (고르기 → 맞춰 자르기)', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
-  it('같은 자세의 지난 사진이 있으면 날짜 칩과 겹치기 슬라이더를 보여 준다 (지금 기록은 빼고 찾는다)', async () => {
+  it('같은 자세의 지난 사진이 있으면 날짜 칩과 겹치기 슬라이더를 보여 준다 (지금 기록은 빼고, 그 날짜까지에서 찾는다)', async () => {
     vi.mocked(findLatestPhoto).mockResolvedValue({
       photo: LATEST,
       occurredAt: '2026-10-12',
@@ -133,7 +133,11 @@ describe('PhotoPickButton (고르기 → 맞춰 자르기)', () => {
     choose(slotInput(), JPG);
 
     expect(await screen.findByText('지난 사진 10.12 겹침')).toBeTruthy();
-    expect(findLatestPhoto).toHaveBeenCalledWith('front', 'r1');
+    // 기준: 지금 기록은 빼고, 그 날짜까지의 기록에서 (2026-10-24 사용자 결정)
+    expect(findLatestPhoto).toHaveBeenCalledWith('front', {
+      recordId: 'r1',
+      date: '2026-10-24',
+    });
     expect(await screen.findByRole('slider', { name: '겹치기' })).toBeTruthy();
   });
 

@@ -37,6 +37,7 @@ import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import type { NakiAggregate } from '../nakiAggregate';
 import {
   formatNakiSummary,
+  formatNakiSummaryParts,
   orderForPreview,
   summarizeNakiResults,
 } from '../nakiSummary';
@@ -78,6 +79,7 @@ export default function NakiAnswer({ state, aggregate }: NakiAnswerProps) {
     visibleTypes,
   );
   const summary = summarizeNakiResults(results, state.type, aggregate);
+  const parts = formatNakiSummaryParts(summary);
   // 최고·최저면 그 기록을 맨 위에 (답의 근거를 바로 보이게)
   const preview = orderForPreview(results, summary).slice(0, PREVIEW_COUNT);
   const typeStyle = state.type ? RECORD_TYPE_STYLE[state.type] : null;
@@ -150,15 +152,27 @@ export default function NakiAnswer({ state, aggregate }: NakiAnswerProps) {
         </p>
       ) : (
         <>
-          <p className='text-body font-semibold text-fg-primary tabular-nums'>
-            {formatNakiSummary(summary)}
-            {/* 검색은 한 번에 최근 300건까지 본다. 넘으면 합계가 일부 기록 기준이라는 것을 숨기지 않는다 */}
-            {search.data?.isTruncated && (
-              <span className='ml-1 text-caption font-medium text-fg-secondary'>
-                (최근 기록 일부만 셌어요)
+          {parts ? (
+            // 이름줄 + 큰 값 (기록 상세의 큰 숫자와 같은 크기): 답이 무엇인지 먼저 눈에 들어오게
+            <div className='flex flex-col gap-0.5'>
+              <span className='text-body-sm text-fg-secondary tabular-nums'>
+                {parts.label}
               </span>
-            )}
-          </p>
+              <span className='text-[28px] leading-[34px] font-bold tracking-[-0.01em] text-fg-primary tabular-nums'>
+                {parts.value}
+              </span>
+              {/* 검색은 한 번에 최근 300건까지 본다. 넘으면 합계가 일부 기록 기준이라는 것을 숨기지 않는다 */}
+              {search.data?.isTruncated && (
+                <span className='text-caption font-medium text-fg-secondary'>
+                  최근 기록 일부만 셌어요
+                </span>
+              )}
+            </div>
+          ) : (
+            <p className='text-body font-semibold text-fg-primary'>
+              {formatNakiSummary(summary)}
+            </p>
+          )}
           {results.length > 0 && (
             <ul className='flex flex-col gap-2'>
               {preview.map((entry) => (

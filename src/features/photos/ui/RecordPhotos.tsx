@@ -22,6 +22,8 @@ import { photoErrorMessage } from './photoError';
 
 type RecordPhotosProps = {
   recordId: string;
+  // 기록의 날짜: "지난 사진"(겹치기)을 이 날짜까지의 다른 기록에서 찾는다
+  recordDate: string;
   // 타입 설정이 정한 사진 칸 (체형 = 정면·측면). 종류마다 한 장
   kinds: readonly PhotoKind[];
   // 기록에 사진 말고 다른 내용이 없는지 (사진만 있는 체형 기록). 그러면 마지막 사진을 지울 때 기록도 지운다
@@ -34,6 +36,7 @@ type RecordPhotosProps = {
 // 서버에 없는 기록에 붙이면 DB가 막는다(기록 id 연결) → 보내진 뒤에 붙인다
 export default function RecordPhotos({
   recordId,
+  recordDate,
   kinds,
   isPhotoOnly = false,
   onRecordEmptied,
@@ -102,7 +105,7 @@ export default function RecordPhotos({
               <PhotoPickButton
                 key={kind}
                 kind={kind}
-                excludeRecordId={recordId}
+                basis={{ recordId, date: recordDate }}
                 onPick={(file) => void add(kind, file)}
                 onError={setError}
                 onStart={() => setError(null)}
@@ -128,6 +131,7 @@ export default function RecordPhotos({
       <PhotoViewer
         photo={viewing}
         onClose={() => setViewing(null)}
+        recordDate={recordDate}
         isLastContent={isPhotoOnly && list.length === 1}
         onRecordEmptied={onRecordEmptied}
       />

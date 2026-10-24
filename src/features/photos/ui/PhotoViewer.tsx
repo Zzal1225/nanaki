@@ -18,6 +18,8 @@ import { photoErrorMessage } from './photoError';
 type PhotoViewerProps = {
   photo: Photo | null;
   onClose: () => void;
+  // 이 기록의 날짜 (바꾸기에서 "지난 사진"을 이 날짜까지의 다른 기록에서 찾는다)
+  recordDate: string;
   // 이 사진이 기록의 마지막 내용인지 (사진만 있는 체형 기록의 마지막 한 장). 지우면 기록도 지운다
   isLastContent?: boolean;
   onRecordEmptied?: () => Promise<void>;
@@ -26,6 +28,7 @@ type PhotoViewerProps = {
 type ViewerBodyProps = {
   photo: Photo;
   onClose: () => void;
+  recordDate: string;
   isLastContent: boolean;
   onRecordEmptied?: () => Promise<void>;
 };
@@ -35,6 +38,7 @@ type ViewerBodyProps = {
 export default function PhotoViewer({
   photo,
   onClose,
+  recordDate,
   isLastContent = false,
   onRecordEmptied,
 }: PhotoViewerProps) {
@@ -50,6 +54,7 @@ export default function PhotoViewer({
         <ViewerBody
           photo={photo}
           onClose={onClose}
+          recordDate={recordDate}
           isLastContent={isLastContent}
           onRecordEmptied={onRecordEmptied}
         />
@@ -61,6 +66,7 @@ export default function PhotoViewer({
 function ViewerBody({
   photo,
   onClose,
+  recordDate,
   isLastContent,
   onRecordEmptied,
 }: ViewerBodyProps) {
@@ -132,7 +138,7 @@ function ViewerBody({
       <div className='grid grid-cols-2 gap-2'>
         <PhotoPickButton
           kind={photo.kind}
-          excludeRecordId={photo.recordId}
+          basis={{ recordId: photo.recordId, date: recordDate }}
           onPick={(file) => void replace(file)}
           onError={setError}
           onStart={() => setError(null)}
