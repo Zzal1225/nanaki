@@ -11,6 +11,7 @@ import {
   listPhotosOfRecord,
   PHOTO_URL_EXPIRES_SECONDS,
   uploadPhoto,
+  type LatestPhotoBasis,
   type Photo,
   type PhotoKind,
 } from '../api/photoStore';
@@ -21,8 +22,14 @@ export const photoKeys = {
   all: ['photos'] as const,
   ofRecord: (recordId: string) =>
     [...photoKeys.all, 'record', recordId] as const,
-  latest: (kind: PhotoKind, excludeRecordId: string | null) =>
-    [...photoKeys.all, 'latest', kind, excludeRecordId] as const,
+  latest: (kind: PhotoKind, basis: LatestPhotoBasis) =>
+    [
+      ...photoKeys.all,
+      'latest',
+      kind,
+      basis.recordId ?? null,
+      basis.date,
+    ] as const,
   urls: (paths: readonly string[]) =>
     [...photoKeys.all, 'urls', ...paths] as const,
 };
@@ -38,17 +45,15 @@ export function useRecordPhotos(recordId: string, isEnabled: boolean) {
   });
 }
 
-// 같은 자세의 지난 사진 (맞춰 자르기의 겹치기). isEnabled: 자르기 창이 열려 있고 온라인일 때만
+// 같은 자세의 지난 사진 (맞춰 자르기·카메라의 겹치기). isEnabled: 창이 열려 있고 온라인일 때만
 export function useLatestPhoto(
   kind: PhotoKind,
-  excludeRecordId: string | undefined,
+  basis: LatestPhotoBasis,
   isEnabled: boolean,
 ) {
   return useQuery({
-    queryKey: photoKeys.latest(kind, excludeRecordId ?? null),
-    queryFn: isEnabled
-      ? () => findLatestPhoto(kind, excludeRecordId)
-      : skipToken,
+    queryKey: photoKeys.latest(kind, basis),
+    queryFn: isEnabled ? () => findLatestPhoto(kind, basis) : skipToken,
   });
 }
 

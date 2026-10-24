@@ -26,13 +26,10 @@ type Rect = { x: number; y: number; width: number; height: number };
 
 // 화면의 틀(frame) → 영상 픽셀에서 잘라 낼 자리.
 // - video: 영상 원래 크기(videoWidth·videoHeight), box: 영상 요소가 화면에 차지한 자리(object-cover로 꽉 채움)
-// - isMirrored: 전면 카메라는 거울처럼 뒤집어 보여 준다. 저장은 뒤집지 않은 실제 모습이라, 잘라 낼 자리를 좌우로 되돌린다
-//   (보이는 화면의 왼쪽 = 영상의 오른쪽)
 export function captureSourceRect(input: {
   video: { width: number; height: number };
   box: Rect;
   frame: Rect;
-  isMirrored: boolean;
 }): Rect {
   const { video, box, frame } = input;
   // object-cover: 영상을 요소보다 크게 늘려 짧은 쪽을 맞추고, 남는 쪽은 가운데 기준으로 잘려 안 보인다
@@ -46,12 +43,7 @@ export function captureSourceRect(input: {
   const height = frame.height / scale;
   const left = (frame.x - box.x + hiddenLeft) / scale;
   const top = (frame.y - box.y + hiddenTop) / scale;
-  return {
-    x: input.isMirrored ? video.width - left - width : left,
-    y: top,
-    width,
-    height,
-  };
+  return { x: left, y: top, width, height };
 }
 
 // 찍은 사진 만들기 (브라우저에서만): 영상의 지금 한 장에서 틀 자리를 잘라 1200×1600 JPEG로.

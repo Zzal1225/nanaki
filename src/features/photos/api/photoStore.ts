@@ -114,30 +114,38 @@ export async function listPhotosOfRecord(recordId: string): Promise<Photo[]> {
   return data.map(toPhoto);
 }
 
-// 같은 자세의 지난 사진 (맞춰 자르기에서 반투명으로 겹친다, 37c1). 가장 최근에 올린 한 장 + 그 기록의 날짜.
-// 지금 고치는 기록의 사진은 뺀다(바꾸기에서 옛 사진에 맞추면 비교가 안 된다). 지운 기록의 사진도 뺀다:
-// 기록은 지워도(deleted_at) 사진 줄은 남아 있다 (되돌리기 5초 동안 사진이 살아 있어야 해서)
+// 같은 자세의 지난 사진 (맞춰 자르기·카메라에서 반투명으로 겹친다, 37c1). 무엇을 기준으로 "지난"인지:
+// - date: 지금 다루는 기록의 날짜. 그날이거나 그보다 앞선 기록만 본다 (2026-10-24 사용자 결정: 처음엔 "가장 최근에 올린 사진"이라
+//   예전 날짜 기록을 고칠 때 그보다 뒤 날짜 사진이 겹쳐 나왔다)
+// - recordId: 지금 기록 (있으면 뺀다: 바꾸기에서 옛 사진에 맞추면 비교가 안 된다). 새로 쓰는 중이면 아직 없다
+export type LatestPhotoBasis = { recordId?: string; date: string };
 export type LatestPhoto = { photo: Photo; occurredAt: string };
 
 export async function findLatestPhoto(
   kind: PhotoKind,
-  excludeRecordId?: string,
+  basis: LatestPhotoBasis,
 ): Promise<LatestPhoto | null> {
   const supabase = createSupabaseBrowserClient();
-  // records!inner: 기록과 이어 붙이고(조인), 조건에 맞는 기록이 없는 사진은 빼라는 뜻 (그냥 records면 기록만 비고 사진은 남는다)
+  // 기록 쪽에서 고른다: "날짜가 가장 늦은 기록"이 기준이라 기록의 occurred_at으로 정렬해야 한다 (사진 쪽에서 묻으면 사진 칸으로만 정렬된다).
+  // photos!inner: 이 자세의 사진이 있는 기록만 남긴다 (그냥 photos면 사진 없는 기록도 빈 배열로 온다).
+  // 지운 기록(deleted_at)은 뺀다: 기록은 지워도 사진 줄은 남아 있다 (되돌리기 5초 동안 사진이 살아 있어야 해서)
   let query = supabase
-    .from('photos')
-    .select('*, records!inner(occurred_at)')
-    .eq('kind', kind)
-    .is('records.deleted_at', null)
+    .from('records')
+    .select('id, occurred_at, photos!inner(*)')
+    .eq('photos.kind', kind)
+    .is('deleted_at', null)
+    .lte('occurred_at', basis.date)
+    .order('occurred_at', { ascending: false })
     .order('created_at', { ascending: false })
+    // 같은 기록에 같은 자세가 둘 생긴 드문 경우(바꾸기 도중 실패)에는 나중에 올린 것
+    .order('created_at', { ascending: false, referencedTable: 'photos' })
     .limit(1);
-  if (excludeRecordId) query = query.neq('record_id', excludeRecordId);
+  if (basis.recordId) query = query.neq('id', basis.recordId);
   const { data, error } = await query.maybeSingle();
   if (error) throw error;
-  if (!data) return null;
-  const { records, ...row } = data;
-  return { photo: toPhoto(row), occurredAt: records.occurred_at };
+  const row = data?.photos[0];
+  if (!data || !row) return null;
+  return { photo: toPhoto(row), occurredAt: data.occurred_at };
 }
 
 // 보여 줄 서명 링크들 (한 번에). 파일 주소 → 링크. 만든 링크는 PHOTO_URL_EXPIRES_SECONDS 뒤 닫힌다

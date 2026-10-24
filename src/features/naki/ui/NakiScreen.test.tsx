@@ -140,7 +140,9 @@ describe('NakiScreen', () => {
     expect(chips.textContent).toContain('기간2026년 9월');
     expect(chips.textContent).toContain('분류외식');
     // 카페는 조건(분류 외식)에 맞지 않아 빠진다
-    expect(await screen.findByText('합계 -46,400원 · 2건')).toBeTruthy();
+    // 답은 이름줄 + 큰 값 두 줄 (2026-10-24 사용자: 더 뚜렷하게)
+    expect(await screen.findByText('합계 · 2건')).toBeTruthy();
+    expect(screen.getByText('-46,400원')).toBeTruthy();
     const link = screen.getByRole('link', {
       name: /기록 탭에서 이 조건으로 보기/,
     });
@@ -184,9 +186,9 @@ describe('NakiScreen', () => {
     renderScreen();
     askByTyping('지난달 외식 중에 제일 비싼 거');
 
-    expect(
-      await screen.findByText('최고 금액 -31,400원 · 09.12 (토)'),
-    ).toBeTruthy();
+    expect(await screen.findByText('최고 금액 · 09.12 (토)')).toBeTruthy();
+    // 같은 금액이 아래 기록 줄에도 나온다 → 큰 값(답)과 기록 줄 둘
+    expect(screen.getAllByText('-31,400원').length).toBe(2);
     const links = await screen.findAllByRole('link', { name: /\[외식\]/ });
     expect(links[0].textContent).toContain('저녁');
   });
@@ -232,7 +234,7 @@ describe('NakiScreen', () => {
       '나키에게 물어보기',
     ) as HTMLInputElement;
     expect(input.disabled).toBe(true);
-    expect(input.placeholder).toBe('오늘 질문을 다 썼어요 · 내일 다시');
+    expect(input.placeholder).toBe('오늘 질문 끝 · 내일 다시');
     expect(
       (screen.getByRole('button', { name: '보내기' }) as HTMLButtonElement)
         .disabled,
@@ -251,7 +253,7 @@ describe('NakiScreen', () => {
       '나키에게 물어보기',
     ) as HTMLInputElement;
     expect(input.disabled).toBe(true);
-    expect(input.placeholder).toBe('오늘 질문을 다 썼어요 · 로그인하면 더');
+    expect(input.placeholder).toBe('오늘 질문 끝 · 로그인하면 더');
   });
 
   it('체험 계정이 한도면 로그인을 권하고, 전체 한도·AI 한도면 "쉬어요"', async () => {
@@ -297,9 +299,7 @@ describe('NakiScreen', () => {
   it('질문 문장만 AI 제공자에 보낸다는 안내', () => {
     renderScreen();
     expect(
-      screen.getByText(
-        '질문 문장과 내가 만든 분류·태그 이름만 AI 제공자(Google)에 보내요. 기록 내용은 보내지 않아요.',
-      ),
+      screen.getByText('질문과 분류·태그 이름만 Google AI에 보내요'),
     ).toBeTruthy();
   });
 

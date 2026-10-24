@@ -11,6 +11,7 @@ import {
   hasFieldValues,
   type RecordType,
 } from '@/features/records/schema/recordTypes';
+import { toLocalDateString } from '@/shared/date/toLocalDateString';
 import { useOnlineStatus } from '@/shared/network/useOnlineStatus';
 import { useToastStore } from '@/shared/toast/toastStore';
 import {
@@ -116,6 +117,8 @@ export default function RecordFormWithPhotos({
         <NewRecordPhotos
           // 폼 위에 "체중, 허리둘레, 사진 중 1개 이상" 안내가 있으면 "(선택)"을 붙이지 않는다
           title={getContentHint(type) ? '사진' : '사진 (선택)'}
+          // 시작 날짜(홈에서 고른 날 또는 오늘). 폼에서 날짜를 바꿔도 따라가지 않는다: 날짜 칸은 폼(RecordForm) 안에 있어서 (감수한 것)
+          recordDate={date ?? toLocalDateString(new Date())}
           kinds={kinds}
           picks={picks}
           onPick={pick}

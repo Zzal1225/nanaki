@@ -3,6 +3,7 @@
 // 'use client' 이유: 기기 능력(카메라)을 보고, 고른 파일을 기기에서 읽고(크기·회전) 카메라·자르기 창을 열고 닫는다
 import { useState, type ReactNode } from 'react';
 import type { PhotoKind } from '@/features/records/schema/photoKinds';
+import type { LatestPhotoBasis } from '../api/photoStore';
 import { useInAppCamera } from '../hooks/useInAppCamera';
 import { useObjectUrls } from '../hooks/useObjectUrls';
 import { readImageSize } from '../photoCrop';
@@ -13,7 +14,7 @@ import PhotoFileButton from './PhotoFileButton';
 
 type PhotoPickButtonProps = {
   kind: PhotoKind;
-  excludeRecordId?: string;
+  basis: LatestPhotoBasis;
   // 자른 결과 또는 찍은 사진(3:4 JPEG). 부르는 쪽은 예전처럼 "파일 하나"만 받는다 → 올리기 경로(상세·쓰기 화면·바꾸기)는 그대로
   onPick: (file: File) => void;
   // 고를 때 알 수 있는 실패 (형식·크기·읽을 수 없는 그림)
@@ -31,7 +32,7 @@ type PhotoPickButtonProps = {
 // 확인을 자르기 앞에 두는 이유: HEIC·너무 큰 파일은 브라우저가 그림을 펼치지 못하거나 메모리가 모자라, 자르기 창이 빈 채로 열린다
 export default function PhotoPickButton({
   kind,
-  excludeRecordId,
+  basis,
   onPick,
   onError,
   onStart,
@@ -100,7 +101,7 @@ export default function PhotoPickButton({
       <CameraDialog
         open={isCameraOpen}
         kind={kind}
-        excludeRecordId={excludeRecordId}
+        basis={basis}
         onClose={() => setIsCameraOpen(false)}
         onCapture={(file) => {
           setIsCameraOpen(false);
@@ -114,7 +115,7 @@ export default function PhotoPickButton({
       <PhotoCropDialog
         source={source}
         kind={kind}
-        excludeRecordId={excludeRecordId}
+        basis={basis}
         pickError={repickError}
         onCancel={close}
         onRepick={(file) => void open(file)}

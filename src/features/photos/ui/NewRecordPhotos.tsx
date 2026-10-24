@@ -14,6 +14,8 @@ export type PickedPreview = { file: File; url: string };
 
 type NewRecordPhotosProps = {
   title: string;
+  // 쓰는 기록의 날짜: "지난 사진"을 이 날짜까지의 기록에서 찾는다
+  recordDate: string;
   kinds: readonly PhotoKind[];
   picks: Partial<Record<PhotoKind, PickedPreview>>;
   onPick: (kind: PhotoKind, file: File) => void;
@@ -29,6 +31,7 @@ type NewRecordPhotosProps = {
 // 표시만 맡고 상태는 받는다: 저장 버튼(폼)과 같은 곳에서 고른 사진을 읽어야 해서
 export default function NewRecordPhotos({
   title,
+  recordDate,
   kinds,
   picks,
   onPick,
@@ -53,6 +56,7 @@ export default function NewRecordPhotos({
               <PhotoPickButton
                 key={kind}
                 kind={kind}
+                basis={{ date: recordDate }}
                 onPick={(file) => onPick(kind, file)}
                 onError={onError}
                 onStart={() => onError(null)}
@@ -73,6 +77,7 @@ export default function NewRecordPhotos({
             <div key={kind} className='relative aspect-[3/4]'>
               <PhotoPickButton
                 kind={kind}
+                basis={{ date: recordDate }}
                 onPick={(file) => onPick(kind, file)}
                 onError={onError}
                 onStart={() => onError(null)}

@@ -2,13 +2,7 @@
 
 // 'use client' 이유: 카메라(getUserMedia)·영상·타이머·캔버스 찍기가 모두 브라우저에서 일어난다
 // Image 아이콘은 ImageIcon으로: 이름이 Image면 접근성 lint가 <img>로 보고 alt를 요구한다
-import {
-  Image as ImageIcon,
-  Layers,
-  SwitchCamera,
-  Timer,
-  X,
-} from 'lucide-react';
+import { Image as ImageIcon, Layers, Timer, X } from 'lucide-react';
 import { Dialog } from 'radix-ui';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -18,6 +12,7 @@ import {
 import { formatMonthDotDay } from '@/shared/date/formatDisplayDate';
 import { useOnlineStatus } from '@/shared/network/useOnlineStatus';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
+import type { LatestPhotoBasis } from '../api/photoStore';
 import { useFittedFrame } from '../hooks/useFittedFrame';
 import { useLatestPhoto, usePhotoUrls } from '../hooks/usePhotos';
 import { useObjectUrls } from '../hooks/useObjectUrls';
@@ -32,36 +27,16 @@ import { OVERLAY_DEFAULT } from '../photoCrop';
 import BodySilhouette from './BodySilhouette';
 import PhotoFileButton from './PhotoFileButton';
 
-type Facing = 'user' | 'environment';
-
-// 마지막으로 쓴 카메라(전면·후면)를 이 기기에 기억한다. 화면 편의일 뿐이라 브라우저 저장소에 두고,
-// 못 읽으면(사생활 보호 모드 등) 기본값으로 시작한다
-const FACING_STORAGE_KEY = 'nanaki:camera-facing';
-// 기본은 후면 (2026-10-24 아이폰 확인 뒤 사용자 지적): 눈바디는 거울 앞 전신샷이 흔하고, 그때 화면은 나를, 후면 카메라는 거울을 본다.
-// 처음엔 "실루엣을 보며 맞추려면 전면"이라 생각했지만 거울샷에서도 화면이 나를 향해 실루엣이 보인다
-const DEFAULT_FACING: Facing = 'environment';
-
-function readSavedFacing(): Facing {
-  try {
-    const saved = window.localStorage.getItem(FACING_STORAGE_KEY);
-    return saved === 'user' || saved === 'environment' ? saved : DEFAULT_FACING;
-  } catch {
-    return DEFAULT_FACING;
-  }
-}
-
-function saveFacing(facing: Facing) {
-  try {
-    window.localStorage.setItem(FACING_STORAGE_KEY, facing);
-  } catch {
-    // 저장하지 못해도 이번 촬영에는 지장이 없다
-  }
-}
+// 후면 카메라만 쓴다 (2026-10-24 아이폰 확인 뒤 사용자 결정): 눈바디는 거울 앞 전신샷이 흔하고, 그때 화면은 나를, 후면 카메라는 거울을 본다.
+// 처음엔 전면(셀카, 거울처럼 보여 주고 실제 방향으로 저장)도 두었는데, 전면은 화각이 좁아 전신이 안 들어오고
+// 전환·거울 처리·마지막 카메라 기억만 늘어서 뺐다. 감수한 것: 휴대폰을 세워 두고 화면을 보며 혼자 찍는 방식(전면 + 타이머)
+// facingMode는 바람(조건이 아님)이라 후면이 없는 기기는 있는 카메라로 열린다
+const FACING_MODE = 'environment';
 
 type CameraDialogProps = {
   open: boolean;
   kind: PhotoKind;
-  excludeRecordId?: string;
+  basis: LatestPhotoBasis;
   onClose: () => void;
   // 찍고 "사용"을 누른 사진 (3:4 1200×1600 JPEG, 화면에서 이미 맞췄으니 자르기를 건너뛴다)
   onCapture: (file: File) => void;
@@ -78,7 +53,7 @@ type CameraDialogProps = {
 export default function CameraDialog({
   open,
   kind,
-  excludeRecordId,
+  basis,
   onClose,
   onCapture,
   onGallery,
@@ -99,7 +74,7 @@ export default function CameraDialog({
           {open && (
             <CameraBody
               kind={kind}
-              excludeRecordId={excludeRecordId}
+              basis={basis}
               onCapture={onCapture}
               onGallery={onGallery}
             />
@@ -116,22 +91,15 @@ function stopStream(stream: MediaStream | null) {
   stream?.getTracks().forEach((track) => track.stop());
 }
 
-function CameraBody({
-  kind,
-  excludeRecordId,
-  onCapture,
-  onGallery,
-}: CameraBodyProps) {
+function CameraBody({ kind, basis, onCapture, onGallery }: CameraBodyProps) {
   const label = PHOTO_KIND_LABEL[kind];
-  // 이 화면은 열릴 때만 그려지는 브라우저 컴포넌트라 처음 값에서 저장소를 읽어도 서버와 어긋나지 않는다
-  const [facing, setFacing] = useState<Facing>(readSavedFacing);
   const [timer, setTimer] = useState<TimerSeconds>(0);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [shot, setShot] = useState<{ file: File; url: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isOverlayOn, setIsOverlayOn] = useState(true);
   const isOnline = useOnlineStatus();
-  const latest = useLatestPhoto(kind, excludeRecordId, isOnline);
+  const latest = useLatestPhoto(kind, basis, isOnline);
   const latestPhoto = latest.data?.photo;
   const latestUrls = usePhotoUrls(latestPhoto ? [latestPhoto.path] : []);
   const latestUrl = latestPhoto
@@ -143,8 +111,6 @@ function CameraBody({
   const frameRef = useRef<HTMLDivElement>(null);
   // 타이머 진행 중인 setInterval id. 객체 하나를 계속 써서 정리 함수가 마지막 값을 읽는다 (useObjectUrls와 같은 이유)
   const countdownRef = useRef<{ id: number | null }>({ id: null });
-  // 전면은 거울처럼 보여 준다(사람들이 익숙한 셀카 화면). 저장은 실제 모습 (captureSourceRect)
-  const isMirrored = facing === 'user';
 
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -153,7 +119,7 @@ function CameraBody({
       .getUserMedia({
         // 세로 사진이라 세로로 긴 영상을 바란다 (ideal = 맞는 게 없으면 가까운 것으로)
         video: {
-          facingMode: facing,
+          facingMode: FACING_MODE,
           width: { ideal: 1440 },
           height: { ideal: 1920 },
         },
@@ -180,7 +146,7 @@ function CameraBody({
       isCancelled = true;
       stopStream(stream);
     };
-  }, [facing]);
+  }, []);
 
   useEffect(() => {
     const countdownTimer = countdownRef.current;
@@ -208,7 +174,6 @@ function CameraBody({
             width: target.width,
             height: target.height,
           },
-          isMirrored,
         }),
         `${kind}.jpg`,
       );
@@ -304,7 +269,6 @@ function CameraBody({
             aria-hidden='true'
             // 카메라 영상(대개 3:4)이 틀(3:4)에 그대로 들어가 잘리는 곳이 없다. 비율이 다른 카메라(16:9 등)만 남는 쪽이 조금 잘린다
             className='absolute inset-0 size-full object-cover'
-            style={isMirrored ? { transform: 'scaleX(-1)' } : undefined}
           />
           {shot ? (
             // eslint-disable-next-line @next/next/no-img-element -- 기기 안의 blob 주소라 next/image 최적화를 거칠 수 없다
@@ -321,11 +285,7 @@ function CameraBody({
                   src={latestUrl}
                   alt=''
                   className='pointer-events-none absolute inset-0 size-full object-cover'
-                  // 지난 사진도 영상과 같이 거울로: 거울 화면 위에 실제 방향 사진을 얹으면 몸이 좌우로 어긋나 보인다
-                  style={{
-                    opacity: OVERLAY_DEFAULT,
-                    transform: isMirrored ? 'scaleX(-1)' : undefined,
-                  }}
+                  style={{ opacity: OVERLAY_DEFAULT }}
                 />
               )}
               <BodySilhouette kind={kind} />
@@ -394,8 +354,8 @@ function CameraBody({
                 </button>
               )}
             </div>
-            <div className='flex items-center justify-between'>
-              <span aria-hidden='true' className='size-12' />
+            {/* 셔터 하나만 가운데 (카메라 전환은 뺐다) */}
+            <div className='flex items-center justify-center'>
               <button
                 type='button'
                 onClick={pressShutter}
@@ -405,23 +365,6 @@ function CameraBody({
               >
                 <span
                   className={`size-full rounded-full ${isCounting ? 'scale-50 rounded-md bg-danger' : 'bg-white'}`}
-                />
-              </button>
-              <button
-                type='button'
-                onClick={() => {
-                  const next = facing === 'user' ? 'environment' : 'user';
-                  setFacing(next);
-                  saveFacing(next);
-                }}
-                disabled={isCounting}
-                aria-label='카메라 전환'
-                className='flex size-12 items-center justify-center rounded-full bg-surface text-fg-primary disabled:text-fg-disabled'
-              >
-                <SwitchCamera
-                  aria-hidden='true'
-                  size={ICON_SIZE.lg}
-                  strokeWidth={ICON_STROKE_WIDTH}
                 />
               </button>
             </div>

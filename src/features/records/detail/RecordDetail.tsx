@@ -188,6 +188,7 @@ export default function RecordDetail({
       {photoKinds.length > 0 && (
         <RecordPhotos
           recordId={entry.id}
+          recordDate={entry.occurredAt}
           kinds={photoKinds}
           isPhotoOnly={!hasFieldValues(entry)}
           // 마지막 사진을 지운 뒤: 기록도 지우고(되돌리기 없음, 사진이 이미 없다) 들어온 곳으로

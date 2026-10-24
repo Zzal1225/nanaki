@@ -40,7 +40,11 @@ function renderPhotos() {
   });
   render(
     <QueryClientProvider client={queryClient}>
-      <RecordPhotos recordId='r1' kinds={['front', 'side']} />
+      <RecordPhotos
+        recordId='r1'
+        recordDate='2026-10-24'
+        kinds={['front', 'side']}
+      />
     </QueryClientProvider>,
   );
 }
@@ -118,6 +122,7 @@ describe('RecordPhotos (눈바디 사진 칸)', () => {
       <QueryClientProvider client={queryClient}>
         <RecordPhotos
           recordId='r1'
+          recordDate='2026-10-24'
           kinds={['front', 'side']}
           isPhotoOnly
           onRecordEmptied={onRecordEmptied}
