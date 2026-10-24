@@ -66,7 +66,7 @@ src/
   sw/             서비스 워커 소스(Serwist). 화면 틀만 저장하고 다른 도메인(Supabase) 응답은 저장하지 않는다. 워커 전용 tsconfig
   proxy.ts        모든 요청 앞의 문지기. 세션 갱신 + 로그인 안 했으면 /login으로 (공개 주소는 features/auth)
   shared/         공통 코드. ui/ = 공통 컴포넌트(Radix + Tailwind, 확인 창 ConfirmDialog, 모바일 바텀시트·PC 오른쪽 패널 Sheet 포함), theme/ = 다크·라이트 전환,
-                  layout/ = 사이드바·하단 탭(메뉴 목록은 navItems.ts 한 곳), query/ = TanStack Query Provider,
+                  layout/ = 사이드바·하단 탭(메뉴 목록은 navItems.ts 한 곳), WideLayoutOnly(1024px 이상에서만 그림), query/ = TanStack Query Provider,
                   toast/ = 화면을 옮겨도 남는 알림(Zustand 저장소 + Radix Toast, 앱 틀에 하나),
                   network/ = 연결 상태(useOnlineStatus, 화면 안내용), navigation/ = 주소가 틀렸을 때 다른 화면으로 옮기기(useReplaceRoute), date/ = 날짜 도우미(로컬 YYYY-MM-DD, YYYY-MM 달 계산, date-fns 캘린더 계산(calendar.ts), 브라우저에서만 읽는 오늘 useToday)
   features/       기능 단위 모듈. auth/ = 로그인·로그아웃(authActions), 지금 계정(useCurrentUser).
@@ -173,6 +173,7 @@ public/              정적 파일
 ### 모바일·PC 분기
 
 - 레이아웃 차이(하단 탭/사이드바, 좌우 배치)는 Tailwind 반응형 클래스(CSS)로만 처리한다. `useMediaQuery`로 다른 컴포넌트를 렌더하지 않는다 (하이드레이션 불일치).
+  예외: CSS로 숨은 무거운 칸을 아예 그리지 않는 것은 `shared/layout/WideLayoutOnly`로 한다(서버·첫 렌더 모두 빈 칸이라 불일치 없음). 기록 layout의 PC 왼쪽 목록이 모바일에서 숨은 채 그려지고 조회되던 것을 막았다 (2026-10-24, 41).
 - 기기 능력 분기(카메라 촬영, 스와이프)는 마운트 후 훅에서 판단하고, 판단 전에는 해당 UI를 숨긴 상태로 시작한다.
 - 스와이프는 지름길일 뿐이다. 모든 조작은 버튼과 키보드로도 가능해야 한다 (캘린더: 방향키·PageUp/PageDown, roving tabindex, `role="grid"`).
 - hover에만 기대는 UI 금지. 터치 영역 44px은 모든 구간에 적용한다.

@@ -222,6 +222,26 @@ describe('검색 (기기 사본)', () => {
     expect(result.entries).toHaveLength(SEARCH_RESULT_LIMIT);
     expect(result.isTruncated).toBe(true);
   });
+
+  // 검색어로 먼저 거르고 맞은 줄만 검사한다 (41). 검사에 떨어지는 줄은 건너뛰고 한도를 채운다
+  it('검사에 떨어지는 줄은 빼고, 한도는 성한 기록으로 센다', async () => {
+    serverHas(
+      row({ id: 'broken', title: '커피', fields: { amount: '많이' } }),
+      ...Array.from({ length: SEARCH_RESULT_LIMIT }, (_, i) =>
+        row({ id: `ok${i}`, title: '커피' }),
+      ),
+      row({ id: 'other', title: '택시' }),
+    );
+    const result = await searchRecords({
+      keyword: '커피',
+      sort: 'latest',
+      range: null,
+    });
+    expect(result.entries).toHaveLength(SEARCH_RESULT_LIMIT);
+    expect(result.entries.some((e) => nameOf(e.id) === 'broken')).toBe(false);
+    // 성한 커피는 딱 한도만큼이라 잘리지 않았다
+    expect(result.isTruncated).toBe(false);
+  });
 });
 
 describe('쓰기: 기기 사본에 먼저 쓰고 대기열에 쌓는다 (보내기는 recordOutbox)', () => {
