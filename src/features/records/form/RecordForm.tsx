@@ -272,7 +272,13 @@ export default function RecordForm(props: RecordFormProps) {
             저장하지 못했어요. 잠시 후 다시 시도해 주세요.
           </p>
         )}
-        <Button type='submit' isLoading={saving.isPending}>
+        {/* 저장 → 저장 뒤 할 일(onCreated: 체형은 사진 올리기, 몇 초)까지 끝날 때까지 로딩.
+            처음엔 기록 저장(mutation)만 봐서 사진을 올리는 동안 버튼이 다시 눌렸고, 한 번 더 누르면 기록이 두 개 생겼다 (2026-10-24 아이폰 확인).
+            isSubmitting은 handleSubmit에 넘긴 onSubmit(async)이 끝날 때까지 참이다 */}
+        <Button
+          type='submit'
+          isLoading={saving.isPending || form.formState.isSubmitting}
+        >
           저장
         </Button>
       </div>

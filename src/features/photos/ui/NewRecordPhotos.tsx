@@ -43,7 +43,15 @@ export default function NewRecordPhotos({
 
   return (
     <section aria-label='사진' className='flex flex-col gap-2'>
-      <h2 className='text-body-sm font-medium text-fg-primary'>{title}</h2>
+      {/* 오프라인 안내는 제목 옆에 (2026-10-24 사용자: 칸 아래보다 눈에 먼저 띄게, 문구도 짧게) */}
+      <div className='flex flex-wrap items-baseline gap-x-2'>
+        <h2 className='text-body-sm font-medium text-fg-primary'>{title}</h2>
+        {!isOnline && (
+          <p className='text-caption text-fg-secondary'>
+            사진은 오프라인 상태에서 저장할 수 없어요.
+          </p>
+        )}
+      </div>
       <div className='grid grid-cols-2 gap-3'>
         {kinds.map((kind) => {
           const label = PHOTO_KIND_LABEL[kind];
@@ -110,12 +118,6 @@ export default function NewRecordPhotos({
           );
         })}
       </div>
-      {!isOnline && (
-        <p className='text-caption text-fg-secondary'>
-          연결되면 사진을 고를 수 있어요. 기록은 지금 저장하고 사진은 상세에서
-          붙여도 돼요
-        </p>
-      )}
       {error && (
         <p role='alert' className='text-caption text-danger'>
           {error}

@@ -56,7 +56,9 @@ export default function Sheet({
               />
             </Dialog.Close>
           </div>
-          <div className='min-h-0 flex-1 overflow-y-auto px-4 pt-1 pb-4'>
+          {/* 모바일 바텀시트는 화면 맨 아래에 붙어 아이폰 홈 막대와 겹친다 → 아래 여백에 그만큼 더한다 (2026-10-24 사용자: 바꾸기·지우기 아래가 빠듯함).
+              PC 오른쪽 패널은 홈 막대가 없어 16px 그대로 */}
+          <div className='min-h-0 flex-1 overflow-y-auto px-4 pt-1 pb-[calc(16px+env(safe-area-inset-bottom))] lg:pb-4'>
             {children}
           </div>
         </Dialog.Content>
