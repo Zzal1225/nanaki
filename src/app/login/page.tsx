@@ -1,38 +1,37 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Info } from 'lucide-react';
 import { GUEST_RETENTION_DAYS } from '@/features/auth/guestRetention';
+import LoginAvatar from '@/features/auth/login/LoginAvatar';
+import LoginPhrase from '@/features/auth/login/LoginPhrase';
+import '@/features/auth/login/loginScreen.css';
 import SignInButtons from '@/features/auth/SignInButtons';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
-import NakiAvatar from '@/shared/ui/NakiAvatar';
 
 export const metadata: Metadata = {
   title: '로그인',
 };
 
-// 로고(나키 아바타) 크기. 예전 새싹 타일(size-28 = 112px)과 같은 자리를 그대로 차지한다
-const LOGO_SIZE = 112;
+// 이 화면만 브라우저 위 막대·상태 표시줄을 초록으로 (테마와 상관없이 고정, tokens.json exceptions.login-screen).
+// 다른 화면처럼 회색 바탕색이면 초록 화면 위에 회색 띠가 생긴다
+export const viewport: Viewport = {
+  themeColor: '#2e7d4f',
+};
 
+// 로그인 첫 화면 (Issue #9, design/nanaki-login-handoff 2026-10-24 사용자 시안).
+// 등장 순서: 아바타 → nanaki → "나는 나를 키운다"가 "나나키"로 접힘 → 슬로건 → 버튼(3.5초). 움직임은 모두 CSS(loginScreen.css)라
+// 서버 컴포넌트 그대로다(자바스크립트로 시간을 재지 않는다). 동작 줄이기 설정이면 마지막 모습을 바로 보여 준다.
+// 로그인한 사람은 이 화면에 오지 않는다(proxy가 홈으로 보낸다) → 3.5초를 기다리는 것은 처음 시작하는 사람뿐이다
 export default function LoginPage() {
   return (
-    // 모바일은 위에 소개, 아래에 버튼(엄지가 닿는 곳). PC에는 별도 시안이 없어 가운데로 모은다
-    <main className='mx-auto flex min-h-dvh w-full max-w-md flex-col justify-between px-6 pt-22 pb-12 md:justify-center md:gap-16'>
-      <section className='flex flex-col items-center gap-2 px-2 text-center'>
-        {/* 앱 로고 = 나키 아바타 (2026-10-23 사용자 결정: 아이콘은 모두 아바타로). 그림자는 원 모양 감싸개에 */}
-        <div className='mb-6 rounded-full shadow-float'>
-          <NakiAvatar size={LOGO_SIZE} isAboveFold />
-        </div>
-        <h1 className='text-display text-fg-primary'>nanaki</h1>
-        <p className='text-title font-medium text-fg-secondary'>
-          <Accent>나</Accent>는 <Accent>나</Accent>를 <Accent>키</Accent>운다
-        </p>
-        <p className='mt-1 text-body text-pretty text-fg-secondary'>
-          가계부부터 체형까지, 매일의 기록을 캘린더 하나에 모아요
-        </p>
-      </section>
+    <main className='login-screen' data-login-screen>
+      <h1 className='login-wordmark'>nanaki</h1>
+      <LoginAvatar />
+      <LoginPhrase />
+      <p className='login-slogan'>오늘의 나를 돌보는 가장 작은 습관</p>
 
-      <section aria-label='시작하기' className='flex flex-col gap-3'>
+      <section aria-label='시작하기' className='login-actions'>
         <SignInButtons />
-        <p className='flex items-center justify-center gap-2 text-caption text-fg-secondary'>
+        <p className='login-note'>
           <Info
             aria-hidden='true'
             size={ICON_SIZE.sm}
@@ -43,9 +42,4 @@ export default function LoginPage() {
       </section>
     </main>
   );
-}
-
-// 앱 이름의 뜻(나·나·키)을 강조하는 글자
-function Accent({ children }: { children: string }) {
-  return <strong className='font-bold text-accent'>{children}</strong>;
 }

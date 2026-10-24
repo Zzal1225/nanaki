@@ -69,7 +69,9 @@ src/
                   layout/ = 사이드바·하단 탭(메뉴 목록은 navItems.ts 한 곳), query/ = TanStack Query Provider,
                   toast/ = 화면을 옮겨도 남는 알림(Zustand 저장소 + Radix Toast, 앱 틀에 하나),
                   network/ = 연결 상태(useOnlineStatus, 화면 안내용), navigation/ = 주소가 틀렸을 때 다른 화면으로 옮기기(useReplaceRoute), date/ = 날짜 도우미(로컬 YYYY-MM-DD, YYYY-MM 달 계산, date-fns 캘린더 계산(calendar.ts), 브라우저에서만 읽는 오늘 useToday)
-  features/       기능 단위 모듈. auth/ = 로그인·로그아웃(authActions), 지금 계정(useCurrentUser).
+  features/       기능 단위 모듈. auth/ = 로그인·로그아웃(authActions), 지금 계정(useCurrentUser),
+                  login/ = 로그인 첫 화면(Issue #9 시안): loginScreen.css(등장 애니메이션 키프레임·동작 줄이기, 테마와 상관없이 초록 고정 = tokens.json exceptions.login-screen),
+                  LoginAvatar(조각마다 움직이는 반전 SVG), LoginPhrase("나는 나를 키운다" → "나나키", 읽기는 sr-only 문장 하나).
                   naki/ = AI 챗봇 나키(step3). nakiQuery = AI 답 모양(Zod)·AI에 보낼 필드 정의·지시문·AI 답 → 검색 조건(허용된 타입·칸·연산자만),
                   nakiApi = API 요청·응답 스키마(서버·브라우저 공용), nakiAggregate = 계산 종류·숫자 칸 거르기(list·sum·count·avg·max·min), nakiSummary = 숫자 한 줄 계산·표기(기기에서),
                   nakiCustomNames = AI에 보낼 사용자가 만든 분류·태그 이름 모으기(이름만, 각 50개), hooks/useNakiCustomNames, nakiEval.test = 실제 AI 질문 묶음(npm run naki:eval, CI는 건너뜀), nakiLimits = 하루 횟수 규칙(환경 변수, 한국 날짜, DB 결과 읽기), api/nakiClient = 브라우저의 유일한 입구,

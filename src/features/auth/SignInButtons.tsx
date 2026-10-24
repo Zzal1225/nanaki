@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { addSampleRecords } from '@/features/records/sample/addSampleRecords';
-import Button from '@/shared/ui/Button';
 import GoogleSignInButton from './GoogleSignInButton';
 import { signInAsGuest, signInWithGoogle } from './authActions';
 
@@ -57,24 +56,27 @@ export default function SignInButtons() {
   const isBusy = pendingMethod !== null;
 
   return (
-    <div className='flex flex-col gap-3'>
+    <div className='flex flex-col gap-2'>
       <GoogleSignInButton
         onClick={handleGoogleClick}
         disabled={isBusy}
         aria-busy={pendingMethod === 'google'}
       />
-      <Button
-        variant='secondary'
-        className='h-12 w-full'
+      {/* 밑줄 글자 버튼 (로그인 시안, loginScreen.css login-guest): 구글 버튼보다 한 단계 조용하게.
+          공용 Button을 쓰지 않는 이유: 초록 바탕에서는 공용 버튼의 테두리·눌림 색(밝은 회색)이 어울리지 않는다 */}
+      <button
+        type='button'
+        className='login-guest'
         onClick={handleGuestClick}
-        isLoading={pendingMethod === 'guest'}
-        disabled={isBusy && pendingMethod !== 'guest'}
+        disabled={isBusy}
+        aria-busy={pendingMethod === 'guest'}
       >
-        로그인 없이 체험하기
-      </Button>
-      {/* role="alert": 에러 문구가 나타나면 스크린 리더가 바로 읽어 준다 */}
+        {pendingMethod === 'guest' ? '체험 준비 중…' : '로그인 없이 체험하기'}
+      </button>
+      {/* role="alert": 에러 문구가 나타나면 스크린 리더가 바로 읽어 준다.
+          초록 바탕에서는 빨간 글자(danger)가 잘 안 보여서 로그인 화면 글자색으로 */}
       {errorMessage && (
-        <p role='alert' className='text-center text-caption text-danger'>
+        <p role='alert' className='text-center text-caption font-semibold'>
           {errorMessage}
         </p>
       )}

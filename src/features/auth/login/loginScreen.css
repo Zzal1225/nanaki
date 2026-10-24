@@ -1,0 +1,377 @@
+/* 로그인 첫 화면 (Issue #9, design/nanaki-login-handoff 2026-10-24 사용자 시안).
+   키프레임·곡선·시작 시각은 시안의 login-animation.html이 원본이다 (spec.md 타임라인). 여기서 바꾼 것은 이름(login- 접두사)과
+   색(토큰 변수)뿐이다. Tailwind 클래스로 쓰지 않은 이유: 한 화면에만 쓰는 키프레임 12개와 요소별 지연을 유틸리티로 흩으면
+   시안과 한 줄씩 맞춰 보기 어렵다. 이 파일은 로그인 화면(app/login/page.tsx)만 불러온다 */
+
+.login-screen {
+  /* 앱 테마와 상관없이 늘 같은 초록 화면 (tokens.json exceptions.login-screen).
+     구글 버튼은 다크 모드에서도 시안대로 흰 버튼이라, 이 화면 안에서만 라이트 값으로 되돌린다 */
+  --google-button-bg: #ffffff;
+  --google-button-border: #747775;
+  --google-button-fg: #1f1f1f;
+
+  display: flex;
+  min-height: 100dvh;
+  flex-direction: column;
+  align-items: center;
+  /* 아래 여백에 홈 막대 높이를 더한다 (CLAUDE.md 모바일: 하단 고정 요소에 safe-area) */
+  padding: 128px 24px calc(40px + env(safe-area-inset-bottom));
+  background: var(--login-bg);
+  color: var(--login-fg);
+  text-align: center;
+}
+
+.login-wordmark {
+  margin: 0;
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.login-avatar {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  margin-top: 40px;
+}
+
+.login-avatar svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.login-phrase-row {
+  display: flex;
+  height: 36px;
+  margin-top: 40px;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-phrase {
+  display: inline-flex;
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.login-phrase span {
+  display: inline-block;
+  /* 공백 글자(" ")도 한 칸을 차지해야 접히는 모습이 보인다 */
+  white-space: pre;
+  color: var(--login-phrase-before);
+  vertical-align: top;
+}
+
+.login-slogan {
+  margin: 8px 0 40px;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--login-fg-sub);
+}
+
+.login-actions {
+  display: flex;
+  width: 100%;
+  max-width: 360px;
+  margin-top: auto;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.login-guest {
+  height: 44px;
+  border: 0;
+  background: none;
+  color: var(--login-fg);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.login-guest:disabled {
+  opacity: 0.6;
+}
+
+.login-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--login-fg-sub);
+}
+
+/* 초록 바탕에서는 기본 포커스 링(초록)이 보이지 않아 흰색으로 */
+.login-screen :focus-visible {
+  outline-color: var(--login-fg);
+}
+
+/* PC (1024px 이상, spec.md): 같은 타임라인, 가운데 360px 한 줄 */
+@media (min-width: 1024px) {
+  .login-screen {
+    justify-content: center;
+    padding: 40px;
+  }
+  .login-wordmark {
+    font-size: 40px;
+    line-height: 48px;
+  }
+  .login-avatar {
+    width: 160px;
+    height: 160px;
+  }
+  .login-phrase-row {
+    height: 40px;
+  }
+  .login-phrase {
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .login-slogan {
+    font-size: 18px;
+    line-height: 28px;
+  }
+  .login-actions {
+    margin-top: 48px;
+  }
+}
+
+/* ---------- 애니메이션 (spec.md 타임라인) ---------- */
+@keyframes login-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes login-pop {
+  0% {
+    transform: scale(0);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes login-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+@keyframes login-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+@keyframes login-tilt {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  20% {
+    transform: rotate(-10deg);
+  }
+  40% {
+    transform: rotate(8deg);
+  }
+  60% {
+    transform: rotate(-6deg);
+  }
+  80% {
+    transform: rotate(3deg);
+  }
+}
+@keyframes login-sway-left {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
+}
+@keyframes login-sway-right {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  50% {
+    transform: rotate(-8deg);
+  }
+}
+@keyframes login-blink {
+  0%,
+  90%,
+  100% {
+    transform: scaleY(1);
+  }
+  94% {
+    transform: scaleY(0.1);
+  }
+}
+@keyframes login-twinkle {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.5) rotate(45deg);
+  }
+}
+/* 나·나·키: 흐린 초록 → 흰색, 가운데서 살짝 뛴다 */
+@keyframes login-key {
+  0% {
+    color: var(--login-phrase-before);
+    transform: none;
+  }
+  50% {
+    color: var(--login-fg);
+    transform: translateY(-6px);
+  }
+  100% {
+    color: var(--login-fg);
+    transform: none;
+  }
+}
+/* 나머지 글자: 폭을 0으로 접으며 흐려진다 → 나·나·키만 붙어 "나나키"가 된다 */
+@keyframes login-fold {
+  0% {
+    max-width: 1em;
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    max-width: 0;
+    opacity: 0;
+    filter: blur(6px);
+  }
+}
+@keyframes login-grow {
+  to {
+    transform: scale(1.2);
+  }
+}
+
+.login-wordmark {
+  animation: login-up 0.6s var(--login-ease-enter) 0.1s both;
+}
+.login-avatar svg {
+  animation: login-float 3.2s ease-in-out 0.6s infinite;
+}
+.login-ring {
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--login-fg);
+  border-radius: 9999px;
+  animation: login-ring 2.4s ease-out infinite both;
+}
+.login-ring-1 {
+  animation-delay: 0.6s;
+}
+.login-ring-2 {
+  animation-delay: 1.8s;
+}
+/* SVG 조각은 자기 상자 기준으로 돌고 커져야 한다 (기본은 SVG 전체의 0,0 기준이라 엉뚱한 곳을 축으로 돈다) */
+.login-av-circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: login-pop 0.55s var(--login-ease-pop) 0s both;
+}
+.login-av-face {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: login-tilt 1.2s ease-in-out 0.7s both;
+}
+.login-av-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: login-blink 4s 1.2s infinite;
+}
+.login-av-leaf-left {
+  transform-box: fill-box;
+  transform-origin: right bottom;
+  animation: login-sway-left 3s ease-in-out 0.8s infinite;
+}
+.login-av-leaf-right {
+  transform-box: fill-box;
+  transform-origin: left bottom;
+  animation: login-sway-right 3s ease-in-out 0.9s infinite;
+}
+.login-av-spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: login-twinkle 2s ease-in-out 0.9s infinite both;
+}
+
+.login-phrase {
+  animation:
+    login-up 0.6s var(--login-ease-enter) 0.8s both,
+    login-grow 0.4s var(--login-ease-pop) 2.6s forwards;
+}
+.login-phrase .login-key {
+  animation: login-key 0.45s ease-out both;
+}
+.login-phrase .login-key-1 {
+  animation-delay: 1.4s;
+}
+.login-phrase .login-key-2 {
+  animation-delay: 1.58s;
+}
+.login-phrase .login-key-3 {
+  animation-delay: 1.76s;
+}
+.login-phrase .login-fold {
+  overflow: hidden;
+  animation: login-fold 0.6s cubic-bezier(0.6, 0, 0.3, 1) 2.1s both;
+}
+.login-slogan {
+  animation: login-up 0.6s var(--login-ease-enter) 3.1s both;
+}
+.login-actions {
+  animation: login-up 0.7s var(--login-ease-enter) 3.5s both;
+}
+
+/* 동작 줄이기 설정: 움직임 없이 마지막 모습을 바로 (Issue #9, spec.md) */
+@media (prefers-reduced-motion: reduce) {
+  .login-screen *,
+  .login-screen *::before,
+  .login-screen *::after {
+    animation: none !important;
+  }
+  .login-phrase .login-fold {
+    display: none;
+  }
+  .login-phrase .login-key {
+    color: var(--login-fg);
+  }
+  .login-phrase {
+    transform: scale(1.2);
+  }
+}
