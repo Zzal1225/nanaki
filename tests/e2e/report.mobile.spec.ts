@@ -29,6 +29,9 @@ test('기록 탭 보고서 → 이번 달 만들기 → 타입 카드 → 인쇄
   await page.goto('/login');
   await page.getByRole('button', { name: '로그인 없이 체험하기' }).click();
   await expect(page).toHaveURL('/');
+  // 로그인 화면의 초록 바탕이 남지 않는다: 떠난 로그인 화면은 숨은 채 DOM에 남아서(cacheComponents),
+  // body:has()로 고르던 때는 앱 전체가 초록이 됐다 (#121 뒤 발견, useBodyClass)
+  await expect(page.locator('body')).not.toHaveClass(/login-screen-body/);
 
   await bottomTabs(page)
     .getByRole('link', { name: '기록', exact: true })
