@@ -47,6 +47,15 @@
   --google-button-bg: #ffffff;
   --google-button-border: #747775;
   --google-button-fg: #1f1f1f;
+
+  /* 로그인 첫 화면 브랜드 색 (tokens.json exceptions.login-screen). 테마와 상관없이 고정이라 다크 블록에 다시 두지 않는다 */
+  --login-bg: #2e7d4f;
+  --login-fg: #ffffff;
+  --login-fg-sub: #ddf2e5;
+  --login-phrase-before: #a8d5ba;
+  --login-leaf: #6cc08f;
+  --login-ease-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --login-ease-pop: cubic-bezier(0.3, 1.4, 0.5, 1);
 }
 
 /* ---------- 2. 다크 값 ---------- */
@@ -358,4 +367,10 @@
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
+}
+
+/* 로그인 첫 화면은 바탕이 초록이다 (features/auth/login/loginScreen.css). 위아래로 끌어 넘길 때 드러나는 body 바탕도 같은 색으로:
+   그대로 두면 아이폰에서 화면을 당길 때 회색 띠가 보인다 */
+body:has([data-login-screen]) {
+  background: var(--login-bg);
 }
