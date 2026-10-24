@@ -9,7 +9,10 @@ export const SYNC_PAGE_SIZE = 1000;
 
 // 커서보다 이만큼 앞부터 다시 받는다. updated_at은 트랜잭션이 시작된 시각(now())이라,
 // 먼저 시작해 늦게 끝난 저장은 이미 지나간 커서보다 앞선 시각으로 나타난다 → 잠깐 겹쳐 받아 놓치지 않는다.
-// 겹쳐 받은 줄은 같은 id로 덮어쓰기라(bulkPut) 두 번 받아도 해가 없다
+// 겹쳐 받은 줄은 같은 id로 덮어쓰기라(bulkPut) 두 번 받아도 해가 없다.
+// 다만 겹치는 60초 안에 줄이 많으면(백업 불러오기로 수천 건을 한 번에 넣음) 화면을 열 때마다 그 줄을 모두 다시 받았다
+// (2026-10-24 1만 건 측정: 다시 방문마다 3.5MB를 받아 모든 화면 3.3초, 같은 밀도 300개는 1.1초).
+// 그래서 겹쳐 받기는 커서가 "확정"될 때까지만 한다 (pullChanges, SyncMeta.settled)
 export const SYNC_OVERLAP_MS = 60_000;
 
 // 이 시간 안에 다시 부르면 건너뛴다. 한 화면이 조회 여러 개를 한꺼번에 부르고(캘린더·카드·최근 기록),
@@ -76,7 +79,21 @@ type PullOptions<Row extends SyncedRow> = {
   // 받아도 사본에 반영하지 않을 줄의 id (아직 보내지 않은 내 변경이 있는 기록, 25c).
   // 반영하면 서버의 예전 내용이 기기에서 방금 고친 내용을 덮어쓴다. 보내고 나면 서버가 돌려준 줄로 맞춘다
   pendingIds?: () => Promise<Set<string>>;
+  // 기기 시각 (테스트에서 바꾼다)
+  now?: () => number;
 };
+
+// 이번 받기에서 커서 앞을 다시 볼지. 확정된 커서는 다시 볼 필요가 없다.
+// 확정 조건: 커서를 처음 저장하고 겹침 시간(60초)이 지난 "뒤에 시작한" 받기가 겹쳐 받기를 마쳤다.
+// 그 받기가 시작될 때 서버 시각은 이미 커서 시각 + 60초를 넘었으므로(커서는 그보다 먼저 서버에서 받았다),
+// 60초 안에 끝나는 저장은 모두 끝나 있었고 그 받기가 다 가져왔다 → 커서 앞에서 새로 나타날 줄이 없다.
+// 기기 시계는 "얼마나 지났나"에만 쓴다. 시계를 뒤로 돌리면 겹쳐 받기를 더 할 뿐(안전), 앞으로 크게 돌리면 한 번 일찍 확정될 수 있다(감수)
+export function canSettle(
+  cursorSeenAt: number,
+  pullStartedAt: number,
+): boolean {
+  return pullStartedAt - cursorSeenAt >= SYNC_OVERLAP_MS;
+}
 
 // 바뀐 줄을 모두 받아 사본에 반영한다. 페이지마다 줄 반영과 커서 저장을 한 트랜잭션으로 묶는다:
 // 중간에 끊겨도(창을 닫음) 커서가 반영된 줄까지만 앞으로 가서, 다음에 그 뒤부터 이어 받는다
@@ -87,9 +104,16 @@ export async function pullChanges<Row extends SyncedRow>({
   fetchChanges,
   isRemoved,
   pendingIds,
+  now = Date.now,
 }: PullOptions<Row>): Promise<void> {
-  let newest = (await db.meta.get(table))?.cursor ?? null;
-  let after = rewindCursor(newest);
+  const startedAt = now();
+  const meta = await db.meta.get(table);
+  let newest = meta?.cursor ?? null;
+  // 예전 사본(cursorSeenAt 없음)은 지금 처음 본 것으로 친다: 60초 뒤 한 번 더 겹쳐 받고 확정 (늦게 확정될 뿐 놓치지 않는다)
+  let seenAt = meta?.cursorSeenAt ?? startedAt;
+  const isRewinding = !meta?.settled;
+  let after = isRewinding ? rewindCursor(newest) : newest;
+  let hasCursorMoved = false;
 
   for (;;) {
     const rows = await fetchChanges(after, SYNC_PAGE_SIZE);
@@ -100,16 +124,25 @@ export async function pullChanges<Row extends SyncedRow>({
         await db.meta.put({
           table,
           cursor: { updatedAt: EPOCH, id: NIL_UUID },
+          cursorSeenAt: startedAt,
+          settled: false,
         });
+        return;
       }
+      await settleIfDue();
       return;
     }
 
     const last = rows[rows.length - 1];
     const lastCursor = { updatedAt: last.updated_at, id: last.id };
     // 겹쳐 받은 줄만 왔으면 커서를 뒤로 돌리지 않는다 (돌리면 다음번에 겹치는 구간이 점점 넓어진다)
-    if (!newest || compareCursor(lastCursor, newest) > 0) newest = lastCursor;
+    if (!newest || compareCursor(lastCursor, newest) > 0) {
+      newest = lastCursor;
+      seenAt = now();
+      hasCursorMoved = true;
+    }
     const cursor = newest;
+    const cursorSeenAt = seenAt;
 
     // 대기 중인 id는 반영 직전에 읽는다 (받는 사이에 새로 쓴 기록도 지키려고)
     const skipped = (await pendingIds?.()) ?? new Set<string>();
@@ -119,11 +152,33 @@ export async function pullChanges<Row extends SyncedRow>({
       await target.bulkDelete(
         applied.filter((row) => isRemoved(row)).map((row) => row.id),
       );
-      await db.meta.put({ table, cursor });
+      // 커서가 앞으로 갔으면 새 커서는 아직 확정 전이다. 그대로면 이전 상태(settled 포함)를 지킨다
+      await db.meta.put({
+        table,
+        cursor,
+        cursorSeenAt,
+        settled: hasCursorMoved ? false : (meta?.settled ?? false),
+      });
     });
 
-    if (rows.length < SYNC_PAGE_SIZE) return;
+    if (rows.length < SYNC_PAGE_SIZE) {
+      await settleIfDue();
+      return;
+    }
     after = lastCursor;
+  }
+
+  // 이번 받기가 겹쳐 받기였고, 그동안 커서가 그대로였고, 커서를 본 지 겹침 시간이 지난 뒤 시작했다면 확정
+  async function settleIfDue() {
+    if (!newest || hasCursorMoved || !isRewinding) return;
+    const isDue = canSettle(seenAt, startedAt);
+    if (!isDue && meta?.cursorSeenAt !== undefined) return;
+    await db.meta.put({
+      table,
+      cursor: newest,
+      cursorSeenAt: seenAt,
+      settled: isDue,
+    });
   }
 }
 

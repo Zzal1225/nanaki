@@ -16,6 +16,12 @@ export type SyncCursor = { updatedAt: string; id: string };
 export type SyncMeta = {
   table: SyncedTable;
   cursor: SyncCursor;
+  // 이 커서를 처음 저장한 기기 시각(ms). 겹쳐 받기를 언제 멈춰도 되는지 재는 데만 쓴다 (sync.ts pullChanges).
+  // 예전 사본에는 없다 → 처음 다시 받을 때 그 시각으로 채운다
+  cursorSeenAt?: number;
+  // 커서가 생기고 겹침 시간이 지난 뒤 겹쳐 받기를 한 번 마쳤다 = 커서 앞에서 늦게 끝날 저장이 더는 없다.
+  // true면 다음부터 커서 바로 뒤부터 받는다. 커서가 앞으로 가면 다시 false (2026-10-24, 41 1만 건 성능)
+  settled?: boolean;
 };
 
 // 서버에 보낼 기록 내용 (DB 칸 이름). user_id·시각 칸은 서버가 붙인다

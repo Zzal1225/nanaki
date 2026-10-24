@@ -1,0 +1,67 @@
+name: Scale perf
+
+# 기록 1만 건 성능 측정 (step4 41, scripts/scale-perf.mts). 매 PR에 돌리지 않는다: 1만 건 넣기 + 처음 방문 5회(동기화 1만 건)로
+# 몇 분이 더 걸리고, 성능 작업 때 전후를 비교할 때만 필요하다. PR에 perf 라벨을 붙이면 그 PR의 커밋마다 돈다.
+# 실패 조건은 없다: 수치만 실행 요약에 남기고, docs/performance.md로 옮겨 적는다
+on:
+  pull_request:
+    types: [labeled, opened, synchronize, reopened]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  scale:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'perf')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # CI의 integration 작업과 같은 테스트용 로컬 Supabase (실제 서비스 DB에 1만 건을 넣지 않는다)
+      - name: 로컬 Supabase 시작
+        run: npx supabase start -x realtime,imgproxy,studio,edge-runtime,logflare,vector,supavisor,postgres-meta
+
+      - name: 테스트용 주소·키를 환경 변수로
+        run: |
+          npx supabase status -o json > supabase-status.json
+          echo "SUPABASE_TEST_URL=$(jq -r '.API_URL' supabase-status.json)" >> "$GITHUB_ENV"
+          echo "SUPABASE_TEST_ANON_KEY=$(jq -r '.ANON_KEY' supabase-status.json)" >> "$GITHUB_ENV"
+
+      - name: 앱 빌드 (테스트용 Supabase에 연결)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ env.SUPABASE_TEST_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ env.SUPABASE_TEST_ANON_KEY }}
+        run: npm run build
+
+      - run: npx playwright install --with-deps chromium
+
+      - name: 기록 1만 건 측정
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ env.SUPABASE_TEST_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ env.SUPABASE_TEST_ANON_KEY }}
+        run: |
+          npm run start -- --port 3000 &
+          for i in $(seq 1 30); do curl -sf -o /dev/null http://localhost:3000/login && break; sleep 1; done
+          # 비교군(같은 밀도, 최근 33일 300개)을 먼저, 같은 서버·같은 실행에서 1만 건. 계정은 측정마다 새로 만든다
+          PERF_RECORD_COUNT=300 npm run perf:scale
+          npm run perf:scale
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: scale-perf
+          path: perf-scale/
+          retention-days: 14

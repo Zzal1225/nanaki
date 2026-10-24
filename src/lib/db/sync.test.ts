@@ -177,6 +177,111 @@ describe('바뀐 것만 받기', () => {
     expect((await db.meta.get('records'))?.cursor).toEqual(newest);
   });
 
+  // 1만 건 측정에서 찾음: 한꺼번에 넣은 줄이 겹침 60초 안에 모여 있으면 화면을 열 때마다 전부 다시 받았다
+  describe('겹쳐 받기 확정', () => {
+    const T = '2026-10-22T01:00:00.000Z';
+    const pull = (
+      db: ReturnType<typeof freshDb>,
+      fetchChanges: ReturnType<typeof serverOf>,
+      at: number,
+    ) =>
+      pullChanges({
+        db,
+        table: 'records',
+        target: db.records,
+        fetchChanges,
+        isRemoved: () => false,
+        now: () => at,
+      });
+
+    it('커서를 본 지 60초가 지나 시작한 겹쳐 받기를 마치면, 다음부터는 커서 바로 뒤부터 받는다', async () => {
+      const db = freshDb();
+      const fetchChanges = serverOf([row('a', T), row('b', T)]);
+      const seen = 1_000_000;
+
+      await pull(db, fetchChanges, seen);
+      // 60초 안: 아직 겹쳐 받는다 (늦게 끝나는 저장을 기다리는 중)
+      await pull(db, fetchChanges, seen + SYNC_OVERLAP_MS - 1);
+      expect(fetchChanges).toHaveBeenLastCalledWith(
+        rewindCursor({ updatedAt: T, id: 'b' }),
+        SYNC_PAGE_SIZE,
+      );
+      expect((await db.meta.get('records'))?.settled).toBe(false);
+      // 60초 뒤: 한 번 더 겹쳐 받고 확정
+      await pull(db, fetchChanges, seen + SYNC_OVERLAP_MS);
+      expect(fetchChanges).toHaveBeenLastCalledWith(
+        rewindCursor({ updatedAt: T, id: 'b' }),
+        SYNC_PAGE_SIZE,
+      );
+      expect((await db.meta.get('records'))?.settled).toBe(true);
+      // 확정 뒤: 다시 받는 줄이 없다
+      await pull(db, fetchChanges, seen + 2 * SYNC_OVERLAP_MS);
+      expect(fetchChanges).toHaveBeenLastCalledWith(
+        { updatedAt: T, id: 'b' },
+        SYNC_PAGE_SIZE,
+      );
+    });
+
+    it('확정 뒤 새 줄이 와서 커서가 앞으로 가면, 새 커서는 다시 겹쳐 받기부터', async () => {
+      const db = freshDb();
+      const T2 = '2026-10-22T02:00:00.000Z';
+      const server = [row('a', T)];
+      const fetchChanges = serverOf(server);
+      await db.meta.put({
+        table: 'records',
+        cursor: { updatedAt: T, id: 'a' },
+        cursorSeenAt: 0,
+        settled: true,
+      });
+
+      server.push(row('c', T2));
+      const later = serverOf(server);
+      await pull(db, later, 5_000_000);
+      expect(await db.meta.get('records')).toMatchObject({
+        cursor: { updatedAt: T2, id: 'c' },
+        cursorSeenAt: 5_000_000,
+        settled: false,
+      });
+      await pull(db, later, 5_000_001);
+      expect(later).toHaveBeenLastCalledWith(
+        rewindCursor({ updatedAt: T2, id: 'c' }),
+        SYNC_PAGE_SIZE,
+      );
+      expect(fetchChanges).not.toHaveBeenCalled();
+    });
+
+    it('늦게 끝난 저장(커서보다 앞선 시각)은 확정 전 겹쳐 받기가 가져온다', async () => {
+      const db = freshDb();
+      const server = [row('b', T)];
+      const fetchChanges = serverOf(server);
+      await pull(db, fetchChanges, 0);
+
+      // 커서(T, b)보다 10초 앞선 시각으로, 커서를 받은 뒤에야 보이게 된 줄
+      server.push(row('late', '2026-10-22T00:59:50.000Z'));
+      const withLate = serverOf(server);
+      await pull(db, withLate, SYNC_OVERLAP_MS);
+      expect(await db.records.get('late')).toBeDefined();
+      expect((await db.meta.get('records'))?.settled).toBe(true);
+    });
+
+    it('예전 사본(본 시각 없음)은 지금 본 것으로 치고, 60초 뒤에 확정한다', async () => {
+      const db = freshDb();
+      await db.meta.put({
+        table: 'records',
+        cursor: { updatedAt: T, id: 'a' },
+      });
+      const fetchChanges = serverOf([row('a', T)]);
+
+      await pull(db, fetchChanges, 7_000);
+      expect(await db.meta.get('records')).toMatchObject({
+        cursorSeenAt: 7_000,
+        settled: false,
+      });
+      await pull(db, fetchChanges, 7_000 + SYNC_OVERLAP_MS);
+      expect((await db.meta.get('records'))?.settled).toBe(true);
+    });
+  });
+
   it('한 페이지가 꽉 차면 다음 페이지를 이어 받는다 (같은 시각의 줄도 빠짐없이)', async () => {
     const db = freshDb();
     const T = '2026-10-22T01:00:00.000Z';
