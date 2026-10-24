@@ -173,6 +173,16 @@ export async function listPhotoDates(kind: PhotoKind): Promise<PhotoOnDate[]> {
   });
 }
 
+// 내 사진 수 (설정 > 데이터, step4 39). 줄만 센다 (head: 내용을 받지 않음)
+export async function countPhotos(): Promise<number> {
+  const supabase = createSupabaseBrowserClient();
+  const { count, error } = await supabase
+    .from('photos')
+    .select('id', { count: 'exact', head: true });
+  if (error) throw error;
+  return count ?? 0;
+}
+
 // 보여 줄 서명 링크들 (한 번에). 파일 주소 → 링크. 만든 링크는 PHOTO_URL_EXPIRES_SECONDS 뒤 닫힌다
 export async function createPhotoUrls(
   paths: readonly string[],

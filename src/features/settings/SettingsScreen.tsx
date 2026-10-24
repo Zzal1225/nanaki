@@ -1,3 +1,4 @@
+import DataSection from '@/features/backup/ui/DataSection';
 import ThemeToggle from '@/shared/theme/ThemeToggle';
 import AccountSection from './AccountSection';
 import PushDeviceSection from './PushDeviceSection';
@@ -7,7 +8,7 @@ import TypeVisibilitySection from './TypeVisibilitySection';
 
 // 설정 화면 (시안 8a). 서버 컴포넌트: 틀(제목·묶음 순서)은 미리 그리고, 데이터가 필요한 묶음만 클라이언트 컴포넌트다.
 // 알림은 "이 기기 루틴 알림" 켜기·끄기 스위치 (PushDeviceSection, 35a·2026-10-24).
-// 시안의 체형 측정 항목(step2)·저장 공간과 백업(step4)·개인정보처리방침은 아직 없는 기능이라 두지 않는다
+// 데이터(기록·사진 수, 백업 저장하기·불러오기)는 step4 39. 시안의 체형 측정 항목·개인정보처리방침은 아직 없는 기능이라 두지 않는다
 // (CLAUDE.md: 미구현 기능은 "준비 중" 버튼 없이 숨김)
 export default function SettingsScreen() {
   return (
@@ -25,6 +26,7 @@ export default function SettingsScreen() {
 
       <div className='flex flex-col gap-6 px-4 pt-2 md:px-6'>
         <TypeVisibilitySection />
+        <DataSection />
         <SettingsSection title='화면'>
           <div className='flex min-h-16 items-center gap-2 pr-3 pl-4'>
             <span className='flex-1 text-body text-fg-primary'>다크모드</span>

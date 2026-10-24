@@ -7,10 +7,20 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { deleteAccount } from '@/features/auth/authActions';
 import { useToastStore } from '@/shared/toast/toastStore';
 import DeleteAccountButton from './DeleteAccountButton';
+
+// 확인 창의 '백업 파일 먼저 저장하기'가 TanStack Query를 쓴다
+function renderButton() {
+  render(
+    <QueryClientProvider client={new QueryClient()}>
+      <DeleteAccountButton />
+    </QueryClientProvider>,
+  );
+}
 
 vi.mock('@/features/auth/authActions', () => ({ deleteAccount: vi.fn() }));
 
@@ -36,7 +46,7 @@ describe('DeleteAccountButton', () => {
   });
 
   it('확인 창 없이는 지우지 않는다. 취소하면 아무 일도 없다', () => {
-    render(<DeleteAccountButton />);
+    renderButton();
     fireEvent.click(screen.getByRole('button', { name: '계정 삭제' }));
 
     const dialog = screen.getByRole('alertdialog');
@@ -49,7 +59,7 @@ describe('DeleteAccountButton', () => {
 
   it('확인하면 지우고 로그인 화면을 새로 연다', async () => {
     vi.mocked(deleteAccount).mockResolvedValue('deleted');
-    render(<DeleteAccountButton />);
+    renderButton();
 
     openAndConfirm();
 
@@ -58,7 +68,7 @@ describe('DeleteAccountButton', () => {
 
   it('secret 키가 없는 환경이면 안내하고 창을 닫는다', async () => {
     vi.mocked(deleteAccount).mockResolvedValue('unavailable');
-    render(<DeleteAccountButton />);
+    renderButton();
 
     openAndConfirm();
 

@@ -390,6 +390,28 @@ export async function createRecords(inputs: NewRecordInput[]): Promise<void> {
   await applyServerRows(data);
 }
 
+// 백업 불러오기 (step4 39): 이미 있는 id는 건너뛰고(ignoreDuplicates) 새로 들어간 줄만 사본에 넣는다.
+// 대기열을 거치지 않는다: 불러오기는 온라인 전용이고, 수천 개를 하나씩 대기열에 쌓으면 느리다. 요청 하나가 너무 커지지 않게 나눠 보낸다
+export const IMPORT_CHUNK_SIZE = 500;
+
+export async function importRecords(entries: RecordEntry[]): Promise<number> {
+  const supabase = createSupabaseBrowserClient();
+  let inserted = 0;
+  for (let start = 0; start < entries.length; start += IMPORT_CHUNK_SIZE) {
+    const rows = entries
+      .slice(start, start + IMPORT_CHUNK_SIZE)
+      .map((entry) => toRecordInsert(recordEntrySchema.parse(entry)));
+    const { data, error } = await supabase
+      .from('records')
+      .upsert(rows, { onConflict: 'id', ignoreDuplicates: true })
+      .select();
+    if (error) throw error;
+    await applyServerRows(data);
+    inserted += data.length;
+  }
+  return inserted;
+}
+
 // 이미 보낸 삭제를 되돌릴 때 사본에 다시 넣을 줄 (되돌리기는 지운 직후 5초 안에만 보인다)
 const recentlyDeleted = new Map<string, LocalRecordRow>();
 

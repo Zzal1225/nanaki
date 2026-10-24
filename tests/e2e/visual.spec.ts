@@ -43,6 +43,8 @@ async function captureSignedInScreens(page: Page, theme: 'light' | 'dark') {
   await page.goto('/settings');
   await expect(page.getByRole('switch', { name: '가계부' })).toBeVisible();
   await expect(page.getByText('체험 계정')).toBeVisible();
+  // 데이터 묶음(step4 39)의 개수 줄이 "기록 세는 중…"이 아니라 수까지 나온 뒤에 찍는다
+  await expect(page.getByText(/^기록 \d+개 · 사진 \d+장$/)).toBeVisible();
   await capture(page, `settings-${theme}`);
 }
 

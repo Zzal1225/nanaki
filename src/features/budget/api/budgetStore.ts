@@ -141,3 +141,35 @@ export async function saveBudget(input: Budget): Promise<BudgetView> {
   await saveCopy(saved);
   return toView(saved.month, saved);
 }
+
+// 모든 달의 예산 (백업 저장하기, step4 39). 서버에서 읽는다: 사본에는 본 달만 있다
+export async function listBudgets(): Promise<Budget[]> {
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase
+    .from('budgets')
+    .select(SELECT_COLUMNS)
+    .order('month', { ascending: true });
+  if (error) throw error;
+  const rows: BudgetRow[] = data;
+  return rows.map(toBudget);
+}
+
+// 백업 불러오기: 그 달 예산이 이미 있으면 그대로 둔다(ignoreDuplicates, 기본 키 = 사람 + 달). 들어간 수를 돌려준다
+export async function importBudgets(budgets: Budget[]): Promise<number> {
+  if (budgets.length === 0) return 0;
+  const supabase = createSupabaseBrowserClient();
+  const rows = budgets.map((input) => {
+    const budget = budgetSchema.parse(input);
+    return {
+      month: budget.month,
+      total_amount: budget.total,
+      category_amounts: budget.categories,
+    };
+  });
+  const { data, error } = await supabase
+    .from('budgets')
+    .upsert(rows, { onConflict: 'user_id,month', ignoreDuplicates: true })
+    .select(SELECT_COLUMNS);
+  if (error) throw error;
+  return data.length;
+}
