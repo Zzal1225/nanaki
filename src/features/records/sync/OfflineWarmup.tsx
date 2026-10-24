@@ -23,6 +23,8 @@ export const WARMUP_PATHS: readonly string[] = [
   '/budget',
   // 고정지출 (33d). 주소에 값이 없어 한 장
   '/fixed-expenses',
+  // 보고서 (step4 40). 조건이 ?from=&to=&types=라 한 장. 기기 사본으로 그려 오프라인에서도 만든다
+  '/report',
   // 나키 (step3). 오프라인에서 열면 "오프라인에서는 쓸 수 없어요" 안내와 검색으로 가는 길을 보여 준다
   '/naki',
 ];

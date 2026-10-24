@@ -25,5 +25,6 @@ describe('isActivePath', () => {
     expect(isActivePath('/budget', '/')).toBe(false);
     expect(isActivePath('/budgetx', '/records')).toBe(false);
     expect(isActivePath('/fixed-expenses', '/records')).toBe(true);
+    expect(isActivePath('/report', '/records')).toBe(true);
   });
 });

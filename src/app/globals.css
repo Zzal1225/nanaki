@@ -328,3 +328,34 @@
     cursor: pointer;
   }
 }
+
+/* ---------- 6. 인쇄 (보고서 PDF, step4 40) ---------- */
+/* 보고서 화면에 data-print-root가 있을 때만: 그 칸과 그 칸으로 가는 길(조상)만 남기고 나머지(사이드바·하단 탭·+ 버튼·오프라인 안내)는 지운다.
+   visibility: hidden 방식은 가린 것들이 자리를 그대로 차지해 빈 쪽이 생겨서 display: none으로 한다.
+   앱 틀 컴포넌트마다 print:hidden을 붙이지 않는 이유: 틀에 새 요소가 생길 때마다 빠뜨리기 쉽다 */
+/* @page는 @media print 안에 두지 않는다: 안에 두었더니 빌드(Lightning CSS)가 @media 묶음을 통째로 버렸다 (2026-10-24 확인).
+   @page는 원래 인쇄에만 쓰여서 밖에 두어도 화면에는 영향이 없다 */
+@page {
+  size: A4;
+  margin: 12mm;
+}
+
+@media print {
+  body:has([data-print-root])
+    *:not([data-print-root]):not([data-print-root] *):not(
+      :has([data-print-root])
+    ) {
+    display: none !important;
+  }
+
+  /* 종이는 흰색: 라이트 테마의 바탕(--bg)은 옅은 회색이다. 인쇄 중엔 라이트로 바꿔 두어(ReportView) --surface = 흰색 */
+  body:has([data-print-root]) {
+    background: var(--surface);
+  }
+
+  /* 브라우저 기본값은 배경색을 인쇄하지 않아 막대 그래프가 사라진다 */
+  html {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
