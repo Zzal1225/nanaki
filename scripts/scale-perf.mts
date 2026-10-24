@@ -221,8 +221,11 @@ async function waitForScreen(
   const handle = await page.waitForFunction(
     ([selector, text]) => {
       if (document.querySelector('main [aria-busy="true"]')) return null;
+      // 보이는 요소만 (숨은 PC 왼쪽 목록이 먼저 그려져 "끝"으로 잡히지 않게, measureSearchSubmit 설명)
       const found = [...document.querySelectorAll(selector)].some(
-        (element) => !text || element.textContent?.includes(text),
+        (element) =>
+          element.checkVisibility() &&
+          (!text || element.textContent?.includes(text)),
       );
       return found ? performance.now() : null;
     },
@@ -255,8 +258,12 @@ async function measureSearchSubmit(
 ): Promise<Measure> {
   await page.getByRole('searchbox', { name: '검색어' }).fill(keyword);
   await resetLongTasks(page);
+  // 보이는 것만 고른다: 모바일에서도 기록 layout이 PC용 왼쪽 목록(RecordsSidePanel)을 CSS로 숨긴 채 그려서
+  // 검색 폼·결과 개수가 두 벌 있다. 첫 번째를 고르면 숨은 폼(이전 검색어)을 제출해 결과가 바뀌지 않았다 (2026-10-24 첫 실행)
   const startedAt = await page.evaluate(() => {
-    const form = document.querySelector<HTMLFormElement>('form[role="search"]');
+    const form = [
+      ...document.querySelectorAll<HTMLFormElement>('form[role="search"]'),
+    ].find((element) => element.checkVisibility());
     if (!form) throw new Error('검색 폼 없음');
     const now = performance.now();
     form.requestSubmit();
@@ -267,7 +274,9 @@ async function measureSearchSubmit(
       if (document.querySelector('main [aria-busy="true"]')) return null;
       // 검색어가 주소에 반영되기 전의 이전 결과를 "끝"으로 보지 않게 주소부터 확인한다
       if (new URLSearchParams(location.search).get('q') !== word) return null;
-      const status = document.querySelector('main [role="status"]');
+      const status = [
+        ...document.querySelectorAll('main [role="status"]'),
+      ].find((element) => element.checkVisibility());
       if (!status) return null;
       return (status.textContent === '0개') === isEmptyExpected
         ? performance.now()
