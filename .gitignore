@@ -57,3 +57,4 @@ private/
 /.lighthouseci/
 /lighthouse-report/
 /perf-report/
+/perf-scale/
