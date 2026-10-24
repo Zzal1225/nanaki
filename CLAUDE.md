@@ -85,6 +85,8 @@ src/
                   가계부 카드의 "고정지출 N개 ›"(ExpenseFixedExpenseLine, 이번 달만), 가계부 쓰기 + 금액 옆 "고정지출" 체크(ExpenseCreateForm).
                   만들기는 가계부 쓰기의 체크에서만: 기록은 폼이 저장하고, 같은 내용의 규칙(매달 기록 날짜의 일)을 서버에 넣는다.
                   그날 가계부 기록은 서버가 만든다(DB 함수 record_due_fixed_expenses + pg_cron 매시간, 한국 시간, 한 달에 한 번, 태그 '고정지출')
+                  backup/ = 백업(step4 39, 사진 제외 JSON). backupFile = 형식·만들기·읽기(항목마다 Zod, 더 새 버전 거절), importPlan = 없는 것만 더하기(계정 + 원래 id → 결정적 새 id, 루틴 체크 따라가기),
+                  api/backupStore = 저장하기·불러오기의 유일한 입구(온라인 전용), ui/DataSection = 설정 > 데이터(개수·저장·불러오기), 계정 삭제 확인 창의 "백업 파일 먼저 저장하기"
                   settings/ = 설정 화면. api/settingsStore = 설정 저장·조회의 유일한 입구(user_settings),
                   typeVisibility = 숨긴 타입 계산(순수 함수), hooks/useUserSettings = 설정 훅 + 켜진 타입(useVisibleTypes), PushDeviceSection = 이 기기 루틴 알림 켜기·끄기 스위치(받을 수 없는 기기면 꺼 두고 이유)
                   photos/ = 사진(step4: 눈바디·후기). 종류 규칙 records/schema/photoKinds PHOTO_KIND_MAX(정면·측면 1장 = 칸, 후기 5장 = 갤러리, 갤러리는 원본 비율·자르기 없음),

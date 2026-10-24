@@ -173,3 +173,28 @@ export async function deleteFixedExpense(id: string): Promise<void> {
   const db = await currentLocalDb();
   await db.fixedExpenses.delete(id);
 }
+
+// 백업 불러오기 (step4 39): 이미 있는 id는 건너뛴다. 시작일·마지막 기록일도 그대로 넣는다:
+// 비워 두면 서버가 지난 결제일까지 다시 기록을 만들 수 있다. 넣은 뒤 사본을 통째로 다시 받는다 (listFixedExpenses)
+export async function importFixedExpenses(
+  items: FixedExpense[],
+): Promise<number> {
+  if (items.length === 0) return 0;
+  const supabase = createSupabaseBrowserClient();
+  const rows = items.map((input) => {
+    const item = fixedExpenseSchema.parse(input);
+    return {
+      id: item.id,
+      ...toRowValues(item),
+      start_date: item.startDate,
+      last_recorded_on: item.lastRecordedOn,
+    };
+  });
+  const { data, error } = await supabase
+    .from('fixed_expenses')
+    .upsert(rows, { onConflict: 'id', ignoreDuplicates: true })
+    .select('id');
+  if (error) throw error;
+  await listFixedExpenses();
+  return data.length;
+}

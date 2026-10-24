@@ -2,7 +2,11 @@
 
 // 'use client' 이유: 확인 창 열림 상태, 삭제 요청, 화면 이동이 모두 브라우저에서 일어난다
 import { useState } from 'react';
+import { Download } from 'lucide-react';
 import { deleteAccount } from '@/features/auth/authActions';
+import { useExportBackup } from '@/features/backup/hooks/useBackup';
+import { useOnlineStatus } from '@/shared/network/useOnlineStatus';
+import { ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import { LOGIN_PATH } from '@/features/auth/getAuthRedirectPath';
 import { prepareDeviceDataCleanup } from '@/lib/db/deviceData';
 import { useToastStore } from '@/shared/toast/toastStore';
@@ -14,11 +18,13 @@ const FAILURE_MESSAGES = {
 } as const;
 
 // 설정 > 계정 > 계정 삭제 (시안 8b). 되돌릴 수 없어서 확인 창을 거친다.
-// 시안의 "백업 파일 먼저 저장하기"는 백업(step4)이 생기면 확인 창에 넣는다
+// 확인 창 안에 "백업 파일 먼저 저장하기" (step4 39): 지우기 직전이 백업이 가장 필요한 때다
 export default function DeleteAccountButton() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const showToast = useToastStore((state) => state.showToast);
+  const exportBackup = useExportBackup();
+  const isOnline = useOnlineStatus();
 
   async function confirmDelete() {
     setIsPending(true);
@@ -51,7 +57,43 @@ export default function DeleteAccountButton() {
         open={isConfirmOpen}
         onOpenChange={setIsConfirmOpen}
         title='계정을 삭제할까요?'
-        description='모든 기록과 설정이 영구적으로 삭제되고 복구할 수 없어요.'
+        description={
+          <>
+            모든 기록과 사진, 설정이 영구적으로 삭제되고 복구할 수 없어요.
+            {/* 백업은 온라인 전용(예산을 서버에서 모은다). 오프라인이면 계정 삭제도 어차피 못 한다 */}
+            {isOnline && (
+              <span className='mt-2 block'>
+                <button
+                  type='button'
+                  onClick={() =>
+                    void exportBackup
+                      .mutateAsync()
+                      .then(() =>
+                        showToast({ message: '백업 파일을 저장했어요' }),
+                      )
+                      .catch(() =>
+                        showToast({
+                          message: '백업 파일을 만들지 못했어요',
+                          tone: 'error',
+                        }),
+                      )
+                  }
+                  disabled={exportBackup.isPending || isPending}
+                  className='-mx-1 inline-flex min-h-11 items-center gap-2 rounded-md px-1 text-body-sm font-semibold text-accent enabled:hover:bg-surface-hover disabled:text-fg-disabled'
+                >
+                  <Download
+                    aria-hidden='true'
+                    size={18}
+                    strokeWidth={ICON_STROKE_WIDTH}
+                  />
+                  {exportBackup.isPending
+                    ? '저장하는 중…'
+                    : '백업 파일 먼저 저장하기'}
+                </button>
+              </span>
+            )}
+          </>
+        }
         confirmLabel='계정 삭제'
         confirmVariant='danger'
         onConfirm={() => void confirmDelete()}

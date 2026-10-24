@@ -185,6 +185,22 @@ export async function endRoutine(id: string, endedOn: string): Promise<void> {
   await applyServerRows(data);
 }
 
+// 백업 불러오기 (step4 39): 이미 있는 id는 건너뛴다. 루틴은 많지 않아 요청 하나로
+export async function importRoutines(routines: Routine[]): Promise<number> {
+  if (routines.length === 0) return 0;
+  const supabase = createSupabaseBrowserClient();
+  const rows = routines.map((routine) =>
+    toRoutineInsert(routineSchema.parse(routine)),
+  );
+  const { data, error } = await supabase
+    .from('routines')
+    .upsert(rows, { onConflict: 'id', ignoreDuplicates: true })
+    .select();
+  if (error) throw error;
+  await applyServerRows(data);
+  return data.length;
+}
+
 // 여러 루틴을 한 번에 (체험하기 예시). 요청 하나라 전부 들어가거나 전부 안 들어간다 (createRecords와 같은 이유)
 export async function createRoutines(routines: Routine[]): Promise<void> {
   const supabase = createSupabaseBrowserClient();
