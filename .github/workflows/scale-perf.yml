@@ -55,6 +55,8 @@ jobs:
         run: |
           npm run start -- --port 3000 &
           for i in $(seq 1 30); do curl -sf -o /dev/null http://localhost:3000/login && break; sleep 1; done
+          # 비교군(같은 밀도, 최근 33일 300개)을 먼저, 같은 서버·같은 실행에서 1만 건. 계정은 측정마다 새로 만든다
+          PERF_RECORD_COUNT=300 npm run perf:scale
           npm run perf:scale
 
       - uses: actions/upload-artifact@v4

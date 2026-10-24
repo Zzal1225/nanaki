@@ -19,11 +19,18 @@ import { join } from 'node:path';
 const BASE_URL = process.env.PERF_BASE_URL ?? 'http://localhost:3000';
 const SUPABASE_URL = requireEnv('NEXT_PUBLIC_SUPABASE_URL');
 const SUPABASE_KEY = requireEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY');
-const OUT_DIR = 'perf-scale';
-
-const RECORD_COUNT = 10_000;
+const FULL_RECORD_COUNT = 10_000;
 // 3년 동안 하루 9개 꼴. 매일 가계부 몇 건 + 운동·후기·체형을 꾸준히 남긴 사람이 쌓는 양
-const SPAN_DAYS = 3 * 365;
+const FULL_SPAN_DAYS = 3 * 365;
+// 비교군: PERF_RECORD_COUNT=300이면 같은 밀도(하루 9개)로 최근 33일만 넣는다. 이 달 화면은 1만 건과 똑같이 그리고
+// 전체 개수만 달라서, 두 결과의 차이 = "전체가 많아서 드는 비용"이다. 첫 측정에서 모든 화면이 3.3초였는데
+// 기록 수 때문인지 앱 시작 비용인지 가를 기준이 없었다 (2026-10-24)
+const RECORD_COUNT = Number(process.env.PERF_RECORD_COUNT ?? FULL_RECORD_COUNT);
+const SPAN_DAYS = Math.max(
+  1,
+  Math.round((RECORD_COUNT * FULL_SPAN_DAYS) / FULL_RECORD_COUNT),
+);
+const OUT_DIR = `perf-scale/${RECORD_COUNT}`;
 // 한 번에 넣는 줄 수. 한 요청이 너무 크면 PostgREST 본문 한도에 걸린다
 const INSERT_BATCH = 1000;
 // 앱의 동기화 한 쪽 크기 (src/lib/db/sync.ts SYNC_PAGE_SIZE). 이보다 적게 오면 마지막 쪽이다
@@ -453,7 +460,7 @@ function toMarkdown(
   ];
   const kib = (bytes: number) => `${Math.round(bytes / 1024)}KiB`;
   return [
-    `## 기록 ${RECORD_COUNT.toLocaleString('en-US')}건 (3년) 성능`,
+    `## 기록 ${RECORD_COUNT.toLocaleString('en-US')}건 (최근 ${SPAN_DAYS}일) 성능`,
     '',
     `Playwright, 모바일 화면, 크롬 스로틀링(CPU ${MOBILE_SLOW_4G.cpuSlowdown}배, 지연 ${MOBILE_SLOW_4G.latencyMs}ms, 내려받기 ${MOBILE_SLOW_4G.downloadKbps}Kbps), ${RUNS}회. 긴 작업 = 50ms 넘는 메인 스레드 작업 시간의 합(가운데 값)`,
     '',
