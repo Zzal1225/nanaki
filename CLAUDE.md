@@ -87,7 +87,8 @@ src/
                   그날 가계부 기록은 서버가 만든다(DB 함수 record_due_fixed_expenses + pg_cron 매시간, 한국 시간, 한 달에 한 번, 태그 '고정지출')
                   settings/ = 설정 화면. api/settingsStore = 설정 저장·조회의 유일한 입구(user_settings),
                   typeVisibility = 숨긴 타입 계산(순수 함수), hooks/useUserSettings = 설정 훅 + 켜진 타입(useVisibleTypes), PushDeviceSection = 이 기기 루틴 알림 켜기·끄기 스위치(받을 수 없는 기기면 꺼 두고 이유)
-                  photos/ = 사진(step4: 눈바디·후기). api/photoStore = 사진 저장·조회·삭제의 유일한 입구(비공개 버킷 photos, 서명 링크 10분, 온라인 전용),
+                  photos/ = 사진(step4: 눈바디·후기). 종류 규칙 records/schema/photoKinds PHOTO_KIND_MAX(정면·측면 1장 = 칸, 후기 5장 = 갤러리, 갤러리는 원본 비율·자르기 없음),
+                  타입 설정 photoPlacement(afterFields = 칸 아래·상세 제목 아래, 후기). 갤러리: ui/NewRecordGallery(쓰기)·RecordGallery(상세 가로 한 줄). api/photoStore = 사진 저장·조회·삭제의 유일한 입구(비공개 버킷 photos, 서명 링크 10분, 온라인 전용),
                   photoImage = 형식 확인(JPG·PNG·WebP, HEIC 안내, 20MB)·EXIF 회전·다시 인코딩(위치 정보 제거)·긴 변 1600 + 썸네일 400 WebP(못 만들면 JPEG). 계정 삭제 API가 사진 파일을 먼저 지운다.
                   hooks/usePhotos(서명 링크는 닫히기 2분 전에 새로), ui/RecordPhotos = 상세의 사진 칸(타입 설정 photoKinds대로, 오프라인·대기열이면 안내), PhotoViewer(시트: 크게 보기·바꾸기·지우기),
                   쓰기 화면: ui/RecordFormWithPhotos(고른 사진은 메모리만) + NewRecordPhotos(표시), api/attachNewRecordPhotos = 저장 뒤 기록 보내기 → 서버에 간 것 확인 → 한 장씩 올리기,

@@ -54,6 +54,8 @@ type FormOutput = z.output<FormSchema>;
 export type CreateFormExtras = {
   fieldAddon?: { name: string; node: ReactNode };
   section?: ReactNode;
+  // 구역 자리: end = 메모 아래(기본, 체형), afterFields = 타입별 칸 바로 아래(후기 사진: 시안 5는 별점 아래)
+  sectionPlacement?: 'afterFields' | 'end';
   onCreated?: (entry: RecordEntry) => Promise<void>;
 };
 
@@ -213,6 +215,10 @@ export default function RecordForm(props: RecordFormProps) {
         );
       })}
 
+      {props.mode === 'create' &&
+        props.sectionPlacement === 'afterFields' &&
+        props.section}
+
       <hr className='border-border' />
 
       {/* 운동·체형은 제목 칸이 없다 (폼 스키마가 종목·항목 이름으로 채운다). 타입별 차이는 설정(config.title)에서 읽는다 */}
@@ -258,7 +264,9 @@ export default function RecordForm(props: RecordFormProps) {
       )}
 
       {/* 폼 끝, 저장 버튼 바로 위: 사진을 고른 뒤 바로 저장한다 (체형은 태그·메모가 없어 숫자 칸 바로 아래가 된다) */}
-      {props.mode === 'create' && props.section}
+      {props.mode === 'create' &&
+        props.sectionPlacement !== 'afterFields' &&
+        props.section}
 
       {/* 모바일에서 저장 버튼이 하단 탭 바로 위에 붙어 있게 한다 (--tab-bar-height에 홈 막대 여백이 이미 들어 있다).
           글자를 치는 동안은 붙지 않고 폼 끝 제자리에 놓인다 (data-unstick-while-typing, globals.css) */}

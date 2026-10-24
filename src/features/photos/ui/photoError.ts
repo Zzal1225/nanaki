@@ -1,4 +1,7 @@
-import { PHOTO_KIND_LABEL } from '@/features/records/schema/photoKinds';
+import {
+  isGalleryKind,
+  PHOTO_KIND_LABEL,
+} from '@/features/records/schema/photoKinds';
 import type { AttachPhotosResult } from '../api/attachNewRecordPhotos';
 import { PhotoInputError } from '../api/photoStore';
 
@@ -22,11 +25,19 @@ export function newRecordPhotoNotice(
       message: '기록은 저장했어요. 사진은 연결되면 상세에서 붙여 주세요',
     };
   }
-  const labels = result.failedKinds
-    .map((kind) => PHOTO_KIND_LABEL[kind])
-    .join('·');
+  // 칸 사진은 이름으로("정면·측면 사진"), 갤러리 사진은 장수로("사진 2장"): 후기 사진은 이름이 모두 "사진"이라 이름을 늘어놓으면 "사진·사진"이 된다
+  const slotLabels = result.failedKinds
+    .filter((kind) => !isGalleryKind(kind))
+    .map((kind) => PHOTO_KIND_LABEL[kind]);
+  const galleryCount = result.failedKinds.filter(isGalleryKind).length;
+  const phrase = [
+    slotLabels.length > 0 ? `${slotLabels.join('·')} 사진` : null,
+    galleryCount > 0 ? `사진 ${galleryCount}장` : null,
+  ]
+    .filter(Boolean)
+    .join(', ');
   return {
-    message: `기록은 저장했지만 ${labels} 사진을 올리지 못했어요. 상세에서 다시 붙여 주세요`,
+    message: `기록은 저장했지만 ${phrase}을 올리지 못했어요. 상세에서 다시 붙여 주세요`,
     tone: 'error',
   };
 }

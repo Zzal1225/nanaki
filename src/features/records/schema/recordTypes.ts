@@ -43,6 +43,9 @@ export const RECORD_TYPE_CONFIG = {
     filterFields: ['rating', 'targetKind'],
     title: REQUIRED_TITLE,
     formSchema: reviewRecordSchema.omit({ id: true }),
+    // 후기 사진 (step4 38): 최대 5장, 쓰기 화면은 별점 아래·상세는 제목·별점 아래 (시안 5·6)
+    photoKinds: ['review'],
+    photoPlacement: 'afterFields',
   },
   workout: {
     label: '운동',
@@ -101,8 +104,10 @@ type RecordTypeConfig = {
   filterFields: readonly string[];
   title: { isHidden: boolean; placeholder: string };
   formSchema: unknown;
-  // 이 타입에 붙는 사진 칸 (step4, 종류마다 한 장). 없으면 사진 없음
+  // 이 타입에 붙는 사진 종류 (step4). 장수는 종류 규칙(PHOTO_KIND_MAX). 없으면 사진 없음
   photoKinds?: readonly PhotoKind[];
+  // 사진 칸 자리: afterFields = 타입별 칸 바로 아래(후기: 별점 아래, 상세는 제목 아래), end = 폼 끝·상세 맨 아래(체형). 기본 end
+  photoPlacement?: PhotoPlacement;
   // 폼 위 안내 한 줄. 있으면 칸마다 "(선택)"을 붙이지 않는다 (무엇이 필요한지 이 한 줄이 말한다)
   contentHint?: string;
   // 태그·메모 칸을 그리지 않는다. 예전에 적힌 값은 고쳐 저장해도 그대로 남는다 (폼 처음 값에 들어 있다)
@@ -145,6 +150,13 @@ export function getFormSchema(
 export function hidesTagsAndMemo(type: RecordType): boolean {
   const config: RecordTypeConfig = RECORD_TYPE_CONFIG[type];
   return config.hidesTagsAndMemo ?? false;
+}
+
+export type PhotoPlacement = 'afterFields' | 'end';
+
+export function getPhotoPlacement(type: RecordType): PhotoPlacement {
+  const config: RecordTypeConfig = RECORD_TYPE_CONFIG[type];
+  return config.photoPlacement ?? 'end';
 }
 
 // 사진 칸 (없으면 빈 배열). createHref처럼 넓은 모양으로 읽는다
