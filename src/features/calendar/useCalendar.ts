@@ -7,7 +7,7 @@ export type CalendarControls = {
   date: string;
   today: string;
   selectDate: (date: string) => void;
-  // 이전(-1)·다음(+1) 달. 버튼, PageUp/PageDown, 나중에 붙일 스와이프가 모두 이것만 부른다
+  // 이전(-1)·다음(+1) 달. 버튼, PageUp/PageDown, 좌우 스와이프(useCalendarSwipe)가 모두 이것만 부른다
   shiftMonth: (delta: number) => void;
   goToday: () => void;
 };

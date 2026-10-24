@@ -29,6 +29,49 @@ test('+ → 가계부 쓰기 → 홈 요약 → 상세 → 수정 → 삭제·�
   const daySummary = page.getByRole('region', { name: /월 \d+일/ });
   await expect(daySummary.getByText('가계부 2건')).toBeVisible();
 
+  // 캘린더 좌우 스와이프 (Issue #32): 왼쪽으로 밀면 다음 달, 위아래로 밀면 그대로. 끝나면 "오늘"로 돌아와 흐름을 이어 간다.
+  // 터치를 손가락처럼 움직이는 방법(CDP Input.dispatchTouchEvent)이 크로미움에만 있어 WebKit에서는 이 부분을 건너뛴다
+  if (test.info().project.name !== 'mobile-webkit') {
+    const grid = page.getByRole('grid');
+    const titleOf = () =>
+      grid.evaluate(
+        (element) =>
+          document.getElementById(element.getAttribute('aria-labelledby') ?? '')
+            ?.textContent,
+      );
+    const startTitle = await titleOf();
+    const box = await grid.boundingBox();
+    if (!box) throw new Error('캘린더가 화면에 없다');
+    const cdp = await page.context().newCDPSession(page);
+    const drag = async (dx: number, dy: number) => {
+      const from = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+      await cdp.send('Input.dispatchTouchEvent', {
+        type: 'touchStart',
+        touchPoints: [from],
+      });
+      for (let step = 1; step <= 6; step += 1) {
+        await cdp.send('Input.dispatchTouchEvent', {
+          type: 'touchMove',
+          touchPoints: [
+            { x: from.x + (dx * step) / 6, y: from.y + (dy * step) / 6 },
+          ],
+        });
+      }
+      await cdp.send('Input.dispatchTouchEvent', {
+        type: 'touchEnd',
+        touchPoints: [],
+      });
+    };
+    await drag(-150, 5);
+    await expect.poll(titleOf).not.toBe(startTitle);
+    const nextTitle = await titleOf();
+    await drag(-40, -150);
+    expect(await titleOf()).toBe(nextTitle);
+    await page.getByRole('button', { name: /^오늘\(/ }).click();
+    await expect.poll(titleOf).toBe(startTitle);
+    await expect(daySummary.getByText('가계부 2건')).toBeVisible();
+  }
+
   // 작성: 스피드 다이얼 → 가계부. 작성 화면에는 하단 탭이 없고, 저장 버튼이 화면 안에 보인다
   await page.getByRole('button', { name: '새 기록 쓰기' }).click();
   await page.getByRole('menuitem', { name: '가계부 쓰기' }).click();
