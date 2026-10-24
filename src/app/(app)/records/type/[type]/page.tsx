@@ -14,11 +14,20 @@ export function generateStaticParams() {
 }
 
 // 타입·달(?month=)은 브라우저가 주소에서 읽는다 (25c-2): 서버 HTML이 달마다 같아야
-// 서비스 워커가 저장해 둔 타입 화면 한 장으로 다른 달도 오프라인에서 연다
+// 서비스 워커가 저장해 둔 타입 화면 한 장으로 다른 달도 오프라인에서 연다.
+// 모바일·태블릿: 타입 화면 전체. PC: 타입 화면은 layout의 왼쪽 목록 자리(RecordsSidePanel)에 열리므로 오른쪽은 안내만
+// (Issue #30, 시안 "타입 상세 (가계부)": 목록에서 기록을 눌러도 왼쪽 타입 목록이 남는다). 검색 화면과 같은 방식
 export default function TypeDetailPage() {
   return (
-    <Suspense fallback={<p className='sr-only'>타입별 기록을 여는 중</p>}>
-      <TypeDetailFromUrl />
-    </Suspense>
+    <>
+      <div className='lg:hidden'>
+        <Suspense fallback={<p className='sr-only'>타입별 기록을 여는 중</p>}>
+          <TypeDetailFromUrl />
+        </Suspense>
+      </div>
+      <p className='hidden h-full items-center justify-center text-body text-fg-secondary lg:flex'>
+        기록을 고르면 여기에 보여요
+      </p>
+    </>
   );
 }

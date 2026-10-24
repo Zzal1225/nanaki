@@ -2,9 +2,10 @@
 
 // 'use client' 이유: 기록을 브라우저에서 불러오고, 오늘(이번 달)도 브라우저에서만 안다
 import { typeOriginQuery } from '../routes/detailOrigin';
-import { recordViewHref } from '../routes/recordRoutes';
+import { openRecordId, recordViewHref } from '../routes/recordRoutes';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { formatShortDate } from '@/shared/date/formatDisplayDate';
 import {
   formatMonthLabel,
@@ -42,6 +43,8 @@ export default function TypeDetail({
   const records = useRecordsOfType(type, range);
   // 아직 서버에 보내지 않은 기록에 구름 아이콘 (시안 15a)
   const pendingIds = usePendingRecordIds();
+  // PC 왼쪽 목록일 때 오른쪽에 열려 있는 기록 (Issue #30). 모바일 타입 화면에서는 늘 null
+  const openId = openRecordId(usePathname(), useSearchParams());
 
   const config = RECORD_TYPE_CONFIG[type];
   const style = RECORD_TYPE_STYLE[type];
@@ -130,7 +133,7 @@ export default function TypeDetail({
                     value={getListValue(entry)}
                     href={recordViewHref(entry.id, typeOriginQuery(month))}
                     isPending={pendingIds.has(entry.id)}
-                    isSelected={false}
+                    isSelected={openId === entry.id}
                   />
                 </li>
               ))}

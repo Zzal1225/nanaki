@@ -60,7 +60,9 @@ src/
                   api/account/ = 계정 삭제 Route Handler (DELETE, secret 키로 본인 계정만). API는 proxy가 로그인 화면으로 보내지 않고 스스로 401
                   api/naki/ = 나키 Route Handler (POST 질문 → 조건, GET 오늘 남은 횟수). 처리 순서는 features/naki/server/handleNakiQuestion
                   (app)/ = 로그인 뒤 화면 묶음(/, /records, /records/new, /records/view?id=, /records/edit?id=, /records/type/[type], /records/search, /settings, /budget?month=, /fixed-expenses, /naki, /body-compare?kind=&from=&to=, /report · /report?from=&to=&types=).
-                  records/layout.tsx = PC에서 목록(왼쪽) + 상세·폼(오른쪽) 패널. 주소에 안 나타나는 괄호 폴더
+                  records/layout.tsx = PC에서 목록(왼쪽) + 상세·폼(오른쪽) 패널. 주소에 안 나타나는 괄호 폴더.
+                  왼쪽 목록(records/overview/RecordsSidePanel)은 주소로 고른다: 검색 → 검색 결과, 타입 화면·거기서 연 기록(back=type) → 그 타입 상세, 그 밖 → 기록 탭 첫 화면.
+                  검색·타입 화면은 PC 오른쪽에 "기록을 고르면 여기에 보여요"만 (Issue #30)
                   serwist/sw.js/ = 서비스 워커 파일을 빌드 때 한 번 만드는 Route Handler('use cache'), manifest.ts = 설치 정보,
                   ~offline/ = 연결도 저장본도 없을 때의 대체 화면
   sw/             서비스 워커 소스(Serwist). 화면 틀만 저장하고 다른 도메인(Supabase) 응답은 저장하지 않는다. 워커 전용 tsconfig
