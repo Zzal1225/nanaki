@@ -19,6 +19,7 @@ import { useRoutines } from '@/features/routines/hooks/useRoutines';
 import { getAchievement } from '@/features/routines/progress';
 import { formatDisplayDate } from '@/shared/date/formatDisplayDate';
 import { useToday } from '@/shared/date/useToday';
+import { useBodyClass } from '@/shared/layout/useBodyClass';
 import { DARK_CLASS_NAME } from '@/shared/theme/theme';
 import Button from '@/shared/ui/Button';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
@@ -73,6 +74,8 @@ function ofType<T extends RecordType>(
 // 인쇄에는 data-print-root 안만 나온다 (globals.css @media print): 앱 틀(사이드바·하단 탭·+ 버튼)은 손대지 않고 숨긴다
 export default function ReportView({ query }: { query: ReportQuery }) {
   useLightWhilePrinting();
+  // 인쇄 CSS(globals.css 6. 인쇄)가 이 화면이 보이는 동안만 앱 틀을 숨기게
+  useBodyClass('report-printing');
   const today = useToday();
   const range = { from: query.from, to: query.to };
   const records = useRecords(range);

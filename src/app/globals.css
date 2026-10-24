@@ -339,9 +339,10 @@
 }
 
 /* ---------- 6. 인쇄 (보고서 PDF, step4 40) ---------- */
-/* 보고서 화면에 data-print-root가 있을 때만: 그 칸과 그 칸으로 가는 길(조상)만 남기고 나머지(사이드바·하단 탭·+ 버튼·오프라인 안내)는 지운다.
+/* 보고서 화면이 보이는 동안만(body.report-printing, ReportView의 useBodyClass): 그 칸과 그 칸으로 가는 길(조상)만 남기고 나머지(사이드바·하단 탭·+ 버튼·오프라인 안내)는 지운다.
    visibility: hidden 방식은 가린 것들이 자리를 그대로 차지해 빈 쪽이 생겨서 display: none으로 한다.
-   앱 틀 컴포넌트마다 print:hidden을 붙이지 않는 이유: 틀에 새 요소가 생길 때마다 빠뜨리기 쉽다 */
+   앱 틀 컴포넌트마다 print:hidden을 붙이지 않는 이유: 틀에 새 요소가 생길 때마다 빠뜨리기 쉽다.
+   body:has([data-print-root])로 고르지 않는 이유: 떠난 보고서 화면이 숨은 채 DOM에 남아(cacheComponents) 다른 화면을 인쇄하면 빈 종이가 나온다 (useBodyClass) */
 /* @page는 @media print 안에 두지 않는다: 안에 두었더니 빌드(Lightning CSS)가 @media 묶음을 통째로 버렸다 (2026-10-24 확인).
    @page는 원래 인쇄에만 쓰여서 밖에 두어도 화면에는 영향이 없다 */
 @page {
@@ -350,7 +351,7 @@
 }
 
 @media print {
-  body:has([data-print-root])
+  body.report-printing
     *:not([data-print-root]):not([data-print-root] *):not(
       :has([data-print-root])
     ) {
@@ -358,7 +359,7 @@
   }
 
   /* 종이는 흰색: 라이트 테마의 바탕(--bg)은 옅은 회색이다. 인쇄 중엔 라이트로 바꿔 두어(ReportView) --surface = 흰색 */
-  body:has([data-print-root]) {
+  body.report-printing {
     background: var(--surface);
   }
 
@@ -370,7 +371,9 @@
 }
 
 /* 로그인 첫 화면은 바탕이 초록이다 (features/auth/login/loginScreen.css). 위아래로 끌어 넘길 때 드러나는 body 바탕도 같은 색으로:
-   그대로 두면 아이폰에서 화면을 당길 때 회색 띠가 보인다 */
-body:has([data-login-screen]) {
+   그대로 두면 아이폰에서 화면을 당길 때 회색 띠가 보인다.
+   로그인 화면이 보이는 동안만 붙는 클래스로 고른다(useBodyClass): body:has([data-login-screen])로 했더니 로그인 뒤에도
+   숨은 로그인 화면이 DOM에 남아(cacheComponents) 앱 전체 바탕이 초록이 됐다 (#121 뒤 발견) */
+body.login-screen-body {
   background: var(--login-bg);
 }

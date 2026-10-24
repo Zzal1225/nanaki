@@ -5,6 +5,7 @@ import LoginAvatar from '@/features/auth/login/LoginAvatar';
 import LoginPhrase from '@/features/auth/login/LoginPhrase';
 import '@/features/auth/login/loginScreen.css';
 import SignInButtons from '@/features/auth/SignInButtons';
+import BodyClass from '@/shared/layout/BodyClass';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 
 export const metadata: Metadata = {
@@ -23,7 +24,9 @@ export const viewport: Viewport = {
 // 로그인한 사람은 이 화면에 오지 않는다(proxy가 홈으로 보낸다) → 3.5초를 기다리는 것은 처음 시작하는 사람뿐이다
 export default function LoginPage() {
   return (
-    <main className='login-screen' data-login-screen>
+    <main className='login-screen'>
+      {/* 당겨 넘길 때 보이는 body 바탕도 초록으로 (globals.css login-screen-body). 이 화면이 보이는 동안만 */}
+      <BodyClass name='login-screen-body' />
       <h1 className='login-wordmark'>nanaki</h1>
       <LoginAvatar />
       <LoginPhrase />
