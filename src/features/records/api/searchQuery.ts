@@ -30,18 +30,40 @@ function normalize(text: string): string {
   return removeWhitespace(text).toLowerCase();
 }
 
-export function matchesKeyword(entry: RecordEntry, keyword: string): boolean {
+// 검색어로 보는 칸만 가진 모양. 검사한 기록(RecordEntry)과 기기 사본의 줄(검사 전) 둘 다 맞는다:
+// 검색은 줄 단계에서 먼저 걸러, 맞은 것만 스키마 검사를 한다 (recordStore.searchRecords, 41 1만 건 성능).
+// fields는 검사 전이라 unknown — 칸마다 문자열인지 확인한 뒤에만 비교한다
+export type KeywordSearchable = {
+  title: string;
+  memo: string | null;
+  tags: readonly string[] | null;
+  fields: unknown;
+};
+
+// 검색어 하나로 여러 기록을 볼 때 검색어 정규화를 한 번만 하려고 판별 함수를 만들어 돌려준다
+export function createKeywordMatcher(
+  keyword: string,
+): (item: KeywordSearchable) => boolean {
   const needle = normalize(keyword);
-  if (!needle) return true;
-  const fields = entry.fields as Record<string, unknown>;
-  // 태그는 사용자가 직접 붙인 "찾기용 단어"라 검색에 넣는다. 태그 하나하나를 따로 비교한다 (이어 붙이면 경계를 넘어 맞는다)
-  const texts = [
-    entry.title,
-    entry.memo,
-    ...entry.tags,
-    ...SEARCHABLE_FIELD_NAMES.map((name) => fields[name]),
-  ];
-  return texts.some(
-    (text) => typeof text === 'string' && normalize(text).includes(needle),
-  );
+  if (!needle) return () => true;
+  return (item) => {
+    const fields =
+      typeof item.fields === 'object' && item.fields !== null
+        ? (item.fields as Record<string, unknown>)
+        : {};
+    // 태그는 사용자가 직접 붙인 "찾기용 단어"라 검색에 넣는다. 태그 하나하나를 따로 비교한다 (이어 붙이면 경계를 넘어 맞는다)
+    const texts = [
+      item.title,
+      item.memo,
+      ...(item.tags ?? []),
+      ...SEARCHABLE_FIELD_NAMES.map((name) => fields[name]),
+    ];
+    return texts.some(
+      (text) => typeof text === 'string' && normalize(text).includes(needle),
+    );
+  };
+}
+
+export function matchesKeyword(entry: RecordEntry, keyword: string): boolean {
+  return createKeywordMatcher(keyword)(entry);
 }

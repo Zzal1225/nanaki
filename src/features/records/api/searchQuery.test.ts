@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { RecordEntry } from '../schema/recordEntry';
-import { matchesKeyword, SEARCHABLE_FIELD_NAMES } from './searchQuery';
+import {
+  createKeywordMatcher,
+  matchesKeyword,
+  SEARCHABLE_FIELD_NAMES,
+} from './searchQuery';
 
 const COFFEE: RecordEntry = {
   id: '1',
@@ -50,5 +54,29 @@ describe('검색어 맞추기 (기기 사본에서)', () => {
   });
   it('검색어가 비면 모두 맞는다', () => {
     expect(matchesKeyword(COFFEE, '')).toBe(true);
+  });
+});
+
+// 검색은 검사 전 줄(기기 사본)에서 먼저 거른다 (41 1만 건 성능). 줄의 칸이 이상해도 멈추지 않아야 한다
+describe('검사 전 줄 맞추기 (createKeywordMatcher)', () => {
+  it('검사 전 줄에서도 같은 칸으로 찾는다', () => {
+    const matches = createKeywordMatcher('카페');
+    expect(
+      matches({
+        title: '케이크',
+        memo: null,
+        tags: [],
+        fields: { amount: 6000, category: '카페' },
+      }),
+    ).toBe(true);
+  });
+  it('fields가 객체가 아니거나 tags가 없어도 제목·메모로만 비교한다', () => {
+    const matches = createKeywordMatcher('커피');
+    expect(
+      matches({ title: '커피', memo: null, tags: null, fields: null }),
+    ).toBe(true);
+    expect(
+      matches({ title: '택시', memo: null, tags: null, fields: '커피' }),
+    ).toBe(false);
   });
 });

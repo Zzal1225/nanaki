@@ -26,7 +26,7 @@ import {
   pendingRecordIds,
   retryFailedRecords,
 } from './recordOutbox';
-import { matchesKeyword } from './searchQuery';
+import { createKeywordMatcher } from './searchQuery';
 
 // 기록 저장·조회는 이 파일의 함수로만 한다. 훅·컴포넌트는 Supabase·IndexedDB를 직접 부르지 않는다.
 // 25b부터 안쪽이 바뀌었다 (위의 훅과 화면은 그대로):
@@ -285,12 +285,24 @@ export async function searchRecords({
         .between(range.from, range.to, true, true)
         .toArray()
     : await db.records.toArray();
-  const matched = toEntries(
-    sortRows(rows, sort === 'oldest' ? 'asc' : 'desc'),
-  ).filter((entry) => matchesKeyword(entry, keyword));
+  // 순서가 중요하다 (41 1만 건 성능): 검색어로 줄을 먼저 거르고 → 맞은 줄만 정렬 → 한도 + 1개까지만 스키마 검사.
+  // 예전에는 1만 건을 모두 정렬·검사한 뒤 검색어를 봐서 결과가 없는 검색도 0.48초·긴 작업 0.2초였다(같은 밀도 300개는 0.11초).
+  // 검색 칸(제목·메모·태그·선택 칸)은 검사 전 줄에도 같은 이름으로 있어 결과가 같다 (KeywordSearchable)
+  const matches = createKeywordMatcher(keyword);
+  const sorted = sortRows(
+    rows.filter((row) => matches(row)),
+    sort === 'oldest' ? 'asc' : 'desc',
+  );
+  // 망가진 줄은 건너뛰므로(toEntries) 한도를 채울 때까지 이어서 검사한다. 한도 + 1개가 모이면 "잘렸음"을 안다
+  const entries: RecordEntry[] = [];
+  for (const row of sorted) {
+    const entry = toRecordEntryOrWarn(row);
+    if (entry) entries.push(entry);
+    if (entries.length > SEARCH_RESULT_LIMIT) break;
+  }
   return {
-    entries: matched.slice(0, SEARCH_RESULT_LIMIT),
-    isTruncated: matched.length > SEARCH_RESULT_LIMIT,
+    entries: entries.slice(0, SEARCH_RESULT_LIMIT),
+    isTruncated: entries.length > SEARCH_RESULT_LIMIT,
   };
 }
 
