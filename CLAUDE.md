@@ -86,7 +86,7 @@ src/
                   만들기는 가계부 쓰기의 체크에서만: 기록은 폼이 저장하고, 같은 내용의 규칙(매달 기록 날짜의 일)을 서버에 넣는다.
                   그날 가계부 기록은 서버가 만든다(DB 함수 record_due_fixed_expenses + pg_cron 매시간, 한국 시간, 한 달에 한 번, 태그 '고정지출')
                   settings/ = 설정 화면. api/settingsStore = 설정 저장·조회의 유일한 입구(user_settings),
-                  typeVisibility = 숨긴 타입 계산(순수 함수), hooks/useUserSettings = 설정 훅 + 켜진 타입(useVisibleTypes), PushDeviceSection = 이 기기 알림 끄기(받는 중일 때만)
+                  typeVisibility = 숨긴 타입 계산(순수 함수), hooks/useUserSettings = 설정 훅 + 켜진 타입(useVisibleTypes), PushDeviceSection = 이 기기 루틴 알림 켜기·끄기 스위치(받을 수 없는 기기면 꺼 두고 이유)
                   photos/ = 사진(step4: 눈바디·후기). api/photoStore = 사진 저장·조회·삭제의 유일한 입구(비공개 버킷 photos, 서명 링크 10분, 온라인 전용),
                   photoImage = 형식 확인(JPG·PNG·WebP, HEIC 안내, 20MB)·EXIF 회전·다시 인코딩(위치 정보 제거)·긴 변 1600 + 썸네일 400 WebP(못 만들면 JPEG). 계정 삭제 API가 사진 파일을 먼저 지운다.
                   hooks/usePhotos(서명 링크는 닫히기 2분 전에 새로), ui/RecordPhotos = 상세의 사진 칸(타입 설정 photoKinds대로, 오프라인·대기열이면 안내), PhotoViewer(시트: 크게 보기·바꾸기·지우기),
@@ -95,7 +95,7 @@ src/
                   BodySilhouette = 점선 실루엣(자르기·카메라 공용), 지난 사진 = photoStore.findLatestPhoto(같은 자세, 지운 기록 제외). 공용 슬라이더 shared/ui/StepSlider(− 막대 + 값),
                   앱 안 카메라(37c2): hooks/useInAppCamera(기기 능력, 마운트 뒤) → ui/CameraDialog(다크 고정, 영상은 3:4 틀 안에만 = 사진, 기본 후면·마지막 선택 기억, 타이머, 전면은 거울로 보여 주고 실제 방향 저장), photoCapture = 틀 → 영상 좌표 계산·찍기, hooks/useFittedFrame = 3:4 틀 크기(자르기·카메라 공용)
                   push/ = 루틴 푸시 알림 받기(step3, 35a). api/pushStore = 이 기기 구독 저장·삭제의 유일한 입구(권한 묻기·save_push_subscription, NEXT_PUBLIC_VAPID_PUBLIC_KEY 없으면 알림 UI 숨김),
-                  pushSupport = 이 기기에서 받을 수 있는지(아이폰은 홈 화면 앱만, 순수 함수), hooks/useThisDevicePush. 루틴 폼의 알림 칸은 routines/form/RemindInput(10분 단위)
+                  pushSupport = 이 기기에서 받을 수 있는지(아이폰은 홈 화면 앱만, 순수 함수), hooks/useThisDevicePush·usePushSupport(마운트 뒤 기기 판단), pushMessages = 켜기 결과 안내 문구. 루틴 폼의 알림 칸은 routines/form/RemindInput(10분 단위, 안내는 스위치 바로 아래)
                   calendar/ = 홈 캘린더. calendarState = 주소(?date=) 해석·만들기와 공통 탐색(이전·다음 달, 키보드 이동),
                   useCalendar = 상태(고른 날짜) + 바꾸는 함수(history.replaceState), CalendarGrid(월 캘린더, role=grid, roving tabindex),
                   CalendarHeader(달 이동 + 오늘 아이콘 TodayButton), DaySummary(하루 요약)

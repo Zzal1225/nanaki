@@ -64,4 +64,18 @@ describe('RemindInput (루틴 알림)', () => {
     expect(screen.getByTestId('value').textContent).toBe('null');
     expect(subscribe).not.toHaveBeenCalled();
   });
+
+  // 2026-10-24 아이폰 확인: 시각 칸 아래(폼 끝)에 있던 안내가 새 루틴 화면의 저장 줄에 가려 안 보였다
+  it('안내는 스위치 바로 아래, 시각 칸보다 위에 나온다', async () => {
+    subscribe.mockResolvedValue('needsInstall');
+    render(<Harness initial={null} />);
+    fireEvent.click(screen.getByRole('switch', { name: /알림/ }));
+
+    // 테스트 틀의 <output>도 role=status라 글자로 찾는다
+    const notice = await screen.findByText(/홈 화면에 추가한 앱에서만/);
+    const select = screen.getByLabelText('알림 시각');
+    expect(
+      notice.compareDocumentPosition(select) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
 });

@@ -3,9 +3,8 @@
 // 'use client' 이유: 알림 켜기는 이 기기의 알림 권한을 묻고 푸시를 구독한다 (브라우저 API)
 import { ChevronDown } from 'lucide-react';
 import { useId, useState } from 'react';
-import type { PushSetupResult } from '@/features/push/api/pushStore';
 import { useThisDevicePush } from '@/features/push/hooks/useThisDevicePush';
-import { PUSH_UNAVAILABLE_MESSAGE } from '@/features/push/pushSupport';
+import { pushSetupMessage } from '@/features/push/pushMessages';
 import FieldError from '@/shared/ui/FieldError';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import { SwitchControl } from '@/shared/ui/Switch';
@@ -20,19 +19,6 @@ type RemindInputProps = {
 // 켤 때 처음 고르는 시각 (아침에 하루 루틴을 떠올리게)
 const DEFAULT_REMIND_AT = '09:00';
 const REMIND_TIMES = listRemindTimes();
-
-// 켜기 결과에 따른 안내. 받는 중이면 안내 없음
-function resultMessage(result: PushSetupResult): string | null {
-  switch (result) {
-    case 'subscribed':
-      return null;
-    case 'notConfigured':
-    case 'failed':
-      return '이 기기에서 알림을 켜지 못했어요. 잠시 후 다시 시도해 주세요';
-    default:
-      return PUSH_UNAVAILABLE_MESSAGE[result];
-  }
-}
 
 // 루틴 알림 (35a, 2026-10-23 사용자 결정): 켜는 순간에만 이 기기의 알림 권한을 묻는다(필요할 때 물어야 허용률이 높고,
 // 아이폰은 버튼을 눌러야만 물을 수 있다). 시각은 10분 단위, 일정이 있는 날 아직 안 했으면 보낸다(보내기는 35b).
@@ -57,7 +43,7 @@ export default function RemindInput({
       return;
     }
     onChange(value ?? DEFAULT_REMIND_AT);
-    setMessage(resultMessage(await subscribe()));
+    setMessage(pushSetupMessage(await subscribe()));
   }
 
   return (
@@ -77,6 +63,13 @@ export default function RemindInput({
           onCheckedChange={(checked) => void toggle(checked)}
         />
       </div>
+      {/* 안내는 스위치 바로 아래: 시각 칸 아래(폼 끝)에 두었더니 새 루틴 화면에서 아래에 붙은 저장 줄에 가려
+          아이폰 Safari 탭의 "홈 화면 앱에서만" 안내가 안 보였다 (2026-10-24 아이폰 확인, 로컬 재현) */}
+      {message && (
+        <p role='status' className='text-caption text-fg-secondary'>
+          {message}
+        </p>
+      )}
       {isOn && (
         <div className='relative flex items-center'>
           <label htmlFor={selectId} className='sr-only'>
@@ -104,11 +97,6 @@ export default function RemindInput({
             className='pointer-events-none absolute right-3 text-fg-secondary'
           />
         </div>
-      )}
-      {message && (
-        <p role='status' className='text-caption text-fg-secondary'>
-          {message}
-        </p>
       )}
       <FieldError id={errorId} message={error} />
     </div>
