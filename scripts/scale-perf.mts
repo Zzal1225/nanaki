@@ -36,6 +36,8 @@ const INSERT_BATCH = 1000;
 // 앱의 동기화 한 쪽 크기 (src/lib/db/sync.ts SYNC_PAGE_SIZE). 이보다 적게 오면 마지막 쪽이다
 const SYNC_PAGE_SIZE = 1000;
 const RUNS = 5;
+// 동기화 겹침 시간(SYNC_OVERLAP_MS 60초)보다 조금 더
+const SETTLE_WAIT_MS = 65_000;
 const WAIT_TIMEOUT_MS = 120_000;
 const TIME_ZONE = 'Asia/Seoul';
 // 결과가 하나도 없는 검색어: 1만 건을 끝까지 다 훑어야 해서 검색의 가장 나쁜 경우다
@@ -516,7 +518,15 @@ async function main() {
         `처음 방문 #${run}: 홈 ${Math.round(result.homeMs)}ms, 동기화 끝 ${Math.round(result.syncDoneMs)}ms (${result.syncPages}쪽 ${Math.round(result.syncBytes / 1024)}KiB), 긴 작업 ${Math.round(result.longTaskMs)}ms`,
       );
     }
-    // 마지막 처음 방문이 사본을 다 채웠다 → 그대로 다시 방문을 잰다
+    // 마지막 처음 방문이 사본을 다 채웠다. 동기화 커서가 확정될 때까지(겹침 60초 + 한 번 더 받기) 기다린 뒤 다시 방문을 잰다:
+    // 확정 전에는 겹치는 60초 안의 줄을 다시 받는데, 이 측정은 한꺼번에 넣은 1만 건이라 그게 전부다 (lib/db/sync.ts).
+    // 평소 쓰는 모습(확정된 사본)을 재려는 것이라 이 기다림은 재지 않는다
+    await page.waitForTimeout(SETTLE_WAIT_MS);
+    await measureOpen(
+      page,
+      `/?date=${today}`,
+      '[role="grid"][aria-busy="false"]',
+    );
     const returns = await measureReturnVisits(page, today);
 
     await writeFile(
