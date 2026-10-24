@@ -25,12 +25,15 @@ import { getDayRoutines } from '@/features/routines/progress';
 import { useRoutines } from '@/features/routines/hooks/useRoutines';
 import type { RecordEntryOf } from '@/features/records/schema/recordEntry';
 import { useCalendar } from './useCalendar';
+import { useCalendarSwipe } from './useCalendarSwipe';
 
 // 홈 = 월 캘린더 + 고른 날 요약. 모바일·태블릿은 위아래, PC(lg)는 좌우 (시안 P1: 오른쪽 400px).
 // 차이는 CSS로만 낸다: 화면 폭을 JS로 읽어 다른 컴포넌트를 그리면 서버 HTML과 어긋난다 (CLAUDE.md)
 export default function HomeCalendar() {
   const calendar = useCalendar();
   const titleId = useId();
+  // 손가락 기기에서만 좌우로 밀어 달 넘기기 (Issue #32). 버튼·PageUp/PageDown과 같은 shiftMonth를 부른다
+  const swipe = useCalendarSwipe((delta) => calendar?.shiftMonth(delta));
 
   const month = calendar ? toMonthString(calendar.date) : null;
   // 달 안에서 날짜를 옮기면 같은 기간이라 쿼리 키가 그대로 → 다시 불러오지 않는다
@@ -102,8 +105,12 @@ export default function HomeCalendar() {
           today={today}
           onToday={calendar.goToday}
         />
-        {/* PC는 카드가 남은 높이를 채운다 */}
-        <div className='lg:flex lg:flex-1 lg:flex-col lg:rounded-lg lg:bg-surface lg:pt-1 lg:shadow-card'>
+        {/* PC는 카드가 남은 높이를 채운다.
+            스와이프가 켜지면 touch-pan-y: 위아래 스크롤은 브라우저가 그대로 하고, 가로 끌기는 앱이 받는다 (기본값이면 가로로 밀 때 브라우저가 화면을 끌어 흔든다) */}
+        <div
+          {...swipe}
+          className={`lg:flex lg:flex-1 lg:flex-col lg:rounded-lg lg:bg-surface lg:pt-1 lg:shadow-card ${swipe ? 'touch-pan-y' : ''}`}
+        >
           <CalendarGrid
             date={date}
             today={today}
