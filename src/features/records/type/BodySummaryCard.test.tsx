@@ -1,7 +1,12 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import BodySummaryCard from './BodySummaryCard';
+
+// 눈바디 비교 입구는 사진 날짜(서버)를 묻는 따로 된 부품이라 여기서는 비운다 (BodyCompareLink 자체 테스트가 맡는다)
+vi.mock('@/features/photos/compare/BodyCompareLink', () => ({
+  default: () => null,
+}));
 
 const WEIGHTS = [
   { date: '2026-10-05', value: 69.2 },

@@ -16,6 +16,8 @@ import {
   useRecordPhotos,
   useUploadPhoto,
 } from '../hooks/usePhotos';
+import BodyCompareLink from '../compare/BodyCompareLink';
+import { COMPARE_KINDS, type CompareKind } from '../compare/bodyCompare';
 import PhotoPickButton from './PhotoPickButton';
 import PhotoViewer from './PhotoViewer';
 import { photoErrorMessage } from './photoError';
@@ -127,6 +129,16 @@ export default function RecordPhotos({
         <p role='alert' className='text-caption text-danger'>
           {error}
         </p>
+      )}
+      {/* 이 기록 사진을 다른 날과 비교 (37d). 이 기록에 사진이 있는 자세만, 그 자세 사진이 2개 날짜 이상일 때 보인다 */}
+      {!notice && list.length > 0 && (
+        <BodyCompareLink
+          recordDate={recordDate}
+          kinds={COMPARE_KINDS.filter((kind: CompareKind) =>
+            list.some((photo) => photo.kind === kind),
+          )}
+          label='이 사진 비교하기'
+        />
       )}
       <PhotoViewer
         photo={viewing}

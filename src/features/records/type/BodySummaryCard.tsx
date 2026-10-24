@@ -1,3 +1,4 @@
+import BodyCompareLink from '@/features/photos/compare/BodyCompareLink';
 import { BODY_MEASURE_LABEL, BODY_MEASURE_UNIT } from '../schema/body';
 import type { LatestWeight } from '../hooks/useLatestWeight';
 import { formatMeasurement } from '../ui/recordPresentation';
@@ -49,6 +50,8 @@ export default function BodySummaryCard({
             />
           ),
       )}
+      {/* 눈바디 비교 입구 (37d): 같은 자세 사진이 2개 날짜 이상일 때(체험 계정은 예시로) 보인다 */}
+      <BodyCompareLink label='눈바디 비교' />
     </>
   );
 }

@@ -8,6 +8,7 @@ import {
   createPhotoUrls,
   deletePhoto,
   findLatestPhoto,
+  listPhotoDates,
   listPhotosOfRecord,
   PHOTO_URL_EXPIRES_SECONDS,
   uploadPhoto,
@@ -30,6 +31,7 @@ export const photoKeys = {
       basis.recordId ?? null,
       basis.date,
     ] as const,
+  dates: (kind: PhotoKind) => [...photoKeys.all, 'dates', kind] as const,
   urls: (paths: readonly string[]) =>
     [...photoKeys.all, 'urls', ...paths] as const,
 };
@@ -54,6 +56,14 @@ export function useLatestPhoto(
   return useQuery({
     queryKey: photoKeys.latest(kind, basis),
     queryFn: isEnabled ? () => findLatestPhoto(kind, basis) : skipToken,
+  });
+}
+
+// 그 자세 사진이 있는 날짜들 (눈바디 비교와 그 입구). isEnabled: 온라인이고 사진 칸이 있는 화면일 때만
+export function usePhotoDates(kind: PhotoKind, isEnabled: boolean) {
+  return useQuery({
+    queryKey: photoKeys.dates(kind),
+    queryFn: isEnabled ? () => listPhotoDates(kind) : skipToken,
   });
 }
 
