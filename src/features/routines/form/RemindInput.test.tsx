@@ -5,9 +5,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import RemindInput from './RemindInput';
 
 const subscribe = vi.fn();
+vi.mock('@/features/push/hooks/usePushSupport', () => ({
+  usePushSupport: () => 'supported',
+}));
 vi.mock('@/features/push/hooks/useThisDevicePush', () => ({
   useThisDevicePush: () => ({
     isSubscribed: false,
+    isChecking: false,
     subscribe,
     unsubscribe: vi.fn(),
   }),

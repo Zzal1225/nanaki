@@ -31,5 +31,11 @@ export function useThisDevicePush() {
     await queryClient.invalidateQueries({ queryKey: pushKeys.thisDevice });
   }
 
-  return { isSubscribed: status.data === true, subscribe, unsubscribe };
+  // isChecking: 구독 여부를 읽는 동안. 그동안 "받지 않는 기기"로 보고 안내를 띄우면 받는 기기에서도 잠깐 깜빡인다
+  return {
+    isSubscribed: status.data === true,
+    isChecking: status.isPending,
+    subscribe,
+    unsubscribe,
+  };
 }
