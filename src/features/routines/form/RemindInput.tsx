@@ -43,6 +43,8 @@ export default function RemindInput({
       return;
     }
     onChange(value ?? DEFAULT_REMIND_AT);
+    // 권한 묻기·구독·서버 저장이 아이폰에서 몇 초 걸린다: 그동안 아무 표시가 없으면 안 켜진 줄 안다 (2026-10-25 아이폰 확인 4)
+    setMessage('이 기기 알림을 켜는 중…');
     setMessage(pushSetupMessage(await subscribe()));
   }
 

@@ -13,6 +13,7 @@ import Button from '@/shared/ui/Button';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import { useDiscardRecord } from '../hooks/useDeleteRecord';
 import { useRecord } from '../hooks/useRecord';
+import { useUpdateRecord } from '../hooks/useUpdateRecord';
 import {
   getPhotoKinds,
   getPhotoPlacement,
@@ -48,6 +49,8 @@ export default function RecordDetail({
   const { data: entry, isPending, isError, refetch } = useRecord(id);
   const router = useRouter();
   const discardRecord = useDiscardRecord();
+  // 사진만 있는 기록의 제목 맞추기 (RecordPhotos onPhotoOnlyTitle)
+  const renameRecord = useUpdateRecord();
   const showToast = useToastStore((state) => state.showToast);
 
   if (isPending) {
@@ -118,6 +121,11 @@ export default function RecordDetail({
             await discardRecord.mutateAsync(entry.id);
             showToast({ message: '기록을 삭제했어요' });
             router.replace(back.href);
+          }}
+          // 제목이 지금 사진과 다를 때만 고친다 (같으면 저장하지 않아 대기열에 쓸데없는 변경이 쌓이지 않는다)
+          onPhotoOnlyTitle={(title) => {
+            if (title === entry.title || renameRecord.isPending) return;
+            renameRecord.mutate({ ...entry, title });
           }}
         />
       )}

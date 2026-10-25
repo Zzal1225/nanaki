@@ -94,9 +94,24 @@ describe('체형 작성 폼 스키마 (체중·허리둘레·사진 중 1개 이
       path: ['fields', 'weight'],
     });
   });
-  it('사진이 있으면 숫자 없이도 저장, 제목은 "눈바디"', () => {
-    const result = bodyFormSchemaFor(2).safeParse({ ...input, fields: {} });
-    expect(result.success).toBe(true);
-    expect(result.data?.title).toBe('눈바디');
+  // 2026-10-25 사용자 요청: 목록의 [눈바디] 대신 무슨 사진인지
+  it('사진이 있으면 숫자 없이도 저장, 제목은 붙은 사진 종류 ("정면·측면 사진")', () => {
+    const both = bodyFormSchemaFor(['side', 'front']).safeParse({
+      ...input,
+      fields: {},
+    });
+    expect(both.success).toBe(true);
+    expect(both.data?.title).toBe('정면·측면 사진');
+    expect(
+      bodyFormSchemaFor(['side']).safeParse({ ...input, fields: {} }).data
+        ?.title,
+    ).toBe('측면 사진');
+    // 숫자가 있으면 사진이 있어도 잰 항목 이름
+    expect(
+      bodyFormSchemaFor(['front']).safeParse({
+        ...input,
+        fields: { weight: 68.4 },
+      }).data?.title,
+    ).toBe('체중');
   });
 });

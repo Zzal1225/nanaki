@@ -173,14 +173,15 @@ describe('RecordFormWithPhotos (체형 쓰기 + 사진)', () => {
   });
 
   // 2026-10-24 사용자 결정: 체중·허리둘레·사진 중 1개 이상
-  it('사진만 골라도 저장된다 (제목 "눈바디", 숫자 없음)', async () => {
+  // 제목은 붙은 사진 종류 (2026-10-25 사용자 요청: 목록의 [눈바디] 대신 [정면 사진])
+  it('사진만 골라도 저장된다 (제목 "정면 사진", 숫자 없음)', async () => {
     renderForm();
     await pickAndCrop('정면 사진', JPG);
     fireEvent.click(screen.getByRole('button', { name: '저장' }));
 
     await waitFor(() => expect(replace).toHaveBeenCalledWith('/'));
     expect(vi.mocked(createRecord).mock.calls[0]?.[0]).toMatchObject({
-      title: '눈바디',
+      title: '정면 사진',
       fields: {},
     });
     expect(attachNewRecordPhotos).toHaveBeenCalledWith('new-id', [

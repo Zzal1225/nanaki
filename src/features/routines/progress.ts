@@ -64,28 +64,24 @@ export function getDayRoutines(
     });
 }
 
-export type Achievement = {
-  // 해야 했던 (루틴, 날) 수
-  scheduled: number;
-  // 그중 목표를 채운 수
-  done: number;
-  // 반올림한 % (0~100). 해야 할 날이 없으면 null (0%처럼 보이지 않게)
-  rate: number | null;
+export type PerfectDays = {
+  // 루틴이 하나라도 있던 날 수 (시작 전·그만둔 뒤·일정 없는 요일은 뺀다)
+  scheduledDays: number;
+  // 그중 그날 해야 할 루틴을 모두 채운 날 수
+  perfectDays: number;
 };
 
-const PERCENT = 100;
-
-// 기간(양 끝 포함) 달성률 = 목표를 채운 (루틴, 날) / 해야 했던 (루틴, 날).
-// 루틴마다 그 기간의 일정 날짜를 세되, 시작 전·그만둔 뒤는 뺀다.
-// 미래 날짜는 부르는 쪽이 기간을 오늘까지로 잘라 넘긴다 (아직 안 온 날을 "안 함"으로 세지 않게)
-export function getAchievement(
+// 기간(양 끝 포함) 중 "루틴을 모두 해낸 날" 수 (2026-10-25 사용자 결정: % 대신 "한 달 중 며칠 성공", 그날 루틴을 전부 해야 하루).
+// %는 루틴이 많을수록 하루를 빼먹어도 덜 떨어져 "오늘 다 했나"가 잘 안 보였다. 날짜로 세면 그날 하나라도 빠지면 그날은 실패다.
+// 루틴이 없던 날은 세지 않는다(성공도 실패도 아님). 미래 날짜는 부르는 쪽이 기간을 오늘까지로 잘라 넘긴다 (아직 안 온 날을 실패로 세지 않게)
+export function getPerfectDays(
   routines: Routine[],
   checks: RoutineCheck[],
   range: DateRange,
-): Achievement {
+): PerfectDays {
   const byKey = indexChecks(checks);
-  let scheduled = 0;
-  let done = 0;
+  // 날짜 → 그날 해야 할 루틴을 모두 채웠는지 (한 번이라도 빠지면 false)
+  const days = new Map<string, boolean>();
   for (const routine of routines) {
     for (const date of listScheduledDates(
       routine.schedule,
@@ -93,14 +89,13 @@ export function getAchievement(
       range.to,
     )) {
       if (!isActiveOn(routine, date)) continue;
-      scheduled += 1;
       const check = byKey.get(checkKey(routine.id, date));
-      if (check && isCheckDone(check.fields)) done += 1;
+      const isDone = check ? isCheckDone(check.fields) : false;
+      days.set(date, (days.get(date) ?? true) && isDone);
     }
   }
   return {
-    scheduled,
-    done,
-    rate: scheduled === 0 ? null : Math.round((done / scheduled) * PERCENT),
+    scheduledDays: days.size,
+    perfectDays: [...days.values()].filter(Boolean).length,
   };
 }

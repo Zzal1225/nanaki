@@ -12,7 +12,7 @@ import { formatSchedule } from '@/shared/schedule/schedule';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import RoutineChecklist from './check/RoutineChecklist';
 import { useRoutines } from './hooks/useRoutines';
-import { getAchievement, getDayRoutines } from './progress';
+import { getDayRoutines, getPerfectDays } from './progress';
 import { isPushConfigured } from '@/features/push/api/pushStore';
 import { formatGoal, formatRemindTime } from './schema/routine';
 
@@ -38,9 +38,9 @@ export default function RoutineSummarySection({
   const all = routines.data ?? [];
 
   const period = today ? getSamePeriod(month, today) : null;
-  const rate = period
-    ? getAchievement(all, entries, period.current).rate
-    : null;
+  // 루틴을 모두 해낸 날 (2026-10-25 사용자 결정: % 대신 날짜). 해야 할 날이 없으면 null → —
+  const days = period ? getPerfectDays(all, entries, period.current) : null;
+  const hasDays = days !== null && days.scheduledDays > 0;
   const isCurrentMonth = today !== null && toMonthString(today) === month;
   const todayItems =
     today && isCurrentMonth ? getDayRoutines(all, entries, today) : [];
@@ -53,11 +53,16 @@ export default function RoutineSummarySection({
     <>
       <div className='flex flex-col gap-1'>
         <span className='text-body-sm text-fg-secondary'>
-          {monthLabel} 달성률
+          {monthLabel} 루틴을 모두 해낸 날
         </span>
         <span className='text-[28px] leading-[34px] font-bold text-fg-primary tabular-nums'>
-          {rate === null ? '—' : `${rate}%`}
+          {hasDays ? `${days.perfectDays}일` : '—'}
         </span>
+        {hasDays && (
+          <span className='text-caption text-fg-secondary tabular-nums'>
+            {`루틴이 있던 ${days.scheduledDays}일 중`}
+          </span>
+        )}
       </div>
 
       {todayItems.length > 0 && today && (

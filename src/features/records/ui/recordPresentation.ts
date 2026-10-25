@@ -6,7 +6,7 @@ import {
   toBodyTitle,
   type BodyMeasure,
 } from '../schema/body';
-import { getAchievement } from '@/features/routines/progress';
+import { getPerfectDays } from '@/features/routines/progress';
 import type { Routine } from '@/features/routines/schema/routine';
 import type { SamePeriod } from '@/shared/date/samePeriod';
 import type { RecordEntry } from '../schema/recordEntry';
@@ -118,23 +118,24 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
     // "[물 마시기]": 체크한 그날의 루틴 이름(제목에 남겨 둔다). 값은 "완료" / "5/8잔"
     listTitle: (entry) => `[${entry.title}]`,
     listValue: (entry) => formatCheckProgress(entry.fields),
-    // 이번 달 달성률 (2026-10-22 사용자 결정, 시안 "달성률 83%"): 1일~오늘 중 해야 했던 날 대비 목표를 채운 날.
-    // 루틴 규칙(context.routines)이 있어야 "해야 했던 날"을 안다. 해야 할 날이 없으면 —
+    // 이번 달 루틴을 모두 해낸 날 수 (2026-10-25 사용자 결정: % 대신 "한 달 중 며칠 성공", 그날 루틴을 전부 해야 하루).
+    // 1일~오늘. 루틴 규칙(context.routines)이 있어야 "해야 했던 날"을 안다. 해야 할 날이 없으면 —
     monthValue: (entries, { routines, period }) => {
       if (!period) return '—';
-      const { rate } = getAchievement(routines, entries, period.current);
-      return rate === null ? '—' : `${rate}%`;
+      const days = getPerfectDays(routines, entries, period.current);
+      return days.scheduledDays === 0 ? '—' : `${days.perfectDays}일`;
     },
-    // 두 기간의 달성률 차이 (%p). 지난달 같은 기간에 해야 할 날이 없었으면 비교하지 않는다
+    // 두 기간의 성공한 날 수 차이. 지난달 같은 기간에 해야 할 날이 없었으면 비교하지 않는다
     comparePreviousMonth: (current, previous, { routines, period }) => {
       if (!period) return null;
-      const now = getAchievement(routines, current, period.current).rate;
-      const before = getAchievement(routines, previous, period.previous).rate;
-      if (now === null || before === null) return null;
-      return describeChange(now - before, (points) => `${points}%p`, [
-        '낮아요',
-        '높아요',
-      ]);
+      const now = getPerfectDays(routines, current, period.current);
+      const before = getPerfectDays(routines, previous, period.previous);
+      if (now.scheduledDays === 0 || before.scheduledDays === 0) return null;
+      return describeChange(
+        now.perfectDays - before.perfectDays,
+        (days) => `${days}일`,
+        ['적어요', '많아요'],
+      );
     },
     headlineFields: () => ['count'],
     // 홈 하루 요약의 루틴 줄은 기록이 아니라 그날 일정으로 따로 그린다 (RoutineDayRow). 이 둘은 쓰이지 않을 때를 위한 값
@@ -143,8 +144,10 @@ const RECORD_PRESENTATION: { [T in RecordType]: RecordPresentation<T> } = {
       `완료 ${entries.filter((entry) => entry.fields.count >= entry.fields.target).length}개`,
   },
   body: {
-    // "[체중]" / "[허리둘레]" / "[체중·허리둘레]" / 사진만이면 "[눈바디]" (2026-10-24: 둘 다·사진만 허용)
-    listTitle: (entry) => `[${toBodyTitle(entry.fields)}]`,
+    // "[체중]" / "[허리둘레]" / "[체중·허리둘레]" (2026-10-24: 둘 다·사진만 허용).
+    // 사진만 있는 기록은 저장된 제목("[정면 사진]" 등, 2026-10-25): 목록은 사진을 불러오지 않아 무슨 사진인지 제목에 담아 둔다
+    listTitle: (entry) =>
+      `[${measuresOf(entry.fields).length > 0 ? toBodyTitle(entry.fields) : entry.title}]`,
     // "68.2kg · 78cm". 사진만 있는 기록은 값이 없다 (빈 글자: 목록은 제목만, 상세는 큰 숫자 줄을 그리지 않는다)
     listValue: (entry) =>
       measuresOf(entry.fields)

@@ -279,7 +279,8 @@ describe('루틴 체크 (기록 탭 카드·목록)', () => {
     };
     expect(getListValue(done)).toBe('완료');
   });
-  it('카드 값은 기간 달성률, 비교는 %p', () => {
+  // 2026-10-25 사용자 결정: % 대신 루틴을 모두 해낸 날 수
+  it('카드 값은 루틴을 모두 해낸 날 수, 비교는 날 수 차이', () => {
     const current = [
       waterCheck('2026-10-01', 8),
       waterCheck('2026-10-02', 8),
@@ -287,8 +288,8 @@ describe('루틴 체크 (기록 탭 카드·목록)', () => {
       waterCheck('2026-10-04', 5),
     ];
     const previous = [waterCheck('2026-09-01', 8)];
-    // 이번 3/4 = 75%, 지난달 1/4 = 25%
-    expect(getMonthValue('routine', current, context)).toBe('75%');
+    // 이번 1~4일 중 3일 해냄, 지난달 같은 기간 1일
+    expect(getMonthValue('routine', current, context)).toBe('3일');
     const comparison = getPreviousMonthComparison(
       'routine',
       current,
@@ -296,7 +297,7 @@ describe('루틴 체크 (기록 탭 카드·목록)', () => {
       context,
     );
     expect(comparison && formatPreviousMonthComparison(comparison)).toBe(
-      '지난달보다 50%p 높아요',
+      '지난달보다 2일 많아요',
     );
   });
   it('루틴이 없으면 — (해야 할 날이 없다)', () => {

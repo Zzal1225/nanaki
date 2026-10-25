@@ -17,6 +17,7 @@ vi.mock('../api/recordStore', () => ({
   getRecord: vi.fn(),
   deleteRecord: vi.fn(),
   restoreRecord: vi.fn(),
+  updateRecord: vi.fn(),
 }));
 const replace = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace }) }));

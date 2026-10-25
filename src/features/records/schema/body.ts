@@ -5,6 +5,7 @@ import {
   toFieldsSchema,
   type FieldDef,
 } from './fieldKinds';
+import { photoOnlyTitle, type PhotoKind } from './photoKinds';
 
 // 체형은 체중 · 허리둘레 · 사진(눈바디) 중 1개 이상 (2026-10-24 사용자 결정, 세 번째 정리).
 // - 처음엔 체중 필수 + 허리·엉덩이·허벅지·체지방률 선택이었는데, 실제로 재는 건 체중과 허리둘레뿐이라 나머지를 뺐다.
@@ -78,13 +79,21 @@ export const BODY_MEASURE_UNIT: Record<BodyMeasure, string> = {
   waist: 'cm',
 };
 
-// 사진만 있는 기록의 제목
+// 사진만 있는 기록인데 사진 종류를 모를 때의 제목 (예전 기록, 하루 요약 줄)
 export const BODY_PHOTO_ONLY_TITLE = '눈바디';
 
-// 제목은 입력받지 않고 잰 항목 이름으로 저장한다 ("체중" / "허리둘레" / "체중·허리둘레" / 사진만이면 "눈바디").
+// 제목은 입력받지 않고 잰 항목 이름으로 저장한다 ("체중" / "허리둘레" / "체중·허리둘레").
+// 사진만이면 사진 종류로 "정면 사진" / "측면 사진" / "정면·측면 사진" (photoOnlyTitle), 종류를 모르면 "눈바디".
 // DB title이 not null이라 비울 수 없다
-export function toBodyTitle(fields: BodyFields): string {
+export function toBodyTitle(
+  fields: BodyFields,
+  photoKinds: readonly PhotoKind[] = [],
+): string {
   const measures = measuresOf(fields);
-  if (measures.length === 0) return BODY_PHOTO_ONLY_TITLE;
+  if (measures.length === 0) {
+    return photoKinds.length > 0
+      ? photoOnlyTitle(photoKinds)
+      : BODY_PHOTO_ONLY_TITLE;
+  }
   return measures.map((measure) => BODY_MEASURE_LABEL[measure]).join('·');
 }

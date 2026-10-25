@@ -39,6 +39,7 @@ import {
 } from '../schema/recordTypes';
 import FieldInput from './FieldInput';
 import { emptyToNull } from './inputValue';
+import type { PhotoKind } from '../schema/photoKinds';
 
 // 폼 값의 타입은 타입별 폼 스키마에서 뽑는다. input = 검증 전(입력 중), output = 검증을 통과한 값
 type FormSchema = (typeof RECORD_TYPE_CONFIG)[RecordType]['formSchema'];
@@ -59,21 +60,21 @@ export type CreateFormExtras = {
   onCreated?: (entry: RecordEntry) => Promise<void>;
 };
 
-// photoCount: 사진 칸이 있는 폼(체형)에서 지금 사진 장수. 주면 사진도 "내용"으로 친다 (체중·허리둘레·사진 중 1개 이상).
-// 쓰기 화면은 고른 사진(온라인일 때만), 고치기는 이미 붙은 사진. 안 주면 타입의 기본 스키마
+// photoKinds: 사진 칸이 있는 폼(체형)에서 지금 붙은 사진 종류. 주면 사진도 "내용"으로 치고(체중·허리둘레·사진 중 1개 이상),
+// 사진만 있으면 제목을 "정면 사진"처럼 정한다. 쓰기 화면은 고른 사진(온라인일 때만), 고치기는 이미 붙은 사진. 안 주면 타입의 기본 스키마
 type RecordFormProps =
   | ({
       mode: 'create';
       type: RecordType;
       date?: string;
       doneHref?: string;
-      photoCount?: number;
+      photoKinds?: readonly PhotoKind[];
     } & CreateFormExtras)
   | {
       mode: 'edit';
       entry: RecordEntry;
       doneHref?: string;
-      photoCount?: number;
+      photoKinds?: readonly PhotoKind[];
     };
 
 // 폼의 처음 값. DefaultValues는 "일부만 채워도 되는" 모양이라 새로 쓰기에서 fields를 비워 둘 수 있다.
@@ -106,7 +107,7 @@ export default function RecordForm(props: RecordFormProps) {
   const form = useForm<FormInput, unknown, FormOutput>({
     // 제출할 때 타입별 폼 스키마로 검사하고, 실패하면 칸마다 오류를 넣는다 (검증 규칙을 한 곳에서만 관리)
     // 사진 장수가 바뀌면 다음 렌더의 스키마로 검사한다 (resolver는 제출할 때마다 지금 넘긴 것을 쓴다)
-    resolver: zodResolver(getFormSchema(type, props.photoCount)),
+    resolver: zodResolver(getFormSchema(type, props.photoKinds)),
     defaultValues: toDefaultValues(props),
   });
   // watch 대신 useWatch: 메모 칸이 바뀔 때 이 폼 전체가 아니라 필요한 값만 구독한다

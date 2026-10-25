@@ -2,10 +2,11 @@
 
 // 'use client' 이유: 사진은 온라인에서 서명 링크로만 보여 주고, 올리기·연결 상태가 브라우저에서 일어난다
 import { ImagePlus } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
 import { usePendingRecordIds } from '@/features/records/hooks/usePendingRecordIds';
 import {
   PHOTO_KIND_LABEL,
+  photoOnlyTitle,
   type PhotoKind,
 } from '@/features/records/schema/photoKinds';
 import { useOnlineStatus } from '@/shared/network/useOnlineStatus';
@@ -31,6 +32,8 @@ type RecordPhotosProps = {
   // 기록에 사진 말고 다른 내용이 없는지 (사진만 있는 체형 기록). 그러면 마지막 사진을 지울 때 기록도 지운다
   isPhotoOnly?: boolean;
   onRecordEmptied?: () => Promise<void>;
+  // 사진만 있는 기록의 제목이 지금 붙은 사진과 맞는지 맞추라고 알린다 ("정면 사진" → 측면을 더하면 "정면·측면 사진")
+  onPhotoOnlyTitle?: (title: string) => void;
 };
 
 // 기록 상세의 사진 칸 (step4 37b 눈바디). 칸마다 사진이 있으면 썸네일(누르면 크게 보기·바꾸기·지우기), 없으면 "＋ 정면 사진".
@@ -42,6 +45,7 @@ export default function RecordPhotos({
   kinds,
   isPhotoOnly = false,
   onRecordEmptied,
+  onPhotoOnlyTitle,
 }: RecordPhotosProps) {
   const isOnline = useOnlineStatus();
   const isOnServer = !usePendingRecordIds().has(recordId);
@@ -49,6 +53,21 @@ export default function RecordPhotos({
   const list = photos.data ?? [];
   const thumbs = usePhotoUrls(list.map((photo) => photo.thumbPath).sort());
   const upload = useUploadPhoto(recordId);
+
+  // 사진만 있는 기록의 제목은 붙은 사진 종류에서 나온다 (2026-10-25 사용자 요청: [눈바디] 대신 [정면 사진]).
+  // 쓰기 화면은 저장할 때 정하지만, 상세에서 사진을 더하거나 지우면 바뀐다 → 서버에서 받은 사진 목록으로 맞춘다.
+  // 예전에 "눈바디"로 저장된 기록도 상세를 열면 새 이름으로 바뀐다. 목록은 사진을 불러오지 않아 여기서만 알 수 있다
+  const kindsKey = list
+    .map((photo) => photo.kind)
+    .sort()
+    .join(',');
+  const reportTitle = useEffectEvent((title: string) =>
+    onPhotoOnlyTitle?.(title),
+  );
+  useEffect(() => {
+    if (!isPhotoOnly || !photos.isSuccess || kindsKey === '') return;
+    reportTitle(photoOnlyTitle(kindsKey.split(',') as PhotoKind[]));
+  }, [isPhotoOnly, photos.isSuccess, kindsKey]);
   const [viewing, setViewing] = useState<Photo | null>(null);
   const [error, setError] = useState<string | null>(null);
 
