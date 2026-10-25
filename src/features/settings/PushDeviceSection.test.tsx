@@ -44,6 +44,26 @@ describe('PushDeviceSection (설정 > 이 기기 루틴 알림)', () => {
     expect(state.subscribe).toHaveBeenCalledTimes(1);
   });
 
+  // 2026-10-25 아이폰 확인 4: 권한·구독이 끝날 때까지 꺼진 채 잠겨 있어 "늦게 켜진다"로 보였다
+  it('누르자마자 켜진 쪽으로 보이고 "켜는 중…", 끝나면 결과 안내', async () => {
+    let finish: (value: string) => void = () => {};
+    state.subscribe.mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    render(<PushDeviceSection />);
+    fireEvent.click(toggle());
+    expect(toggle().getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByRole('status').textContent).toBe('알림을 켜는 중…');
+    finish('denied');
+    expect((await screen.findByRole('status')).textContent).toContain(
+      '알림이 차단돼 있어요',
+    );
+    // 실패했으면 구독 상태(꺼짐)로 돌아간다
+    expect(toggle().getAttribute('aria-checked')).toBe('false');
+  });
+
   it('받는 중이면 켜져 있고, 끄면 구독을 지운다', () => {
     state.isSubscribed = true;
     render(<PushDeviceSection />);

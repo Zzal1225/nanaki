@@ -150,14 +150,23 @@ export function formatNakiSummaryParts(
   }
 }
 
-// 답 아래 미리 보기 순서: 최고·최저면 그 기록을 맨 위에 (답의 근거를 바로 보이게), 그 밖에는 검색 순서 그대로
+// 답 아래 미리 보기: 숫자를 계산한 답(합계·평균·최고·최저)이면 그 칸에 숫자가 있는 기록만 보여 준다.
+// "최저 체중"에 체중 없는 눈바디·허리둘레 기록이 섞여 나왔다 (2026-10-25 아이폰 확인 11). 계산은 이미 그 칸만 셌는데
+// 목록이 조건(체형) 전체였다. "기록 탭에서 이 조건으로 보기"는 조건 그대로 넘겨 전체를 보여 주는 게 맞아 건드리지 않는다.
+// 순서: 최고·최저면 그 기록을 맨 위에 (답의 근거를 바로 보이게), 그 밖에는 검색 순서 그대로
 export function orderForPreview(
   entries: readonly RecordEntry[],
   summary: NakiSummary,
 ): RecordEntry[] {
-  if (summary.kind !== 'extreme') return [...entries];
+  const shown =
+    summary.kind === 'total' ||
+    summary.kind === 'average' ||
+    summary.kind === 'extreme'
+      ? measure(entries, summary.field).map((item) => item.entry)
+      : [...entries];
+  if (summary.kind !== 'extreme') return shown;
   return [
     summary.entry,
-    ...entries.filter((entry) => entry.id !== summary.entry.id),
+    ...shown.filter((entry) => entry.id !== summary.entry.id),
   ];
 }

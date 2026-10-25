@@ -146,7 +146,8 @@ describe('ReportView', () => {
     // 평균 별점은 내지 않는다 (2026-10-22 사용자 결정)
     expect(screen.queryByText(/평균/)).toBeNull();
 
-    expect(await screen.findByText('2 / 30')).toBeTruthy();
+    // 루틴은 모두 해낸 날 / 루틴이 있던 날 (2026-10-25 사용자 결정)
+    expect(await screen.findByText('2 / 30일')).toBeTruthy();
   });
 
   it('PDF로 저장 = 브라우저 인쇄, 인쇄하는 동안만 라이트', async () => {

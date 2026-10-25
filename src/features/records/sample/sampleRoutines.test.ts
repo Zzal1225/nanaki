@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getAchievement, getDayRoutines } from '@/features/routines/progress';
+import { getDayRoutines, getPerfectDays } from '@/features/routines/progress';
 import { routineSchema } from '@/features/routines/schema/routine';
 import { recordEntrySchema, type RecordEntryOf } from '../schema/recordEntry';
 import { buildSampleRoutines } from './sampleRoutines';
@@ -39,16 +39,18 @@ describe('buildSampleRoutines', () => {
     expect(water).toMatchObject({ count: 3, target: 8, isDone: false });
   });
 
-  it('미래 날짜 체크는 없고, 달성률이 나온다', () => {
+  // 루틴은 "모두 해낸 날"로 센다 (2026-10-25): 체험에서 성공한 날과 빠진 날이 둘 다 보여야 숫자가 뜻이 있다
+  it('미래 날짜 체크는 없고, 해낸 날이 0일도 전부도 아니다', () => {
     expect(checks.every((check) => check.occurredAt <= TODAY)).toBe(true);
     const typed = checks.map((check, index) => ({
       ...check,
       id: String(index),
     })) as RecordEntryOf<'routine'>[];
-    const { rate } = getAchievement(routines, typed, {
+    const { scheduledDays, perfectDays } = getPerfectDays(routines, typed, {
       from: '2026-10-01',
       to: TODAY,
     });
-    expect(rate).not.toBeNull();
+    expect(perfectDays).toBeGreaterThan(0);
+    expect(perfectDays).toBeLessThan(scheduledDays);
   });
 });

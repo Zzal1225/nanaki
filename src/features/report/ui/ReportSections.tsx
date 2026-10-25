@@ -18,7 +18,7 @@ import {
   summarizeReviews,
 } from '@/features/records/ui/typeSummary';
 import { formatMonthDotDay } from '@/shared/date/formatDisplayDate';
-import type { Achievement } from '@/features/routines/progress';
+import type { PerfectDays } from '@/features/routines/progress';
 import { ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import { topReviews, type WorkoutBucket } from '../reportModel';
 
@@ -45,17 +45,18 @@ function Card({
       aria-label={RECORD_TYPE_CONFIG[type].label}
       className='flex flex-col gap-3 rounded-lg bg-surface p-4 shadow-card break-inside-avoid print:border print:border-border print:shadow-none'
     >
-      <div className='flex items-center gap-2'>
+      {/* flex-wrap: 좁은 종이(아이폰 인쇄는 화면 폭에 가깝게 그린다)에서 큰 요약 숫자가 카드 밖으로 나가지 않고 다음 줄로 (2026-10-25 아이폰 확인 13) */}
+      <div className='flex flex-wrap items-center gap-x-2 gap-y-1'>
         <span
           aria-hidden='true'
-          className={`flex size-7 items-center justify-center rounded-md ${style.subtleBgClass} ${style.textClass}`}
+          className={`flex size-7 shrink-0 items-center justify-center rounded-md ${style.subtleBgClass} ${style.textClass}`}
         >
           <Icon size={16} strokeWidth={ICON_STROKE_WIDTH} />
         </span>
         <h2 className='flex-1 text-body font-semibold text-fg-primary'>
           {RECORD_TYPE_CONFIG[type].label}
         </h2>
-        <span className='text-body font-semibold text-fg-primary tabular-nums'>
+        <span className='ml-auto text-body font-semibold whitespace-nowrap text-fg-primary tabular-nums'>
           {summary}
         </span>
       </div>
@@ -268,25 +269,22 @@ export function ReviewSection({
   );
 }
 
-export function RoutineSection({
-  achievement,
-}: {
-  achievement: Achievement | null;
-}) {
-  const rate = achievement?.rate ?? null;
+// 루틴을 모두 해낸 날 (2026-10-25 사용자 결정: % 대신 "며칠 성공", 그날 루틴을 전부 해야 하루)
+export function RoutineSection({ days }: { days: PerfectDays | null }) {
+  const hasDays = days !== null && days.scheduledDays > 0;
   return (
-    <Card type='routine' summary={rate === null ? '—' : `${rate}%`}>
-      {achievement === null || achievement.scheduled === 0 ? (
+    <Card type='routine' summary={hasDays ? `${days.perfectDays}일` : '—'}>
+      {hasDays ? (
+        <BarRow
+          label='해낸 날'
+          ratio={days.perfectDays / days.scheduledDays}
+          value={`${days.perfectDays} / ${days.scheduledDays}일`}
+          barClass='bg-type-routine'
+        />
+      ) : (
         <p className='text-body-sm text-fg-secondary'>
           이 기간에 해야 할 루틴이 없어요
         </p>
-      ) : (
-        <BarRow
-          label='달성'
-          ratio={achievement.done / achievement.scheduled}
-          value={`${achievement.done} / ${achievement.scheduled}`}
-          barClass='bg-type-routine'
-        />
       )}
     </Card>
   );

@@ -16,7 +16,7 @@ import {
 } from '@/features/records/ui/recordPresentation';
 import { summarizeBody } from '@/features/records/ui/typeSummary';
 import { useRoutines } from '@/features/routines/hooks/useRoutines';
-import { getAchievement } from '@/features/routines/progress';
+import { getPerfectDays } from '@/features/routines/progress';
 import { formatDisplayDate } from '@/shared/date/formatDisplayDate';
 import { useToday } from '@/shared/date/useToday';
 import { useBodyClass } from '@/shared/layout/useBodyClass';
@@ -93,9 +93,10 @@ export default function ReportView({ query }: { query: ReportQuery }) {
   const reviews = ofType(entries, 'review');
   const checks = ofType(entries, 'routine');
   const routineDays = today ? routineRange(range, today) : null;
-  const achievement =
+  // 루틴을 모두 해낸 날 (2026-10-25 사용자 결정: % 대신 날짜). 기간은 오늘까지 (routineRange)
+  const routineResult =
     routineDays && routines.data
-      ? getAchievement(routines.data, checks, routineDays)
+      ? getPerfectDays(routines.data, checks, routineDays)
       : null;
   const budgetProgress =
     budget.data && today
@@ -133,8 +134,11 @@ export default function ReportView({ query }: { query: ReportQuery }) {
       value: `${reviews.length}건`,
     },
     query.types.includes('routine') && {
-      label: '루틴 달성률',
-      value: achievement?.rate == null ? '—' : `${achievement.rate}%`,
+      label: '루틴 해낸 날',
+      value:
+        !routineResult || routineResult.scheduledDays === 0
+          ? '—'
+          : `${routineResult.perfectDays}일`,
     },
   ].filter((item): item is { label: string; value: string } => Boolean(item));
 
@@ -148,7 +152,7 @@ export default function ReportView({ query }: { query: ReportQuery }) {
       />
     ),
     body: <BodySection entries={bodies} />,
-    routine: <RoutineSection achievement={achievement} />,
+    routine: <RoutineSection days={routineResult} />,
   };
 
   return (
@@ -170,7 +174,8 @@ export default function ReportView({ query }: { query: ReportQuery }) {
 
       <div data-print-root className='flex flex-col gap-4'>
         {/* 인쇄용 머리 (시안 21c): 로고·제목 / 기간·만든 날 */}
-        <header className='hidden items-end justify-between border-b border-border pb-3 print:flex'>
+        {/* flex-wrap: 좁은 종이에서는 기간·만든 날이 제목 아래 줄로 (제목이 잘리지 않게, 아이폰 확인 13) */}
+        <header className='hidden flex-wrap items-end justify-between gap-x-4 gap-y-1 border-b border-border pb-3 print:flex'>
           <div className='flex flex-col'>
             <span className='text-body-sm font-semibold text-accent'>
               nanaki
@@ -187,8 +192,9 @@ export default function ReportView({ query }: { query: ReportQuery }) {
           {`${formatDisplayDate(range.from)} – ${formatDisplayDate(range.to)} · 기록 ${entries.length}개`}
         </p>
 
-        {/* 고른 타입 수(1~5)만큼 한 줄에 같은 너비로 */}
-        <div className='hidden auto-cols-fr grid-flow-col gap-2 print:grid'>
+        {/* 칸이 7rem보다 좁아지면 다음 줄로: A4(PC 인쇄)는 다섯 칸이 한 줄, 아이폰 인쇄는 화면 폭에 가깝게 그려서
+            다섯 칸을 한 줄에 두면 금액이 칸 밖으로 나갔다 (2026-10-25 아이폰 확인 13) */}
+        <div className='hidden grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-2 print:grid'>
           {kpis.map((kpi) => (
             <div
               key={kpi.label}
@@ -209,8 +215,8 @@ export default function ReportView({ query }: { query: ReportQuery }) {
             className='h-40 animate-pulse rounded-lg bg-surface-hover'
           />
         ) : (
-          // 화면은 한 줄씩, 인쇄(A4)는 2열 (시안 21c)
-          <div className='grid gap-4 lg:grid-cols-2 print:grid-cols-2 print:gap-3'>
+          // 화면은 한 줄씩, 인쇄는 종이가 넓으면(A4) 2열 (시안 21c), 좁으면(아이폰 인쇄) 1열: 칸이 17.5rem보다 좁아지면 내린다
+          <div className='grid gap-4 lg:grid-cols-2 print:grid-cols-[repeat(auto-fit,minmax(17.5rem,1fr))] print:gap-3'>
             {REPORT_TYPES.filter((type) => query.types.includes(type)).map(
               (type) => (
                 <div key={type} className='contents'>

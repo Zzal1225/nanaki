@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { RecordEntryOf } from '@/features/records/schema/recordEntry';
-import { getAchievement, getDayRoutines } from './progress';
+import { getDayRoutines, getPerfectDays } from './progress';
 import type { Routine } from './schema/routine';
 
 const WATER: Routine = {
@@ -79,31 +79,34 @@ describe('getDayRoutines', () => {
   });
 });
 
-describe('getAchievement', () => {
-  it('목표를 채운 (루틴, 날) / 해야 했던 (루틴, 날)', () => {
-    // 10/19(월)~10/21(수): 물 3일 + 스트레칭 월·수 2일 = 5번
-    const result = getAchievement(
+describe('getPerfectDays (그날 루틴을 모두 해낸 날)', () => {
+  it('그날 해야 할 루틴을 전부 채운 날만 센다', () => {
+    // 10/19(월)~10/21(수): 물은 매일, 스트레칭은 월·수
+    const result = getPerfectDays(
       [WATER, STRETCH],
       [
+        // 10/19: 물 8잔 + 스트레칭 → 성공
         check(WATER, '2026-10-19', 8),
-        check(WATER, '2026-10-20', 3),
+        check(STRETCH, '2026-10-19', 1),
+        // 10/20(화): 스트레칭 없는 날, 물 8잔 → 성공
+        check(WATER, '2026-10-20', 8),
+        // 10/21: 스트레칭만, 물 3잔 → 실패
+        check(WATER, '2026-10-21', 3),
         check(STRETCH, '2026-10-21', 1),
       ],
       { from: '2026-10-19', to: '2026-10-21' },
     );
-    // 완료: 물 10/19, 스트레칭 10/21 → 2/5 = 40%
-    expect(result).toEqual({ scheduled: 5, done: 2, rate: 40 });
+    expect(result).toEqual({ scheduledDays: 3, perfectDays: 2 });
   });
-  it('시작 전 날은 세지 않는다', () => {
+  it('시작 전 날은 해야 할 날로 세지 않는다', () => {
     const lateStart = { ...WATER, startDate: '2026-10-21' };
     expect(
-      getAchievement([lateStart], [], { from: '2026-10-19', to: '2026-10-21' })
-        .scheduled,
-    ).toBe(1);
+      getPerfectDays([lateStart], [], { from: '2026-10-19', to: '2026-10-21' }),
+    ).toEqual({ scheduledDays: 1, perfectDays: 0 });
   });
-  it('해야 할 날이 없으면 null (0%처럼 보이지 않게)', () => {
+  it('루틴이 없으면 해야 할 날도 0 (0일 성공처럼 보이지 않게 부르는 쪽이 — 로)', () => {
     expect(
-      getAchievement([], [], { from: '2026-10-01', to: '2026-10-21' }).rate,
-    ).toBeNull();
+      getPerfectDays([], [], { from: '2026-10-01', to: '2026-10-21' }),
+    ).toEqual({ scheduledDays: 0, perfectDays: 0 });
   });
 });

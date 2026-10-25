@@ -18,7 +18,10 @@ export default function PushDeviceSection() {
   const labelId = useId();
   const { isSubscribed, subscribe, unsubscribe } = useThisDevicePush();
   const support = usePushSupport();
-  const [isPending, setIsPending] = useState(false);
+  // 누르는 중인 방향(켜기 true / 끄기 false). 켜기는 권한 묻기·구독·서버 저장까지 아이폰에서 몇 초 걸려서,
+  // 끝날 때까지 스위치가 꺼진 채 잠겨 있으면 "늦게 켜진다"로 보였다 (2026-10-25 아이폰 확인 4) → 누르자마자 그 방향으로 보여 준다
+  const [pendingTarget, setPendingTarget] = useState<boolean | null>(null);
+  const isPending = pendingTarget !== null;
   const [message, setMessage] = useState<string | null>(null);
 
   // 공개 키가 없는 배포(알림 보내기가 없음)와 기기 판단 전에는 그리지 않는다 (CLAUDE.md: 쓸 수 없는 기능은 숨김)
@@ -33,7 +36,7 @@ export default function PushDeviceSection() {
 
   async function toggle(checked: boolean) {
     setMessage(null);
-    setIsPending(true);
+    setPendingTarget(checked);
     try {
       if (checked) {
         setMessage(pushSetupMessage(await subscribe()));
@@ -41,7 +44,7 @@ export default function PushDeviceSection() {
         await unsubscribe();
       }
     } finally {
-      setIsPending(false);
+      setPendingTarget(null);
     }
   }
 
@@ -59,14 +62,19 @@ export default function PushDeviceSection() {
           </span>
           <SwitchControl
             aria-labelledby={labelId}
-            checked={isSubscribed}
+            checked={pendingTarget ?? isSubscribed}
             disabled={!canToggle || isPending}
             onCheckedChange={(checked) => void toggle(checked)}
           />
         </div>
-        {(reason ?? message) && (
+        {(reason ?? message ?? isPending) && (
           <p role='status' className='pb-1 text-caption text-fg-secondary'>
-            {reason ?? message}
+            {reason ??
+              (isPending
+                ? pendingTarget
+                  ? '알림을 켜는 중…'
+                  : '알림을 끄는 중…'
+                : message)}
           </p>
         )}
       </div>

@@ -71,7 +71,7 @@ export const RECORD_TYPE_CONFIG = {
     // 2026-10-24 사용자 결정: 칸마다 "(선택)" 대신 위에 한 줄, 태그·메모는 쓰지 않는다 (재는 값과 사진만 남기는 기록)
     contentHint: BODY_CONTENT_HINT,
     hidesTagsAndMemo: true,
-    // 사진 장수를 알아야 "1개 이상"을 검사한다 (사진은 폼 값이 아니다)
+    // 사진 종류를 알아야 "1개 이상"을 검사하고, 사진만 있으면 제목("정면 사진")을 정한다 (사진은 폼 값이 아니다)
     formSchemaWithPhotos: bodyFormSchemaFor,
   },
   // 루틴 체크 기록. 다른 타입과 달리 작성 폼으로 쓰지 않는다:
@@ -112,8 +112,8 @@ type RecordTypeConfig = {
   contentHint?: string;
   // 태그·메모 칸을 그리지 않는다. 예전에 적힌 값은 고쳐 저장해도 그대로 남는다 (폼 처음 값에 들어 있다)
   hidesTagsAndMemo?: boolean;
-  // 사진 장수를 받아 폼 스키마를 만든다 (사진이 내용으로 쳐지는 타입). 없으면 formSchema 그대로
-  formSchemaWithPhotos?: (photoCount: number) => unknown;
+  // 붙은 사진 종류를 받아 폼 스키마를 만든다 (사진이 내용으로 쳐지는 타입). 없으면 formSchema 그대로
+  formSchemaWithPhotos?: (photoKinds: readonly PhotoKind[]) => unknown;
 };
 
 // 타입이 정한 칸 중 하나라도 채워졌는지. 아니면 이 기록의 내용은 사진뿐이다 (체형: 체중·허리둘레 없이 눈바디만).
@@ -132,16 +132,16 @@ export function getContentHint(type: RecordType): string | null {
   return config.contentHint ?? null;
 }
 
-// 폼 검사 스키마. photoCount를 주면(사진 칸이 있는 폼) 사진도 내용으로 치는 스키마를 쓴다.
-// 형 변환: formSchemaWithPhotos는 같은 타입의 formSchema와 같은 모양을 돌려준다 (bodyFormSchema = bodyFormSchemaFor(0))
+// 폼 검사 스키마. photoKinds를 주면(사진 칸이 있는 폼) 사진도 내용으로 치는 스키마를 쓴다.
+// 형 변환: formSchemaWithPhotos는 같은 타입의 formSchema와 같은 모양을 돌려준다 (bodyFormSchema = bodyFormSchemaFor([]))
 export function getFormSchema(
   type: RecordType,
-  photoCount?: number,
+  photoKinds?: readonly PhotoKind[],
 ): (typeof RECORD_TYPE_CONFIG)[RecordType]['formSchema'] {
   const config: RecordTypeConfig = RECORD_TYPE_CONFIG[type];
-  if (photoCount !== undefined && config.formSchemaWithPhotos) {
+  if (photoKinds !== undefined && config.formSchemaWithPhotos) {
     return config.formSchemaWithPhotos(
-      photoCount,
+      photoKinds,
     ) as (typeof RECORD_TYPE_CONFIG)[RecordType]['formSchema'];
   }
   return RECORD_TYPE_CONFIG[type].formSchema;

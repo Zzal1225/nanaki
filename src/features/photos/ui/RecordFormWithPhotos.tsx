@@ -113,9 +113,9 @@ export default function RecordFormWithPhotos({
       ? galleryPicks.map((pick) => ({ kind: galleryKind, file: pick.file }))
       : []),
   ];
-  // 폼 검사(체중·허리둘레·사진 중 1개 이상)에 넘기는 사진 장수. 오프라인이면 0: 사진은 저장 뒤 서버로 올라가는데
-  // 오프라인이면 못 올라가서, 사진만 고른 기록이 빈 기록으로 남는다 (2026-10-24 사용자: 빈 껍데기를 막을 것)
-  const photoCount = isOnline ? list.length : 0;
+  // 폼 검사(체중·허리둘레·사진 중 1개 이상)와 사진만 있는 기록의 제목("정면 사진")에 넘기는 사진 종류. 오프라인이면 없음:
+  // 사진은 저장 뒤 서버로 올라가는데 오프라인이면 못 올라가서, 사진만 고른 기록이 빈 기록으로 남는다 (2026-10-24 사용자: 빈 껍데기를 막을 것)
+  const photoKinds = isOnline ? list.map((photo) => photo.kind) : [];
 
   // 기록은 이미 저장됐다. 숫자가 있는 기록이면 사진 실패는 던지지 않고 알리기만 한다
   // (던지면 폼이 저장 화면에 멈추고, 다시 누르면 기록이 두 개 생긴다).
@@ -156,7 +156,7 @@ export default function RecordFormWithPhotos({
       type={type}
       date={date}
       doneHref={doneHref}
-      photoCount={photoCount}
+      photoKinds={photoKinds}
       sectionPlacement={getPhotoPlacement(type)}
       section={
         <>

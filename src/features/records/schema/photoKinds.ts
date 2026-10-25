@@ -19,6 +19,15 @@ export const PHOTO_KIND_MAX: Record<PhotoKind, number> = {
   review: 5,
 };
 
+// 사진만 있는 기록의 제목: 붙은 사진 종류로 "정면 사진" / "측면 사진" / "정면·측면 사진" (2026-10-25 사용자 요청:
+// 목록에서 [눈바디]보다 무슨 사진인지 보이게). 종류 순서는 PHOTO_KIND_LABEL 순서로 고정(고른 순서와 상관없이 같은 제목)
+export function photoOnlyTitle(kinds: readonly PhotoKind[]): string {
+  const ordered = (Object.keys(PHOTO_KIND_LABEL) as PhotoKind[]).filter(
+    (kind) => kinds.includes(kind),
+  );
+  return `${ordered.map((kind) => PHOTO_KIND_LABEL[kind]).join('·')} 사진`;
+}
+
 export function isGalleryKind(kind: PhotoKind): boolean {
   return PHOTO_KIND_MAX[kind] > 1;
 }

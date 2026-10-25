@@ -105,6 +105,26 @@ describe('나키 답 숫자 한 줄 (짧은 숫자형)', () => {
     expect(line([RUN], 'workout', 'sum', 'distance')).toBe('모두 1건이에요');
   });
 
+  // 2026-10-25 아이폰 확인: "최저 체중" 답 아래에 눈바디·허리둘레 기록이 섞여 나왔다
+  it('숫자를 계산한 답이면 미리 보기도 그 칸에 숫자가 있는 기록만', () => {
+    const PHOTO_ONLY = body('p1', '2026-10-20', {});
+    const min = summarizeNakiResults(
+      [WEIGHT_HIGH, WAIST, PHOTO_ONLY, WEIGHT_LOW],
+      'body',
+      { intent: 'min', field: 'weight' },
+    );
+    expect(
+      orderForPreview([WEIGHT_HIGH, WAIST, PHOTO_ONLY, WEIGHT_LOW], min).map(
+        (e) => e.id,
+      ),
+    ).toEqual(['w2', 'w1']);
+    // 목록 질문(건수)은 거르지 않는다: 체형 기록 전체가 답이다
+    const list = summarizeNakiResults([WEIGHT_HIGH, PHOTO_ONLY], 'body');
+    expect(
+      orderForPreview([WEIGHT_HIGH, PHOTO_ONLY], list).map((e) => e.id),
+    ).toEqual(['w1', 'p1']);
+  });
+
   it('최고·최저면 그 기록을 미리 보기 맨 위에, 그 밖에는 순서 그대로', () => {
     const min = summarizeNakiResults([WEIGHT_HIGH, WEIGHT_LOW], 'body', {
       intent: 'min',

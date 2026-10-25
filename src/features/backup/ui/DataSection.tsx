@@ -5,9 +5,11 @@ import { Download, Info, Upload } from 'lucide-react';
 import { useState } from 'react';
 import SettingsSection from '@/features/settings/SettingsSection';
 import { useOnlineStatus } from '@/shared/network/useOnlineStatus';
+import Button from '@/shared/ui/Button';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import { BACKUP_PARSE_MESSAGE, parseBackup } from '../backupFile';
 import { dataCountText, importResultMessage } from '../backupText';
+import { saveBackupFile, type SaveOutcome } from '../saveBackupFile';
 import {
   useDataCounts,
   useExportBackup,
@@ -29,14 +31,31 @@ export default function DataSection() {
     isError: boolean;
   } | null>(null);
 
+  // 아이폰에서 공유 시트가 막혔을 때(파일을 만드는 동안 시간이 지남) 한 번 더 눌러 열 파일
+  const [readyFile, setReadyFile] = useState<{
+    file: File;
+    count: number;
+  } | null>(null);
+
+  function showOutcome(outcome: SaveOutcome, count: number, file: File) {
+    setReadyFile(outcome === 'needsTap' ? { file, count } : null);
+    setMessage({
+      text:
+        outcome === 'cancelled'
+          ? '저장을 취소했어요'
+          : outcome === 'needsTap'
+            ? '파일이 준비됐어요. 아래 버튼을 눌러 "파일에 저장"을 고르세요'
+            : `기록 ${count}개를 백업 파일로 저장했어요`,
+      isError: false,
+    });
+  }
+
   async function save() {
     setMessage(null);
+    setReadyFile(null);
     try {
-      const count = await exportBackup.mutateAsync();
-      setMessage({
-        text: `기록 ${count}개를 백업 파일로 저장했어요`,
-        isError: false,
-      });
+      const { count, outcome, file } = await exportBackup.mutateAsync();
+      showOutcome(outcome, count, file);
     } catch {
       setMessage({
         text: '백업 파일을 만들지 못했어요. 잠시 후 다시 시도해 주세요',
@@ -104,9 +123,10 @@ export default function DataSection() {
         aria-disabled={!isOnline || isBusy}
         className={`${ROW_CLASS} ${!isOnline || isBusy ? 'pointer-events-none text-fg-disabled' : 'cursor-pointer hover:bg-surface-hover'}`}
       >
+        {/* accept를 두지 않는다: 아이폰 파일 고르기에서 application/json·.json으로 거르면 백업 파일이 흐리게 나와 고를 수 없었다
+            (2026-10-25 아이폰 확인 12). 다른 파일을 고르면 읽을 때 형식 검사(parseBackup)가 막고 이유를 알린다 */}
         <input
           type='file'
-          accept='application/json,.json'
           disabled={!isOnline || isBusy}
           className='sr-only'
           onChange={(event) => {
@@ -137,6 +157,21 @@ export default function DataSection() {
         >
           {message?.text ?? offlineNote}
         </p>
+      )}
+      {readyFile && (
+        // 이 버튼을 누르는 순간이 새 "사용자 활성화"라 공유 시트가 열린다 (saveBackupFile 설명)
+        <div className='px-4 pb-3'>
+          <Button
+            variant='secondary'
+            className='w-full'
+            onClick={async () => {
+              const outcome = await saveBackupFile(readyFile.file);
+              showOutcome(outcome, readyFile.count, readyFile.file);
+            }}
+          >
+            파일에 저장하기
+          </Button>
+        </div>
       )}
     </SettingsSection>
   );

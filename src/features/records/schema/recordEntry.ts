@@ -11,6 +11,7 @@ import { maxLengthMessage, requiredInputMessage } from './fieldKinds';
 import { reviewFieldsSchema } from './review';
 import { routineCheckFieldsSchema } from './routineCheck';
 import { workoutFieldsSchema } from './workout';
+import type { PhotoKind } from './photoKinds';
 
 // 메모·제목 상한은 DB check와 같은 값이어야 한다 (supabase/migrations).
 // DB는 앱을 거치지 않는 요청까지 막는 마지막 방어선, Zod는 사용자에게 빠르고 친절한 오류를 주는 역할
@@ -98,22 +99,23 @@ export const workoutFormSchema = workoutRecordSchema
 // 체형: 제목 칸이 없고 잰 항목 이름("체중" / "허리둘레" / "체중·허리둘레" / "눈바디")을 제목으로 저장한다.
 // 체중·허리둘레·사진 중 1개 이상 (2026-10-24 사용자 결정): 사진은 폼 값이 아니라서 장수를 받아 스키마를 만든다.
 // refine 하나로 끝내고 사진만 있는 기록을 따로 다루지 않는다. 오류는 체중 칸 아래에 보여 준다
-export function bodyFormSchemaFor(photoCount: number) {
+// 사진 종류를 받는 이유: 사진만 있는 기록의 제목을 "정면 사진"처럼 무슨 사진인지로 정한다 (장수는 그 길이)
+export function bodyFormSchemaFor(photoKinds: readonly PhotoKind[]) {
   return bodyRecordSchema
     .omit({ id: true })
     .extend({ title: optionalTitleSchema })
-    .refine(({ fields }) => hasBodyContent(fields, photoCount), {
+    .refine(({ fields }) => hasBodyContent(fields, photoKinds.length), {
       error: BODY_CONTENT_MESSAGE,
       path: ['fields', 'weight'],
     })
     .transform((values) => ({
       ...values,
-      title: toBodyTitle(values.fields),
+      title: toBodyTitle(values.fields, photoKinds),
     }));
 }
 
 // 사진을 모르는 곳(사진 칸이 없는 폼)의 기본: 사진 0장 = 체중이나 허리둘레가 있어야 한다
-export const bodyFormSchema = bodyFormSchemaFor(0);
+export const bodyFormSchema = bodyFormSchemaFor([]);
 
 // z.union이 아니라 판별 유니온: type을 먼저 보고 맞는 스키마 하나만 검사해서 오류가 그 타입 기준으로 정확히 나온다
 export const recordEntrySchema = z.discriminatedUnion('type', [

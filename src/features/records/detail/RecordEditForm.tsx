@@ -99,7 +99,7 @@ function EditFormWithPhotoCount({
       mode='edit'
       entry={entry}
       doneHref={doneHref}
-      photoCount={photos.data?.length ?? 0}
+      photoKinds={photos.data?.map((photo) => photo.kind) ?? []}
     />
   );
 }
