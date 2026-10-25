@@ -28,6 +28,11 @@ test('+ → 가계부 쓰기 → 홈 요약 → 상세 → 수정 → 삭제·�
   await expect(page).toHaveURL('/');
   const daySummary = page.getByRole('region', { name: /월 \d+일/ });
   await expect(daySummary.getByText('가계부 2건')).toBeVisible();
+  // 로딩 화면(AppSplash)이 걷힐 때까지. 아래 스와이프는 CDP로 손가락을 직접 움직여서, Playwright 클릭처럼
+  // 위를 덮은 요소가 사라지기를 기다려 주지 않는다 (덮인 채로 밀어 달이 안 넘어갔다)
+  await expect(
+    page.getByRole('status').filter({ hasText: 'nanaki를 여는 중' }),
+  ).toHaveCount(0);
 
   // 캘린더 좌우 스와이프 (Issue #32): 왼쪽으로 밀면 다음 달, 위아래로 밀면 그대로. 끝나면 "오늘"로 돌아와 흐름을 이어 간다.
   // 터치를 손가락처럼 움직이는 방법(CDP Input.dispatchTouchEvent)이 크로미움에만 있어 WebKit에서는 이 부분을 건너뛴다
