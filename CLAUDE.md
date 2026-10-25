@@ -122,7 +122,7 @@ src/
                   records/overview/ = 기록 탭 첫 화면(이번 달 카드, 최근 기록)
                   records/detail/ = 기록 상세(RecordDetail), 수정·삭제 동작(RecordActions), 수정 화면(RecordEditForm)
                   records/type/ = 타입 상세(달 이동, 타입별 요약 카드 registry, 목록)
-                  records/sample/ = 체험하기 예시 기록(오늘 기준 최근 2주, 순수 함수)·예시 고정지출(결제일이 오늘과 겹치지 않게) + 넣기(addSampleRecords)
+                  records/sample/ = 체험하기 예시 기록(오늘 기준 최근 6주 약 90개: 기본 sampleRecords + 다양하게 추가한 sampleRecordsMore, 오늘은 점심·택시 두 건만(E2E 기준), 순수 함수)·예시 고정지출(결제일이 오늘과 겹치지 않게) + 넣기(addSampleRecords)
                   records/api/recordOutbox = 오프라인 작성 대기열 보내기(순서대로 id upsert, 서버 거절만 멈춤),
                   records/sync/ = 앱 틀의 OutboxSync(언제 보낼지·실패 토스트), OfflineBanner, OfflineWarmup(로그인 뒤 주요 화면 미리 받기)
                   records/routes/ = 기록 화면 주소 만들기·읽기(recordRoutes)와 주소에서 값을 읽어 화면을 고르는 *FromUrl,

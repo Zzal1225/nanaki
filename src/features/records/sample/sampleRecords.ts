@@ -1,9 +1,10 @@
 import { addDaysTo } from '@/shared/date/calendar';
 import { shiftMonth, toMonthString } from '@/shared/date/month';
 import type { DistributiveOmit, NewRecordInput } from '../api/recordStore';
+import { MORE_SAMPLE_TEMPLATES } from './sampleRecordsMore';
 
 // "로그인 없이 체험하기"로 들어온 사람이 빈 화면 대신 바로 둘러볼 수 있게 넣는 예시 기록.
-// 날짜는 고정값이 아니라 "오늘에서 며칠 전"으로 둔다: 언제 체험해도 최근 2주 안에 점이 찍히고,
+// 날짜는 고정값이 아니라 "오늘에서 며칠 전"으로 둔다: 언제 체험해도 최근 6주 안에 점이 찍히고(기본 2주 + 추가분 sampleRecordsMore),
 // 미래 날짜는 쓰지 않는다 (아직 일어나지 않은 일을 기록한 것처럼 보이지 않게)
 
 type SampleTemplate = {
@@ -274,10 +275,12 @@ const PREVIOUS_MONTH_TEMPLATES: readonly SampleTemplate['record'][] = [
 // today('YYYY-MM-DD', 브라우저의 오늘)를 기준으로 날짜를 채운 예시 기록들.
 // 오늘을 받는 이유: 여기서 new Date()를 부르면 테스트마다 결과가 달라진다
 export function buildSampleRecords(today: string): NewRecordInput[] {
-  const recent = SAMPLE_TEMPLATES.map(({ daysAgo, record }) => ({
-    ...record,
-    occurredAt: addDaysTo(today, -daysAgo),
-  }));
+  const recent = [...SAMPLE_TEMPLATES, ...MORE_SAMPLE_TEMPLATES].map(
+    ({ daysAgo, record }) => ({
+      ...record,
+      occurredAt: addDaysTo(today, -daysAgo),
+    }),
+  );
   const previousMonthFirst = `${shiftMonth(toMonthString(today), -1)}-01`;
   const previousMonth = PREVIOUS_MONTH_TEMPLATES.map((record) => ({
     ...record,
