@@ -61,12 +61,14 @@ test('가계부 카드 → 예산 정하기 → 전체·분류별 예산 → 카
   await expect(totalSheet).toBeVisible();
   const totalInput = totalSheet.getByLabel('전체 예산');
   await expect(totalInput).toHaveAttribute('inputmode', 'numeric');
-  await totalInput.fill('600000');
-  await expect(totalInput).toHaveValue('600,000');
+  // 전체 예산은 예시 기록을 모두 더해도(약 210만 원) 넘지 않게 크게: 넘으면 "초과"가 전체·식비 두 곳에 떠서
+  // 아래의 식비 초과 확인이 어느 쪽인지 모호해진다 (2026-10-25 체험 데이터를 늘리며 이번 달 지출이 60만 원을 넘었다)
+  await totalInput.fill('5000000');
+  await expect(totalInput).toHaveValue('5,000,000');
   await expectNoProblems(page, '전체 예산 시트');
   await totalSheet.getByRole('button', { name: '저장' }).click();
   await expect(totalSheet).toBeHidden();
-  await expect(page.getByText('600,000원', { exact: true })).toBeVisible();
+  await expect(page.getByText('5,000,000원', { exact: true })).toBeVisible();
 
   // 분류별 예산: 식비 1,000원이면 오늘 점심(9,800원)만으로 넘는다 → 아이콘 + "초과" 글자
   await page.getByRole('button', { name: '분류별 예산 정하기' }).click();
@@ -82,7 +84,7 @@ test('가계부 카드 → 예산 정하기 → 전체·분류별 예산 → 카
   await page.getByRole('link', { name: '가계부 화면으로 돌아가기' }).click();
   await expect(page).toHaveURL(/\/records\/type\/expense\?month=/);
   await expect(
-    page.getByRole('link', { name: /예산 600,000원/ }),
+    page.getByRole('link', { name: /예산 5,000,000원/ }),
   ).toBeVisible();
 });
 
