@@ -16,6 +16,7 @@ Claude 디자인 시안 원본입니다. **참고용**이며 앱 코드에서 im
 | `nanaki_Type_Detail.dc.html` | 타입 상세. 타입: expense, review, workout, routine, body | 타입 상세 마크업 |
 | `nanaki_AI.dc.html` | 나키 탭. 상태: start, chat, loading, offline | step3 |
 | `nanaki_Sidebar.dc.html` | PC 사이드바. 펼침(240px)/접힘(72px), 새 기록 메뉴 | PC·태블릿 레이아웃 |
+| `nanaki-login-handoff/` | 로그인 등장 애니메이션 시안 (2026-10-24): `spec.md` 타임라인, `login-animation.html` 레퍼런스 구현(키프레임·이징 원본), 반전 아바타 SVG, 토큰. 앱 구현은 `src/features/auth/login/` | Issue #9, 로그인 화면 |
 
 ## 읽는 법 (Claude Code에게)
 
