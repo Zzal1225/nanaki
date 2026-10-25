@@ -1,3 +1,4 @@
+import AppSplash from '@/features/auth/login/AppSplash';
 import SidebarNewRecordMenu from '@/features/records/entry/SidebarNewRecordMenu';
 import SpeedDial from '@/features/records/entry/SpeedDial';
 import OfflineBanner from '@/features/records/sync/OfflineBanner';
@@ -40,6 +41,8 @@ export default function AppLayout({ children }: LayoutProps<'/'>) {
         <OfflineWarmup />
         {/* 화면 키보드가 아래 입력칸을 가리지 않게 (높이 재기·스크롤). 그리는 것은 없다 */}
         <KeyboardInset />
+        {/* 앱을 새로 열 때의 로딩 화면: 데이터 요청이 끝날 때까지 위를 덮는다. 요청을 보려고 QueryProvider 안에 둔다 */}
+        <AppSplash />
       </div>
     </QueryProvider>
   );
