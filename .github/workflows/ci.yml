@@ -106,19 +106,18 @@ jobs:
             exit 1
           fi
 
-      # 32단계: 같은 모바일 E2E를 사파리 엔진(WebKit)으로. 처음에는 경고만(continue-on-error): 흔들림이 없는지 몇 번 본 뒤 실패로 바꾼다.
-      # 결과물은 다른 폴더에 둔다: 위 단계의 보고서·화면 비교 결과를 덮지 않게
-      # 설치도 경고만 + 5분 제한: 평소 20초인데, 2026-10-23 #90에서 우분투 패키지 서버가 멈춰 두 번 연속 15분 넘게 걸렸고
-      # job 제한(20분)에 걸려 필수 검사 integration 전체가 취소됐다. 경고만인 단계가 병합을 막으면 안 된다
-      - name: WebKit 설치 (경고만)
+      # 32단계: 같은 모바일 E2E를 사파리 엔진(WebKit)으로. 결과물은 다른 폴더에 둔다: 위 단계의 보고서·화면 비교 결과를 덮지 않게.
+      # 처음에는 경고만이었다(흔들림을 먼저 보려고). 2026-10-26 최근 60회 중 E2E가 돈 50회 모두 통과 → 실패로 바꿈.
+      # 설치는 경고만으로 남긴다: 실패 원인이 우리 코드가 아니라 우분투 패키지 서버였다(#90에서 15분 넘게 멈춤, 60회 중 1번 실패).
+      # 대신 한 번 다시 시도하고, 그래도 안 되면 경고를 남기고 WebKit E2E를 건너뛴다(병합을 막지 않게)
+      - name: WebKit 설치 (실패하면 한 번 더, 그래도 안 되면 경고만)
         id: webkit_install
         continue-on-error: true
-        timeout-minutes: 5
-        run: npx playwright install --with-deps webkit
-      - name: E2E (WebKit, 경고만)
+        timeout-minutes: 10
+        run: npx playwright install --with-deps webkit || npx playwright install --with-deps webkit
+      - name: E2E (WebKit)
         id: webkit
         if: steps.webkit_install.outcome == 'success'
-        continue-on-error: true
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ env.SUPABASE_TEST_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ env.SUPABASE_TEST_ANON_KEY }}
@@ -127,14 +126,11 @@ jobs:
           E2E_WEBKIT: '1'
           PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-webkit
         run: npx playwright test --project=mobile-webkit --output=test-results-webkit
-      - name: WebKit 실패 알림
-        if: steps.webkit.outcome == 'failure'
-        run: echo "::warning::WebKit E2E가 실패했습니다 (아직 경고만). webkit-report 아티팩트에서 원인을 확인하세요."
       - name: WebKit 설치 실패 알림
         if: steps.webkit_install.outcome == 'failure'
-        run: echo "::warning::WebKit 설치가 실패해 WebKit E2E를 건너뛰었습니다 (아직 경고만). 대개 패키지 서버 문제라 다시 실행하면 됩니다."
+        run: echo "::warning::WebKit 설치가 두 번 실패해 WebKit E2E를 건너뛰었습니다. 대개 패키지 서버 문제라 다시 실행하면 됩니다."
       - uses: actions/upload-artifact@v4
-        if: steps.webkit.outcome == 'failure'
+        if: failure() && steps.webkit.outcome == 'failure'
         with:
           name: webkit-report
           path: |
