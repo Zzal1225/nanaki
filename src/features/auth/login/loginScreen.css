@@ -375,3 +375,81 @@
     transform: scale(1.2);
   }
 }
+
+/* ---------- 로그인 버튼을 누른 뒤 (로딩 화면으로 이어지기) ---------- */
+/* 버튼 줄만 흐려지고 자리는 남긴다: 위 부분이 움직이지 않아야 같은 자리의 로딩 화면(AppSplash)으로 끊김 없이 넘어간다.
+   aria-busy는 SignInButtons가 진행 중인 버튼에 붙인다. 실패하면 떼어져 버튼과 오류 문구가 다시 보인다.
+   :has()를 body가 아니라 로그인 화면 안에서만 쓴다: 로그인 화면이 숨어 남아 있어도(cacheComponents) 앱 화면에는 영향이 없다.
+   opacity가 아니라 filter로 흐린다: 등장 애니메이션(login-up, fill both)이 끝난 뒤에도 opacity: 1을 쥐고 있어 opacity 선언은 먹지 않는다 */
+.login-actions {
+  transition: filter 0.3s ease;
+}
+.login-actions:has([aria-busy='true']) {
+  filter: opacity(0);
+  pointer-events: none;
+}
+
+/* ---------- 앱을 열 때의 로딩 화면 (AppSplash, 2026-10-25 사용자 결정) ---------- */
+/* 앱 화면 위를 덮는다. z-index 100: 앱에서 가장 높은 것(시트·메뉴 50)보다 위 */
+.app-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow: hidden;
+  transition: opacity 0.25s ease;
+  /* 자바스크립트가 실패하거나 느려도 8초 뒤에는 화면을 보여 준다 (splashRules.ts SPLASH_MAX_MS와 같은 값).
+     화면 비교 테스트(Playwright animations: disabled)도 끝난 모습 = 숨은 상태로 찍는다 */
+  animation: app-splash-timeout 0s linear 8s forwards;
+}
+@keyframes app-splash-timeout {
+  to {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+.app-splash[data-leaving] {
+  opacity: 0;
+  pointer-events: none;
+}
+/* 오프라인으로 연 페이지: <head> 스크립트가 첫 그리기 전에 붙인다 (기다릴 응답이 없다) */
+html[data-splash-skip] .app-splash {
+  display: none;
+}
+/* 버튼 자리만 차지한다 (PC에서 로그인 화면과 아바타 높이를 맞추려고). 버튼 두 개 + 안내 한 줄의 높이 */
+.app-splash-actions-space {
+  height: 124px;
+  animation: none;
+}
+
+/* 로그인 버튼을 누르고 이어진 경우: 등장 동작 없이 로그인 화면의 마지막 모습(나나키)에서 시작하고, 계속 도는 움직임(둥실·고리·깜빡임)만 남긴다.
+   새로 연 페이지는 <head> 스크립트가 html에, 앱 안 이동(체험하기)은 AppSplash가 자기 요소에 표시를 붙인다 */
+:is(html[data-splash-continued] .app-splash, .app-splash[data-continued])
+  :is(.login-wordmark, .login-slogan, .login-av-circle, .login-av-face) {
+  animation: none;
+}
+:is(html[data-splash-continued] .app-splash, .app-splash[data-continued])
+  .login-phrase {
+  animation: none;
+  transform: scale(1.2);
+}
+:is(html[data-splash-continued] .app-splash, .app-splash[data-continued])
+  .login-phrase
+  .login-fold {
+  display: none;
+}
+:is(html[data-splash-continued] .app-splash, .app-splash[data-continued])
+  .login-phrase
+  .login-key {
+  animation: none;
+  color: var(--login-fg);
+}
+/* 둥근 고리는 로그인 화면에서 이미 돌고 있었다: 처음(지연 0.6초)부터 다시 시작하면 잠깐 사라졌다 나타나 보여서 바로 돌게 한다 */
+:is(html[data-splash-continued] .app-splash, .app-splash[data-continued])
+  .login-ring-1 {
+  animation-delay: 0s;
+}
+:is(html[data-splash-continued] .app-splash, .app-splash[data-continued])
+  .login-ring-2 {
+  animation-delay: -1.2s;
+}

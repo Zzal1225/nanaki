@@ -10,6 +10,12 @@ test('체험하기 → 가계부 쓰기 → 홈 캘린더의 오늘 요약에 �
 
   // 예시 기록이 들어간 채로 홈에 도착한다
   await expect(page).toHaveURL('/');
+  // 로그인 화면이 로딩 화면으로 등장 동작 없이 이어지고(최소 1초), 데이터가 오면 사라진다 (AppSplash, 2026-10-25)
+  const splash = page
+    .getByRole('status')
+    .filter({ hasText: 'nanaki를 여는 중' });
+  await expect(splash).toHaveAttribute('data-continued', '');
+  await expect(splash).toHaveCount(0);
   const daySummary = page.getByRole('region', { name: /월 \d+일/ });
   await expect(daySummary.getByText('가계부 2건')).toBeVisible();
   await expect(daySummary.getByText('-16,800원')).toBeVisible();

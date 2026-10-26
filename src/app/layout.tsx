@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { SerwistProvider } from '@serwist/turbopack/react';
+import { SPLASH_INIT_SCRIPT } from '@/features/auth/login/splashRules';
 import ThemeSync from '@/shared/theme/ThemeSync';
 import { THEME_INIT_SCRIPT } from '@/shared/theme/themeInitScript';
 // 동적 서브셋: 글자를 92조각으로 나눠 두고 화면에 나온 글자가 든 조각만 받는다 (전체 파일은 약 2MB).
@@ -41,6 +42,10 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        {/* 앱을 열 때의 로딩 화면을 첫 그리기 전에 고른다: 오프라인이면 숨김, 로그인 버튼을 누르고 왔으면 등장 동작 없이 (AppSplash).
+            로딩 화면이 있는 앱 틀((app)/layout)에 두지 않은 이유: 앱 안 이동으로 그 틀이 브라우저에서 그려질 때 React는 스크립트를 실행하지 않는다.
+            html에 붙는 표시라 위의 suppressHydrationWarning이 같이 덮는다 */}
+        <script dangerouslySetInnerHTML={{ __html: SPLASH_INIT_SCRIPT }} />
       </head>
       {/* 위쪽 여백 = env(safe-area-inset-top). 상태 표시줄 뒤까지 그리는 설정(black-translucent)일 때만 0이 아니다.
           지금 설정(default)의 아이폰 홈 화면 앱에서는 0으로 재졌다(2026-10-22, iOS 18.7): 앱 화면이 상태 표시줄 아래에서 시작한다.

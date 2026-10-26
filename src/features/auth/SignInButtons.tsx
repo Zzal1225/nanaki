@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { addSampleRecords } from '@/features/records/sample/addSampleRecords';
 import GoogleSignInButton from './GoogleSignInButton';
 import { signInAsGuest, signInWithGoogle } from './authActions';
+import { markSplashContinue } from './login/splashRules';
 
 type SignInMethod = 'google' | 'guest';
 
@@ -23,6 +24,8 @@ export default function SignInButtons() {
   async function handleGoogleClick() {
     setPendingMethod('google');
     setErrorMessage(null);
+    // 구글 화면을 다녀와 앱이 열리면 로딩 화면이 지금 모습(나나키)에서 이어지게 (AppSplash, 2026-10-25 사용자 결정)
+    markSplashContinue();
 
     const error = await signInWithGoogle();
     // 성공하면 구글 화면으로 떠나므로 여기서는 실패만 처리한다
@@ -35,6 +38,7 @@ export default function SignInButtons() {
   async function handleGuestClick() {
     setPendingMethod('guest');
     setErrorMessage(null);
+    markSplashContinue();
 
     const error = await signInAsGuest();
     if (error) {
