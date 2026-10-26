@@ -43,7 +43,7 @@ export default defineConfig({
   },
   // 화면 비교 기준 이미지와 비교할 때 허용하는 차이: 전체 픽셀의 0.2%.
   // 0이면 글꼴 안티앨리어싱 한두 픽셀에도 실패하고, 크게 잡으면 버튼 하나가 사라져도 통과한다
-  expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.002 } },
+  expect: { toHaveScreenshot: { maxDiffPixels: 0 } },
   projects: [
     // 기능 흐름: PC(1280×720). 기록 쓰기(사이드바 "새 기록" 메뉴)와 검색(기록 탭 왼쪽 목록 자리)
     {
