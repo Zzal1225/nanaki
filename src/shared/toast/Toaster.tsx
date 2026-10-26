@@ -8,6 +8,8 @@ import { useToastStore } from './toastStore';
 
 // 시안: 되돌릴 수 있는 시간 5초
 export const TOAST_DURATION_MS = 5000;
+// 길게 보여 줄 안내 (보고서 PDF 위치처럼 읽고 따라 할 글)
+export const LONG_TOAST_DURATION_MS = 10_000;
 
 // 앱 전체에 하나. Radix Toast가 맡는 것: 정한 시간 뒤 닫기, 마우스를 올리거나 포커스가 있으면 타이머 멈춤,
 // 스크린 리더에 알림(aria-live), F8로 토스트로 이동, 스와이프로 닫기
@@ -22,6 +24,8 @@ export default function Toaster() {
           // id가 바뀌면 새 토스트로 그려 타이머가 처음부터 다시 돈다
           key={toast.id}
           open
+          // 없으면 Provider의 기본 시간(5초)
+          duration={toast.durationMs}
           onOpenChange={(open) => {
             if (!open) dismissToast();
           }}

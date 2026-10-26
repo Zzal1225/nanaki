@@ -21,6 +21,8 @@ import { formatDisplayDate } from '@/shared/date/formatDisplayDate';
 import { useToday } from '@/shared/date/useToday';
 import { useBodyClass } from '@/shared/layout/useBodyClass';
 import { DARK_CLASS_NAME } from '@/shared/theme/theme';
+import { LONG_TOAST_DURATION_MS } from '@/shared/toast/Toaster';
+import { useToastStore } from '@/shared/toast/toastStore';
 import Button from '@/shared/ui/Button';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import {
@@ -62,6 +64,23 @@ function useLightWhilePrinting() {
   }, []);
 }
 
+// 인쇄 창이 닫히면 PDF를 어디서 찾는지 알린다 (2026-10-26 사용자: 저장해도 아무 반응이 없어 저장됐는지 긴가민가했다).
+// 브라우저는 저장했는지·취소했는지 알려 주지 않아서(afterprint는 둘 다 온다) "저장했다면"으로 쓴다.
+// 고르지 않은 대안: PDF를 직접 만들어 공유 시트로 넘기기(백업처럼) — 라이브러리가 필요하고 글자가 그림이 된다(2026-10-24 결정)
+function usePrintClosedNotice() {
+  const showToast = useToastStore((state) => state.showToast);
+  useEffect(() => {
+    const notify = () =>
+      showToast({
+        message: 'PDF로 저장했다면 고른 위치(아이폰은 파일 앱)에 있어요',
+        // 5초는 읽기 전에 사라졌다 (2026-10-26 아이폰 확인)
+        durationMs: LONG_TOAST_DURATION_MS,
+      });
+    window.addEventListener('afterprint', notify);
+    return () => window.removeEventListener('afterprint', notify);
+  }, [showToast]);
+}
+
 function ofType<T extends RecordType>(
   entries: readonly { type: RecordType }[],
   type: T,
@@ -74,6 +93,7 @@ function ofType<T extends RecordType>(
 // 인쇄에는 data-print-root 안만 나온다 (globals.css @media print): 앱 틀(사이드바·하단 탭·+ 버튼)은 손대지 않고 숨긴다
 export default function ReportView({ query }: { query: ReportQuery }) {
   useLightWhilePrinting();
+  usePrintClosedNotice();
   // 인쇄 CSS(globals.css 6. 인쇄)가 이 화면이 보이는 동안만 앱 틀을 숨기게
   useBodyClass('report-printing');
   const today = useToday();

@@ -6,6 +6,7 @@ import { getBudget } from '@/features/budget/api/budgetStore';
 import { listRecords } from '@/features/records/api/recordStore';
 import type { RecordEntry } from '@/features/records/schema/recordEntry';
 import { listRoutines } from '@/features/routines/api/routineStore';
+import { useToastStore } from '@/shared/toast/toastStore';
 import ReportView from './ReportView';
 
 vi.mock('@/features/records/api/recordStore', () => ({
@@ -163,5 +164,17 @@ describe('ReportView', () => {
     window.dispatchEvent(new Event('afterprint'));
     expect(document.documentElement.classList.contains('dark')).toBe(true);
     document.documentElement.classList.remove('dark');
+  });
+
+  // 2026-10-26 사용자: 아이폰에서 PDF를 저장해도 아무 반응이 없어 저장됐는지 몰랐다
+  it('인쇄 창이 닫히면 PDF를 어디서 찾는지 토스트로', () => {
+    useToastStore.setState({ toast: null });
+    renderView();
+    window.dispatchEvent(new Event('afterprint'));
+    expect(useToastStore.getState().toast?.message).toContain(
+      'PDF로 저장했다면',
+    );
+    // 5초는 읽기 전에 사라졌다 → 길게
+    expect(useToastStore.getState().toast?.durationMs).toBe(10_000);
   });
 });

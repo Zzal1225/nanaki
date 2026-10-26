@@ -14,6 +14,8 @@ export type Toast = {
   action?: ToastAction;
   // 실패 알림은 앞에 경고 아이콘을 붙인다 (시안 15b). 색만으로 구분하지 않는다
   tone?: 'error';
+  // 기본(5초)보다 오래 보여야 하는 안내만. 읽고 다른 앱(파일 앱)에서 할 일을 알려 주는 글처럼 길 때
+  durationMs?: number;
 };
 
 type ToastState = {

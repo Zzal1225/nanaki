@@ -364,6 +364,14 @@
     background: var(--surface);
   }
 
+  /* 홈 화면 앱은 html을 화면 높이로 고정하고 body 안에서 스크롤한다(위 display-mode: standalone). 인쇄에도 그대로 남으면
+     화면 한 장 높이만 찍혀 보고서 위아래가 잘렸다 (2026-10-26 아이폰 확인) → 인쇄할 때는 내용 높이대로 늘린다 */
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
   /* 브라우저 기본값은 배경색을 인쇄하지 않아 막대 그래프가 사라진다 */
   html {
     print-color-adjust: exact;

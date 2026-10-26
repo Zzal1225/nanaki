@@ -5,6 +5,7 @@ import { Download, Info, Upload } from 'lucide-react';
 import { useState } from 'react';
 import SettingsSection from '@/features/settings/SettingsSection';
 import { useOnlineStatus } from '@/shared/network/useOnlineStatus';
+import { useToastStore } from '@/shared/toast/toastStore';
 import Button from '@/shared/ui/Button';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import { BACKUP_PARSE_MESSAGE, parseBackup } from '../backupFile';
@@ -26,10 +27,9 @@ export default function DataSection() {
   const counts = useDataCounts(isOnline);
   const exportBackup = useExportBackup();
   const importBackup = useImportBackup();
-  const [message, setMessage] = useState<{
-    text: string;
-    isError: boolean;
-  } | null>(null);
+  // 저장·불러오기 결과는 토스트로 (2026-10-26 사용자 요청: 칸 아래 글자는 눈에 잘 안 띄었다).
+  // 화면에 남는 글자는 "파일에 저장하기" 버튼이 필요한 경우(needsTap) 하나뿐이다: 버튼과 함께 있어야 뜻이 통한다
+  const showToast = useToastStore((state) => state.showToast);
 
   // 아이폰에서 공유 시트가 막혔을 때(파일을 만드는 동안 시간이 지남) 한 번 더 눌러 열 파일
   const [readyFile, setReadyFile] = useState<{
@@ -39,45 +39,41 @@ export default function DataSection() {
 
   function showOutcome(outcome: SaveOutcome, count: number, file: File) {
     setReadyFile(outcome === 'needsTap' ? { file, count } : null);
-    setMessage({
-      text:
+    if (outcome === 'needsTap') return;
+    showToast({
+      message:
         outcome === 'cancelled'
           ? '저장을 취소했어요'
-          : outcome === 'needsTap'
-            ? '파일이 준비됐어요. 아래 버튼을 눌러 "파일에 저장"을 고르세요'
-            : `기록 ${count}개를 백업 파일로 저장했어요`,
-      isError: false,
+          : `기록 ${count}개를 백업 파일로 저장했어요`,
     });
   }
 
   async function save() {
-    setMessage(null);
     setReadyFile(null);
     try {
       const { count, outcome, file } = await exportBackup.mutateAsync();
       showOutcome(outcome, count, file);
     } catch {
-      setMessage({
-        text: '백업 파일을 만들지 못했어요. 잠시 후 다시 시도해 주세요',
-        isError: true,
+      showToast({
+        message: '백업 파일을 만들지 못했어요. 잠시 후 다시 시도해 주세요',
+        tone: 'error',
       });
     }
   }
 
   async function load(file: File) {
-    setMessage(null);
     const parsed = parseBackup(await file.text());
     if (!parsed.ok) {
-      setMessage({ text: BACKUP_PARSE_MESSAGE[parsed.error], isError: true });
+      showToast({ message: BACKUP_PARSE_MESSAGE[parsed.error], tone: 'error' });
       return;
     }
     try {
       const result = await importBackup.mutateAsync(parsed.backup);
-      setMessage({ text: importResultMessage(result), isError: false });
+      showToast({ message: importResultMessage(result) });
     } catch {
-      setMessage({
-        text: '불러오지 못했어요. 잠시 후 다시 시도해 주세요',
-        isError: true,
+      showToast({
+        message: '불러오지 못했어요. 잠시 후 다시 시도해 주세요',
+        tone: 'error',
       });
     }
   }
@@ -123,10 +119,15 @@ export default function DataSection() {
         aria-disabled={!isOnline || isBusy}
         className={`${ROW_CLASS} ${!isOnline || isBusy ? 'pointer-events-none text-fg-disabled' : 'cursor-pointer hover:bg-surface-hover'}`}
       >
-        {/* accept를 두지 않는다: 아이폰 파일 고르기에서 application/json·.json으로 거르면 백업 파일이 흐리게 나와 고를 수 없었다
-            (2026-10-25 아이폰 확인 12). 다른 파일을 고르면 읽을 때 형식 검사(parseBackup)가 막고 이유를 알린다 */}
+        {/* accept = JSON만: 아이폰은 받는 종류가 비었거나 사진을 포함하면 "사진 보관함·사진 찍기·파일 선택" 메뉴를 먼저 띄운다.
+            JSON만 받으면 바로 파일 화면이 열린다 (2026-10-26 사용자 요청).
+            처음엔 "JSON으로 거르면 백업 파일이 흐려진다"고 보고 accept를 없앴는데(10-25), 그때 파일은 내려받기(a[download])로 Inbox에 생긴 것이었다.
+            공유 시트 "파일에 저장"으로 만든 파일은 터널로 아이폰에서 application/json·.json·json+text 셋 다 고를 수 있음을 확인했다(10-26).
+            MIME과 확장자를 함께 둔다: 브라우저마다 한쪽만 보는 경우가 있다. text/plain은 다른 글 파일까지 보여서 뺐다.
+            그래도 다른 파일이 들어오면 읽을 때 형식 검사(parseBackup)가 막고 이유를 알린다 */}
         <input
           type='file'
+          accept='application/json,.json'
           disabled={!isOnline || isBusy}
           className='sr-only'
           onChange={(event) => {
@@ -150,17 +151,21 @@ export default function DataSection() {
           </span>
         </span>
       </label>
-      {(message ?? offlineNote) && (
+      {offlineNote && (
         <p
-          role={message?.isError ? 'alert' : 'status'}
-          className={`border-t border-border px-4 py-3 text-caption ${message?.isError ? 'text-danger' : 'text-fg-secondary'}`}
+          role='status'
+          className='border-t border-border px-4 py-3 text-caption text-fg-secondary'
         >
-          {message?.text ?? offlineNote}
+          {offlineNote}
         </p>
       )}
       {readyFile && (
         // 이 버튼을 누르는 순간이 새 "사용자 활성화"라 공유 시트가 열린다 (saveBackupFile 설명)
-        <div className='px-4 pb-3'>
+        <div className='flex flex-col gap-2 border-t border-border px-4 py-3'>
+          <p role='status' className='text-caption text-fg-secondary'>
+            파일이 준비됐어요. 아래 버튼을 눌러 &quot;파일에 저장&quot;을
+            고르세요
+          </p>
           <Button
             variant='secondary'
             className='w-full'
