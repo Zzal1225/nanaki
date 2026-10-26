@@ -3,12 +3,18 @@
 // 'use client' 이유: 알림 켜기는 이 기기의 알림 권한을 묻고 푸시를 구독한다 (브라우저 API)
 import { ChevronDown } from 'lucide-react';
 import { useId, useState } from 'react';
+import { usePushSupport } from '@/features/push/hooks/usePushSupport';
 import { useThisDevicePush } from '@/features/push/hooks/useThisDevicePush';
 import { pushSetupMessage } from '@/features/push/pushMessages';
+import { PUSH_UNAVAILABLE_MESSAGE } from '@/features/push/pushSupport';
 import FieldError from '@/shared/ui/FieldError';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import { SwitchControl } from '@/shared/ui/Switch';
-import { formatRemindTime, listRemindTimes } from '../schema/routine';
+import {
+  DEFAULT_REMIND_AT,
+  formatRemindTime,
+  listRemindTimes,
+} from '../schema/routine';
 
 type RemindInputProps = {
   value: string | null;
@@ -16,13 +22,12 @@ type RemindInputProps = {
   error?: string;
 };
 
-// 켤 때 처음 고르는 시각 (아침에 하루 루틴을 떠올리게)
-const DEFAULT_REMIND_AT = '09:00';
 const REMIND_TIMES = listRemindTimes();
 
-// 루틴 알림 (35a, 2026-10-23 사용자 결정): 켜는 순간에만 이 기기의 알림 권한을 묻는다(필요할 때 물어야 허용률이 높고,
-// 아이폰은 버튼을 눌러야만 물을 수 있다). 시각은 10분 단위, 일정이 있는 날 아직 안 했으면 보낸다(보내기는 35b).
-// 시각은 루틴에 저장되고 알림은 구독한 모든 기기로 간다: 이 기기에서 못 켜도(권한 거절 등) 시각은 저장한다
+// 루틴 알림 (35a, 2026-10-23 사용자 결정): 시각은 10분 단위, 일정이 있는 날 아직 안 했으면 보낸다(보내기는 35b).
+// 시각은 루틴에 저장되고 알림은 구독한 모든 기기로 간다: 이 기기에서 못 켜도(권한 거절 등) 시각은 저장한다.
+// 새 루틴은 알림이 켜진 채 시작한다 (2026-10-25 사용자 결정). 웹은 사용자가 누르기 전에는 권한을 물을 수 없어서
+// (아이폰은 무시한다) 이 기기 권한은 저장 버튼을 누를 때 묻는다 (RoutineForm). 여기서 스위치를 직접 켜면 그때 바로 묻는다
 export default function RemindInput({
   value,
   onChange,
@@ -32,8 +37,17 @@ export default function RemindInput({
   const selectId = useId();
   const errorId = useId();
   const [message, setMessage] = useState<string | null>(null);
-  const { subscribe } = useThisDevicePush();
+  const { subscribe, isSubscribed, isChecking } = useThisDevicePush();
+  const support = usePushSupport();
   const isOn = value !== null;
+  // 켜져 있는데 이 기기가 아직 받지 않을 때: 저장하면 무엇이 일어나는지(권한 묻기) 또는 왜 이 기기로는 안 오는지 미리 알린다
+  const pendingHint =
+    isOn && !isSubscribed && !isChecking && support !== null
+      ? support === 'supported'
+        ? '저장하면 이 기기에서 알림을 허용할지 물어요'
+        : PUSH_UNAVAILABLE_MESSAGE[support]
+      : null;
+  const shownMessage = message ?? pendingHint;
 
   async function toggle(checked: boolean) {
     if (!checked) {
@@ -67,9 +81,9 @@ export default function RemindInput({
       </div>
       {/* 안내는 스위치 바로 아래: 시각 칸 아래(폼 끝)에 두었더니 새 루틴 화면에서 아래에 붙은 저장 줄에 가려
           아이폰 Safari 탭의 "홈 화면 앱에서만" 안내가 안 보였다 (2026-10-24 아이폰 확인, 로컬 재현) */}
-      {message && (
+      {shownMessage && (
         <p role='status' className='text-caption text-fg-secondary'>
-          {message}
+          {shownMessage}
         </p>
       )}
       {isOn && (

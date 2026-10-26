@@ -44,6 +44,8 @@ export type Goal = z.infer<typeof goalSchema>;
 // 알림 시각 (35a): 한국 시각 'HH:MM', 10분 단위만 (2026-10-23 사용자 결정, DB check와 같은 규칙).
 // 보내는 작업이 10분마다 돌아서 그 사이 시각은 언제 울릴지 애매하다. 분의 끝자리가 0인지를 정규식으로 본다
 export const REMIND_MINUTE_STEP = 10;
+// 새 루틴·알림을 켤 때 처음 고르는 시각 (아침에 하루 루틴을 떠올리게)
+export const DEFAULT_REMIND_AT = '09:00';
 export const remindAtSchema = z
   .string()
   .regex(/^([01]\d|2[0-3]):[0-5]0$/, { error: '10분 단위로 골라 주세요' })

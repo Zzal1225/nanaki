@@ -28,7 +28,7 @@ function BottomTabBarWithPathname() {
 function BottomTabBarView({ pathname }: { pathname: string | null }) {
   // 작성·수정 화면에서는 탭을 그리지 않는다 (2026-10-22 사용자 결정). 대신 표시만 남겨,
   // globals.css가 --tab-bar-height를 홈 막대 여백만으로 줄인다 → 본문 아래 빈칸이 사라지고
-  // 저장 버튼(sticky bottom-(--tab-bar-height))이 화면 맨 아래 홈 막대 바로 위에 붙는다
+  // 폼 끝 저장 버튼 아래에 홈 막대 자리만 남는다
   if (pathname !== null && isFormPath(pathname)) {
     return <span data-tab-bar-hidden hidden />;
   }

@@ -7,6 +7,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Controller, useForm } from 'react-hook-form';
 import { isPushConfigured } from '@/features/push/api/pushStore';
+import { usePushSupport } from '@/features/push/hooks/usePushSupport';
+import { useThisDevicePush } from '@/features/push/hooks/useThisDevicePush';
+import { pushSetupMessage } from '@/features/push/pushMessages';
+import { useToastStore } from '@/shared/toast/toastStore';
 import { useOnlineStatus } from '@/shared/network/useOnlineStatus';
 import Button from '@/shared/ui/Button';
 import DateField from '@/shared/ui/DateField';
@@ -14,6 +18,7 @@ import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import TextField from '@/shared/ui/TextField';
 import { useCreateRoutine, useUpdateRoutine } from '../hooks/useRoutines';
 import {
+  DEFAULT_REMIND_AT,
   MAX_ROUTINE_NAME_LENGTH,
   type Routine,
   type RoutineFormValues,
@@ -52,8 +57,9 @@ function toDefaultValues(props: RoutineFormProps): RoutineDraftInput {
     startDate: today,
     schedule: scheduleToDraft(undefined, today),
     goal: goalToDraft(undefined),
-    // 알림은 사용자가 켤 때만 (켜는 순간 이 기기 알림 권한을 묻는다)
-    remindAt: null,
+    // 알림은 켜진 채 시작 (2026-10-25 사용자 결정, 아이폰 확인 4). 권한은 저장을 누를 때 묻는다 (onSubmit).
+    // 푸시를 쓸 수 없는 배포에서는 알림 칸이 숨어 있어 끌 수도 없으니 꺼 둔다
+    remindAt: isPushConfigured() ? DEFAULT_REMIND_AT : null,
   };
 }
 
@@ -80,8 +86,20 @@ export default function RoutineForm(props: RoutineFormProps) {
   const saving = isEdit ? updateRoutine : createRoutine;
   const isOnline = useOnlineStatus();
   const router = useRouter();
+  const push = useThisDevicePush();
+  const pushSupport = usePushSupport();
+  const showToast = useToastStore((state) => state.showToast);
 
   async function onSubmit(values: RoutineFormValues) {
+    // 알림이 켜졌는데 이 기기가 아직 받지 않으면 저장을 누른 지금 권한을 묻는다: 아이폰은 누른 직후가 아니면 묻는 창을 무시해서
+    // 저장 요청을 기다린 뒤에 물으면 늦는다 → 맨 먼저 시작하고 저장과 함께 진행한다.
+    // 이 기기에서 받을 수 없으면(아이폰 Safari 탭·차단) 묻지 않는다: 이유는 알림 칸에 이미 보이고, 시각은 저장해 다른 기기로 보낸다
+    const pushSetup =
+      values.remindAt !== null &&
+      pushSupport === 'supported' &&
+      !push.isSubscribed
+        ? push.subscribe()
+        : null;
     try {
       if (props.mode === 'edit') {
         await updateRoutine.mutateAsync({ id: props.routine.id, values });
@@ -90,6 +108,11 @@ export default function RoutineForm(props: RoutineFormProps) {
       }
       // replace: 뒤로 가기로 방금 저장한 폼에 돌아와 같은 루틴을 또 만들지 않게
       router.replace(props.doneHref);
+      // 권한 창·구독은 기다리지 않고 화면을 옮긴다. 못 켰으면 옮긴 화면에서 토스트로 알린다 (토스트는 화면 밖 저장소라 남는다)
+      void pushSetup?.then((result) => {
+        const message = pushSetupMessage(result);
+        if (message) showToast({ message, tone: 'error' });
+      });
     } catch {
       // 오류 문구는 아래 saving.error로 보여 준다
     }
@@ -185,7 +208,8 @@ export default function RoutineForm(props: RoutineFormProps) {
         />
       )}
 
-      <div className='sticky bottom-(--tab-bar-height) -mx-4 flex flex-col gap-2 bg-bg px-4 py-3 md:bottom-0 md:-mx-6 md:px-6'>
+      {/* 기록 폼(RecordForm)과 같이 폼 끝 제자리에: 화면 아래에 붙어 따라오면 마지막 칸을 덮었다 (2026-10-25 아이폰 확인 10) */}
+      <div className='flex flex-col gap-2 py-3'>
         {saving.error && (
           <p role='alert' className='text-caption text-danger'>
             저장하지 못했어요. 잠시 후 다시 시도해 주세요.

@@ -27,6 +27,18 @@ vi.stubGlobal(
     disconnect() {}
   },
 );
+// 이 파일은 알림을 다루지 않는다 (알림 기본값은 RoutineForm.remind.test). 기기 판단·구독은 받지 않는 기기로 고정
+vi.mock('@/features/push/hooks/usePushSupport', () => ({
+  usePushSupport: () => 'unsupported',
+}));
+vi.mock('@/features/push/hooks/useThisDevicePush', () => ({
+  useThisDevicePush: () => ({
+    isSubscribed: false,
+    isChecking: false,
+    subscribe: vi.fn(),
+    unsubscribe: vi.fn(),
+  }),
+}));
 const replace = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace }) }));
 

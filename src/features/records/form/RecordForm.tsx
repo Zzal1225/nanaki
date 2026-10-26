@@ -269,12 +269,13 @@ export default function RecordForm(props: RecordFormProps) {
         props.sectionPlacement !== 'afterFields' &&
         props.section}
 
-      {/* 모바일에서 저장 버튼이 하단 탭 바로 위에 붙어 있게 한다 (--tab-bar-height에 홈 막대 여백이 이미 들어 있다).
-          글자를 치는 동안은 붙지 않고 폼 끝 제자리에 놓인다 (data-unstick-while-typing, globals.css) */}
+      {/* 저장 버튼은 폼 맨 끝 제자리에 둔다 (2026-10-25 사용자 결정, 아이폰 확인 10).
+          예전에는 화면 아래에 붙어 따라오게(sticky) 했는데, 스크롤하는 동안 버튼 줄이 메모 칸 아래쪽을 덮어
+          "저장 버튼이 입력칸 위에 올라와 가린다"로 보였다. z-index가 아니라 따라오는 동작 자체가 원인이라 늘 제자리로 정했다.
+          버린 대안: 저장을 머리줄로 옮기기 (모바일에서 손가락이 먼 위쪽, PC 패널과 자리가 달라진다) */}
       <div
-        data-unstick-while-typing
         // -mt-3: 폼 칸 사이 간격(24px)에 이 줄의 위 여백(12px)이 더해져 마지막 칸과 저장 버튼 사이가 멀어 보였다 (2026-10-23 사용자) → 합쳐 24px
-        className='sticky bottom-(--tab-bar-height) -mx-4 -mt-3 flex flex-col gap-2 bg-bg px-4 py-3 md:bottom-0 md:-mx-6 md:px-6'
+        className='-mt-3 flex flex-col gap-2 py-3'
       >
         {saving.error && (
           <p role='alert' className='text-caption text-danger'>

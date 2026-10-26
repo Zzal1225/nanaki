@@ -314,7 +314,7 @@ export default function NakiScreen() {
         <div ref={endRef} />
       </div>
 
-      {/* 입력창: 하단 탭 바로 위에 붙는다. 글자를 치는 동안은 붙지 않고 제자리(맨 끝)에 (작성 폼 저장 줄과 같은 이유, globals.css).
+      {/* 입력창: 하단 탭 바로 위에 붙는다. 글자를 치는 동안은 붙지 않고 제자리(맨 끝)에 (키보드 위로 떠서 위를 가리지 않게, globals.css).
           data-chat-input: 여기에 포커스하면 본문 끝 여백(하단 탭·홈 막대 자리)을 없앤다. 키보드 위에 90px 빈칸이 보였다 (globals.css, 2026-10-23 아이폰 진단) */}
       <form
         onSubmit={handleSubmit}
