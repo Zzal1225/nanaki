@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { RecordEntry } from '@/features/records/schema/recordEntry';
 import {
+  compareNakiSummaries,
   formatNakiSummary,
   formatNakiSummaryParts,
   orderForPreview,
@@ -173,5 +174,78 @@ describe('나키 답 두 줄 (이름줄 + 큰 값, 2026-10-24)', () => {
   });
   it('기록이 없으면 두 줄로 나누지 않는다 (문장 그대로)', () => {
     expect(parts([], 'body', 'min', 'weight')).toBeNull();
+  });
+});
+
+// 비교 (2026-10-26 "지난달보다 많이 썼어?"): 두 기간을 따로 계산해 차이만 말한다
+describe('나키 비교 (두 기간)', () => {
+  const sum = (
+    entries: RecordEntry[],
+    type: 'expense' | 'workout' = 'expense',
+  ) =>
+    summarizeNakiResults(entries, type, {
+      intent: 'sum',
+      field: type === 'expense' ? 'amount' : 'minutes',
+    });
+
+  it('합계(금액): 마이너스 없이 "더 썼어요·덜 썼어요"와 견준 기간 값', () => {
+    expect(compareNakiSummaries(sum([LUNCH, DINNER]), sum([LUNCH]))).toEqual({
+      kind: 'changed',
+      amount: '31,400원',
+      word: '더 썼어요',
+      previousValue: '-15,000원',
+    });
+    expect(
+      compareNakiSummaries(sum([LUNCH]), sum([LUNCH, DINNER])),
+    ).toMatchObject({
+      word: '덜 썼어요',
+    });
+  });
+
+  it('건수: "N건 많아요·적어요", 같으면 same', () => {
+    const count = (entries: RecordEntry[]) =>
+      summarizeNakiResults(entries, 'workout', {
+        intent: 'count',
+        field: null,
+      });
+    expect(compareNakiSummaries(count([RUN, SWIM]), count([RUN]))).toEqual({
+      kind: 'changed',
+      amount: '1건',
+      word: '많아요',
+      previousValue: '1건',
+    });
+    expect(compareNakiSummaries(count([RUN]), count([SWIM]))).toEqual({
+      kind: 'same',
+      previousValue: '1건',
+    });
+  });
+
+  it('한쪽 기간에 기록이 없으면 합계·건수는 0으로 본다', () => {
+    expect(compareNakiSummaries(sum([LUNCH]), sum([]))).toEqual({
+      kind: 'changed',
+      amount: '15,000원',
+      word: '더 썼어요',
+      previousValue: '0원',
+    });
+  });
+
+  it('평균은 한쪽이 비면, 최고·최저는 언제나 견주지 않는다', () => {
+    const avg = (entries: RecordEntry[]) =>
+      summarizeNakiResults(entries, 'workout', {
+        intent: 'avg',
+        field: 'minutes',
+      });
+    expect(compareNakiSummaries(avg([RUN]), avg([]))).toBeNull();
+    expect(compareNakiSummaries(avg([SWIM]), avg([RUN]))).toMatchObject({
+      kind: 'changed',
+      amount: '15분',
+      word: '높아요',
+    });
+    const max = (entries: RecordEntry[]) =>
+      summarizeNakiResults(entries, 'expense', {
+        intent: 'max',
+        field: 'amount',
+      });
+    expect(compareNakiSummaries(max([LUNCH]), max([DINNER]))).toBeNull();
   });
 });

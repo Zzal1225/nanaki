@@ -35,7 +35,9 @@ import {
 import { useToday } from '@/shared/date/useToday';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import type { NakiAggregate } from '../nakiAggregate';
+import type { NakiCompare } from '../nakiQuery';
 import {
+  compareNakiSummaries,
   formatNakiSummary,
   formatNakiSummaryParts,
   orderForPreview,
@@ -49,6 +51,8 @@ type NakiAnswerProps = {
   state: SearchState;
   // 무엇을 계산할지 (34e, 서버가 거름). 계산은 여기서 찾은 기록으로 한다
   aggregate: NakiAggregate;
+  // 견줄 두 번째 기간 ("지난달보다", 서버가 거름). 같은 조건으로 그 기간을 따로 찾아 계산한다
+  compare: NakiCompare | null;
 };
 
 // 기간 칩 글자. 한 달 전체면 "2026년 9월"(시안), 아니면 검색 칩과 같은 "09.01 (화) ~ 09.15 (화)"
@@ -63,7 +67,19 @@ function formatNakiPeriod(period: PeriodFilter, fallback: string): string {
 
 // 나키의 답 하나 (시안 AI): "이렇게 이해했어요" 칩 → 우리가 계산한 한 줄 → 기록 3개 → 기록 탭에서 모두 보기.
 // 칩이 핵심이다: AI가 질문을 잘못 이해했으면 사용자가 칩을 보고 바로 알아챈다 (결과만 보여 주면 틀린 것을 모른다)
-export default function NakiAnswer({ state, aggregate }: NakiAnswerProps) {
+// 비교 기간 이름: 한 달 전체면 "2026년 9월", 아니면 "09.01 (월) ~ 09.07 (일)"
+function formatComparePeriod(compare: NakiCompare): string {
+  return formatNakiPeriod(
+    { kind: 'custom', ...compare },
+    `${formatShortDate(compare.from)} ~ ${formatShortDate(compare.to)}`,
+  );
+}
+
+export default function NakiAnswer({
+  state,
+  aggregate,
+  compare,
+}: NakiAnswerProps) {
   const today = useToday();
   const visibleTypes = useVisibleTypes();
   const pendingIds = usePendingRecordIds();
@@ -79,6 +95,31 @@ export default function NakiAnswer({ state, aggregate }: NakiAnswerProps) {
     visibleTypes,
   );
   const summary = summarizeNakiResults(results, state.type, aggregate);
+  // 비교: 같은 검색어·조건으로 견줄 기간을 찾는다 (검색과 같은 길, 기기 사본). 비교가 없으면 찾지 않는다(null → skipToken)
+  const compareSearch = useSearchRecords(
+    compare
+      ? { keyword: state.keyword, sort: state.sort, range: compare }
+      : null,
+  );
+  const comparison =
+    compare && compareSearch.data
+      ? compareNakiSummaries(
+          summary,
+          summarizeNakiResults(
+            filterByType(
+              applyFieldFilters(
+                compareSearch.data.entries,
+                state.type,
+                state.fields,
+              ),
+              state.type,
+              visibleTypes,
+            ),
+            state.type,
+            aggregate,
+          ),
+        )
+      : null;
   const parts = formatNakiSummaryParts(summary);
   // 최고·최저면 그 기록을 맨 위에 (답의 근거를 바로 보이게)
   const preview = orderForPreview(results, summary).slice(0, PREVIEW_COUNT);
@@ -91,6 +132,10 @@ export default function NakiAnswer({ state, aggregate }: NakiAnswerProps) {
     ),
     ...(state.keyword
       ? [{ id: 'keyword', label: '검색어', value: state.keyword }]
+      : []),
+    // AI가 비교 기간을 맞게 잡았는지도 칩으로 확인하게 (칩이 핵심: 잘못 이해했으면 바로 보인다)
+    ...(compare
+      ? [{ id: 'compare', label: '비교', value: formatComparePeriod(compare) }]
       : []),
   ];
   // 상세 주소에 조건을 달고 간다: 상세의 뒤로가 이 조건의 검색 결과로 돌아온다 (detailOrigin)
@@ -161,6 +206,15 @@ export default function NakiAnswer({ state, aggregate }: NakiAnswerProps) {
               <span className='text-[28px] leading-[34px] font-bold tracking-[-0.01em] text-fg-primary tabular-nums'>
                 {parts.value}
               </span>
+              {/* 비교 한 줄 (2026-10-26): "2026년 9월보다 42,000원 더 썼어요" + 그 기간 값. 계산은 기기에서 */}
+              {compare && comparison && (
+                <span className='text-body-sm text-fg-primary tabular-nums'>
+                  {comparison.kind === 'same'
+                    ? `${formatComparePeriod(compare)}과 같아요`
+                    : `${formatComparePeriod(compare)}보다 ${comparison.amount} ${comparison.word}`}
+                  <span className='text-fg-secondary'>{` (${comparison.previousValue})`}</span>
+                </span>
+              )}
               {/* 검색은 한 번에 최근 300건까지 본다. 넘으면 합계가 일부 기록 기준이라는 것을 숨기지 않는다 */}
               {search.data?.isTruncated && (
                 <span className='text-caption font-medium text-fg-secondary'>

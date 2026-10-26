@@ -13,7 +13,9 @@ import {
   EMPTY_SEARCH_STATE,
   type SearchState,
 } from '@/features/search/searchState';
-import { isDateString } from '@/shared/date/calendar';
+import { differenceInCalendarDays } from 'date-fns';
+import { addDaysTo, isDateString } from '@/shared/date/calendar';
+import { fromLocalDateString } from '@/shared/date/toLocalDateString';
 import { formatDisplayDate } from '@/shared/date/formatDisplayDate';
 import { getMetricFields } from './nakiAggregate';
 import type { NakiPrevious } from './nakiApi';
@@ -55,6 +57,10 @@ export const nakiAiOutputSchema = z.object({
   // 문자열로 받고 nakiAggregate.toNakiAggregate가 거른다 (enum으로 막으면 모르는 값 하나에 답 전체가 버려진다)
   intent: z.string().nullable(),
   metric: z.string().nullable(),
+  // 비교 (2026-10-26 사용자 결정 "지난달보다 많이 썼어?"): 견줄 두 번째 기간. from·to가 지금 기간이다.
+  // optional: 비교가 없는 질문에서 모델이 칸을 빼도 답 전체를 버리지 않게
+  compareFrom: z.string().nullable().optional(),
+  compareTo: z.string().nullable().optional(),
 });
 export type NakiAiOutput = z.infer<typeof nakiAiOutputSchema>;
 
@@ -197,6 +203,8 @@ export function buildNakiInstructions(
     // 34e 집계: AI는 계산 종류와 칸만 고르고, 계산은 앱이 한다. 기본은 list
     'intent는 질문이 원하는 계산이다: 기록을 보여 달라면 list, 얼마·총·합계면 sum, 몇 번·몇 개·몇 건이면 count, 평균이면 avg, 가장 큰·제일 많은·최고·최대면 max, 가장 작은·제일 낮은·최저·최소면 min. 애매하면 list.',
     'sum·avg·max·min이면 metric에 그 타입 metrics의 name을 쓴다 (예: 체중 → weight, 운동 시간 → minutes, 거리 → distance, 지출 → amount). 그 밖에는 metric을 null로 한다.',
+    // 비교 (2026-10-26): 두 기간을 견주는 질문만. 계산은 앱이 두 기간을 따로 해서 차이를 낸다
+    '질문이 다른 기간과 견주면("지난달보다", "저번 주보다", "작년보다") from·to에는 지금 묻는 기간을, compareFrom·compareTo에는 견줄 기간을 쓴다. intent는 sum·count·avg 중 하나로 한다 (예: "지난달보다 식비 많이 썼어?" → 이번 달 + 지난달, sum). 견주는 말이 없으면 compareFrom·compareTo는 null.',
     `기록 타입과 칸: ${JSON.stringify(types)}`,
     // 태그는 칸이 아니라 검색어로 찾는다 (matchesKeyword가 태그를 하나씩 비교한다)
     ...(tags.length > 0
@@ -267,6 +275,46 @@ function toFieldFilters(output: NakiAiOutput, type: RecordType): FieldFilters {
     }
   }
   return filters;
+}
+
+// ── 비교 기간 (믿지 않고 거른다) ──────────────────────
+
+export type NakiCompare = { from: string; to: string };
+
+// 두 기간을 견줄 수 있는 계산만: 합계·건수·평균(목록은 가계부면 합계, 그 밖은 건수로 계산된다, nakiSummary).
+// 최고·최저는 "어느 기록"이 답이라 기간끼리 차이를 내는 뜻이 없다
+const COMPARABLE_INTENTS: readonly string[] = ['list', 'sum', 'count', 'avg'];
+
+// AI가 준 비교 기간을 거른다. 지금 기간이 있어야 하고, 날짜가 맞고, 지금 기간과 달라야 한다.
+// 지금 기간이 아직 끝나지 않았으면(오늘이 안에 있음) 비교 기간도 같은 일수까지만 자른다:
+// "이번 달"이 1~23일인데 지난달 전체(30일)와 견주면 달 초에는 늘 "덜 썼어요"가 된다 (getSamePeriod와 같은 규칙, 2026-10-22 사용자 결정).
+// 실제 AI 시험(2026-10-26)에서 모델은 지금 기간을 오늘까지, 견줄 기간은 한 달 전체로 잡았다 → 앱이 맞춘다
+export function toNakiCompare(
+  output: NakiAiOutput,
+  state: SearchState | null,
+  intent: string,
+  today: string,
+): NakiCompare | null {
+  if (!state?.period || state.period.kind !== 'custom') return null;
+  if (!COMPARABLE_INTENTS.includes(intent)) return null;
+  const { compareFrom, compareTo } = output;
+  if (!isDateString(compareFrom) || !isDateString(compareTo)) return null;
+  const { from: currentFrom, to: currentTo } = state.period;
+  // 아직 오지 않은 기간은 견줄 기록이 없다
+  if (currentFrom > today) return null;
+  const [from, fullTo] =
+    compareFrom <= compareTo
+      ? [compareFrom, compareTo]
+      : [compareTo, compareFrom];
+  const elapsedDays = differenceInCalendarDays(
+    fromLocalDateString(currentTo < today ? currentTo : today),
+    fromLocalDateString(currentFrom),
+  );
+  const sameLengthTo = addDaysTo(from, elapsedDays);
+  const to =
+    currentTo >= today && sameLengthTo < fullTo ? sameLengthTo : fullTo;
+  if (from === currentFrom && to === currentTo) return null;
+  return { from, to };
 }
 
 // AI 답을 검색 조건으로. 이해하지 못했거나 찾을 조건이 하나도 남지 않으면 null ("잘 이해하지 못했어요")

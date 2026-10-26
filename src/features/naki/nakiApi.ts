@@ -79,6 +79,11 @@ export const nakiAnswerSchema = z.object({
   state: searchStateSchema.nullable(),
   // 34e 무엇을 계산할지 (서버가 걸렀다, nakiAggregate). 없으면 목록: 새 화면이 예전 서버 응답을 받아도 그린다
   aggregate: aggregateSchema.default(LIST_AGGREGATE),
+  // 비교 기간 (서버가 걸렀다, nakiQuery.toNakiCompare). 없으면 null: 예전 서버 응답도 받는다
+  compare: z
+    .object({ from: z.string(), to: z.string() })
+    .nullable()
+    .default(null),
   remaining: z.number().int(),
 });
 

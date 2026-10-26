@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildNakiInstructions,
   describeTypesForAi,
+  toNakiCompare,
   toPreviousConditions,
   toSearchState,
   type NakiAiOutput,
@@ -228,5 +229,106 @@ describe('앞 조건 → AI 모양 (이어 묻기)', () => {
     expect(result.keyword).toBeNull();
     expect(result.selects).toEqual([{ field: 'category', values: ['식비'] }]);
     expect(result.ranges).toEqual([]);
+  });
+});
+
+// 비교 기간 (2026-10-26): AI가 준 두 번째 기간을 거른다
+describe('비교 기간 거르기', () => {
+  const OCTOBER = toSearchState(
+    output({ type: 'expense', from: '2026-10-01', to: '2026-10-31' }),
+    ALL_TYPES,
+  );
+  const withCompare = (compareFrom: string | null, compareTo: string | null) =>
+    output({
+      type: 'expense',
+      from: '2026-10-01',
+      to: '2026-10-31',
+      compareFrom,
+      compareTo,
+    });
+
+  // 10월이 다 지난 뒤 (같은 일수로 자르지 않는다)
+  const AFTER = '2026-11-15';
+
+  it('합계·건수·평균·목록이면 두 번째 기간을 돌려준다 (거꾸로 와도 바로잡는다)', () => {
+    expect(
+      toNakiCompare(
+        withCompare('2026-09-01', '2026-09-30'),
+        OCTOBER,
+        'sum',
+        AFTER,
+      ),
+    ).toEqual({ from: '2026-09-01', to: '2026-09-30' });
+    expect(
+      toNakiCompare(
+        withCompare('2026-09-30', '2026-09-01'),
+        OCTOBER,
+        'list',
+        AFTER,
+      ),
+    ).toEqual({ from: '2026-09-01', to: '2026-09-30' });
+  });
+
+  // 2026-10-26 실제 AI 시험: 이번 달은 오늘까지, 지난달은 한 달 전체로 잡았다 → 같은 일수끼리 (getSamePeriod와 같은 규칙)
+  it('지금 기간이 진행 중이면 비교 기간도 같은 일수까지만 (말일이 짧으면 말일까지)', () => {
+    expect(
+      toNakiCompare(
+        withCompare('2026-09-01', '2026-09-30'),
+        OCTOBER,
+        'sum',
+        '2026-10-23',
+      ),
+    ).toEqual({ from: '2026-09-01', to: '2026-09-23' });
+    const march = toSearchState(
+      output({ type: 'expense', from: '2027-03-01', to: '2027-03-31' }),
+      ALL_TYPES,
+    );
+    expect(
+      toNakiCompare(
+        output({
+          type: 'expense',
+          from: '2027-03-01',
+          to: '2027-03-31',
+          compareFrom: '2027-02-01',
+          compareTo: '2027-02-28',
+        }),
+        march,
+        'sum',
+        '2027-03-31',
+      ),
+    ).toEqual({ from: '2027-02-01', to: '2027-02-28' });
+  });
+
+  it('최고·최저, 지금 기간 없음·아직 안 옴, 틀린 날짜, 같은 기간이면 비교하지 않는다', () => {
+    const valid = withCompare('2026-09-01', '2026-09-30');
+    expect(toNakiCompare(valid, OCTOBER, 'max', AFTER)).toBeNull();
+    expect(
+      toNakiCompare(
+        valid,
+        toSearchState(output({ type: 'expense' }), ALL_TYPES),
+        'sum',
+        AFTER,
+      ),
+    ).toBeNull();
+    expect(toNakiCompare(valid, OCTOBER, 'sum', '2026-09-15')).toBeNull();
+    expect(
+      toNakiCompare(
+        withCompare('2026-09-31', '2026-09-30'),
+        OCTOBER,
+        'sum',
+        AFTER,
+      ),
+    ).toBeNull();
+    expect(
+      toNakiCompare(withCompare(null, null), OCTOBER, 'sum', AFTER),
+    ).toBeNull();
+    expect(
+      toNakiCompare(
+        withCompare('2026-10-01', '2026-10-31'),
+        OCTOBER,
+        'sum',
+        AFTER,
+      ),
+    ).toBeNull();
   });
 });

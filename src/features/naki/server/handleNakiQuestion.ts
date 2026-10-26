@@ -9,7 +9,9 @@ import type { NakiLimits, QuotaResult } from '../nakiLimits';
 import {
   buildNakiInstructions,
   describeTypesForAi,
+  toNakiCompare,
   toSearchState,
+  type NakiCompare,
 } from '../nakiQuery';
 import type { NakiModelResult } from './nakiModel';
 
@@ -51,6 +53,7 @@ export type NakiQuestionResult =
       body: {
         state: SearchState | null;
         aggregate: NakiAggregate;
+        compare: NakiCompare | null;
         remaining: number;
       };
     }
@@ -134,8 +137,13 @@ export async function handleNakiQuestion(
     result.kind === 'ok' && state
       ? toNakiAggregate(result.output.intent, result.output.metric, state.type)
       : LIST_AGGREGATE;
+  // 비교 기간도 서버가 거른다: 지금 기간이 있고 합계·건수·평균일 때만 (toNakiCompare)
+  const compare =
+    result.kind === 'ok'
+      ? toNakiCompare(result.output, state, aggregate.intent, userToday)
+      : null;
   return {
     status: 200,
-    body: { state, aggregate, remaining: quota.remaining },
+    body: { state, aggregate, compare, remaining: quota.remaining },
   };
 }

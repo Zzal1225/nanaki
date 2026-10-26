@@ -77,7 +77,7 @@ src/
                   AppSplash = 앱을 새로 열 때의 로딩 화면(앱 틀에 하나, 최소 1초 → TanStack Query 요청이 0개면 사라짐, 8초 상한은 CSS도, 오프라인이면 생략, 로그인 버튼을 누르고 왔으면 등장 동작 없이 이어짐),
                   splashRules = 시간 규칙·이어지기 표시(sessionStorage)·첫 그리기 전 <head> 스크립트(app/layout).
                   naki/ = AI 챗봇 나키(step3). nakiQuery = AI 답 모양(Zod)·AI에 보낼 필드 정의·지시문·AI 답 → 검색 조건(허용된 타입·칸·연산자만),
-                  nakiApi = API 요청·응답 스키마(서버·브라우저 공용, 이어 묻기 previous는 틀리면 버림), toPreviousConditions = 앞 조건 → AI 답 모양, nakiAggregate = 계산 종류·숫자 칸 거르기(list·sum·count·avg·max·min), nakiSummary = 숫자 한 줄 계산·표기(기기에서),
+                  nakiApi = API 요청·응답 스키마(서버·브라우저 공용, 이어 묻기 previous는 틀리면 버림), toPreviousConditions = 앞 조건 → AI 답 모양, nakiAggregate = 계산 종류·숫자 칸 거르기(list·sum·count·avg·max·min), nakiSummary = 숫자 한 줄 계산·표기(기기에서)·두 기간 비교(compareNakiSummaries), toNakiCompare = AI가 준 비교 기간 거르기(합계·건수·평균만, 진행 중이면 같은 일수),
                   nakiCustomNames = AI에 보낼 사용자가 만든 분류·태그 이름 모으기(이름만, 각 50개), hooks/useNakiCustomNames, nakiEval.test = 실제 AI 질문 묶음(npm run naki:eval, CI는 건너뜀), nakiLimits = 하루 횟수 규칙(환경 변수, 한국 날짜, DB 결과 읽기), api/nakiClient = 브라우저의 유일한 입구,
                   server/nakiModel = AI 제공자 어댑터(이 파일만 ai·@ai-sdk/* import, ESLint로 강제), server/handleNakiQuestion = 로그인·횟수·AI·되돌리기 순서,
                   ui/ = NakiScreen(대화는 메모리만, 안내 3종), NakiAnswer("이렇게 이해했어요" 칩·계산 한 줄·기록 3개·기록 탭에서 보기), TypingExamples(빈 화면 예시 질문 타이핑). 찾기는 검색과 같은 길(기기 사본)

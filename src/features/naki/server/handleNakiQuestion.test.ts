@@ -43,6 +43,7 @@ describe('나키 질문 처리 (서버)', () => {
     expect(result).toEqual({
       status: 200,
       body: {
+        compare: null,
         remaining: 9,
         aggregate: { intent: 'sum', field: 'amount' },
         state: {
@@ -105,6 +106,29 @@ describe('나키 질문 처리 (서버)', () => {
       '"selects":[{"field":"category","values":["식비"]}]',
     );
     expect(instructions).toContain('"intent":"sum"');
+  });
+
+  // 비교 (2026-10-26): AI가 준 두 번째 기간을 거른 뒤 돌려준다
+  it('비교 기간: 합계 질문이면 돌려주고, 없으면 null', async () => {
+    const base = await deps().askModel({ question: '', instructions: '' });
+    if (base.kind !== 'ok') throw new Error('mock');
+    const withCompare = deps({
+      askModel: vi.fn().mockResolvedValue({
+        kind: 'ok',
+        output: {
+          ...base.output,
+          compareFrom: '2026-08-01',
+          compareTo: '2026-08-31',
+        },
+      }),
+    });
+    const compared = await handleNakiQuestion(BODY, withCompare);
+    expect(compared.status === 200 && compared.body.compare).toEqual({
+      from: '2026-08-01',
+      to: '2026-08-31',
+    });
+    const plain = await handleNakiQuestion(BODY, deps());
+    expect(plain.status === 200 && plain.body.compare).toBeNull();
   });
 
   it('이어 묻기가 없으면 앞 질문 줄도 없다', async () => {
@@ -190,6 +214,7 @@ describe('나키 질문 처리 (서버)', () => {
       body: {
         state: null,
         aggregate: { intent: 'list', field: null },
+        compare: null,
         remaining: 9,
       },
     });
