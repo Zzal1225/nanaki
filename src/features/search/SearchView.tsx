@@ -114,8 +114,10 @@ function SearchViewContent() {
   return (
     <div className='mx-auto flex w-full max-w-xl flex-col pb-6'>
       <h1 className='sr-only'>기록 검색</h1>
-      {/* 스크롤해도 머리 줄(뒤로·닫기)이 맨 위에 붙어 있다 (2026-10-22 사용자 요청: 긴 화면에서 뒤로 가려고 다시 올라가기 불편). bg-bg: 밑으로 지나가는 내용이 비치지 않게, z-20: 떠 있는 + 버튼·메뉴(z-40) 아래 */}
-      <div className='sticky top-0 z-20 flex items-center gap-1 bg-bg px-1 pt-2 pb-2 md:px-3 lg:mt-4'>
+      {/* 스크롤해도 머리 줄(뒤로·닫기)이 맨 위에 붙어 있다 (2026-10-22 사용자 요청: 긴 화면에서 뒤로 가려고 다시 올라가기 불편). bg-bg: 밑으로 지나가는 내용이 비치지 않게, z-20: 떠 있는 + 버튼·메뉴(z-40) 아래.
+          오른쪽 여백 pr-3: 필터 버튼의 개수 배지가 버튼 밖으로 6px 나온다. 여백이 4px(px-1)일 때 필터를 걸면 배지가 화면 끝을 넘어
+          모바일에서 화면이 좌우로 밀렸다 (2026-10-26 아이폰 확인: 나키 "기록 탭에서 이 조건으로 보기"로 왔을 때) */}
+      <div className='sticky top-0 z-20 flex items-center gap-1 bg-bg pt-2 pr-3 pb-2 pl-1 md:px-3 lg:mt-4'>
         <Link
           href='/records'
           aria-label='기록 탭으로 돌아가기'
