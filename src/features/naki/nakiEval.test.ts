@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { RecordType } from '@/features/records/schema/recordTypes';
 import type { SearchState } from '@/features/search/searchState';
 import { toNakiAggregate, type NakiAggregate } from './nakiAggregate';
+import type { NakiPrevious } from './nakiApi';
 import type { NakiCustomNames } from './nakiCustomNames';
 import {
   buildNakiInstructions,
@@ -30,7 +31,25 @@ const NAMES: NakiCustomNames = {
 const GAP_MS = 4500;
 
 type Answer = { state: SearchState | null; aggregate: NakiAggregate };
-type Case = { question: string; check: (answer: Answer) => void };
+// previous = 이어 묻기의 앞 질문 (2026-10-26)
+type Case = {
+  question: string;
+  previous?: NakiPrevious;
+  check: (answer: Answer) => void;
+};
+
+// 이어 묻기 앞 질문: "이번 달 식비 얼마 썼어?"를 이해한 조건
+const OCTOBER_FOOD: NakiPrevious = {
+  question: '이번 달 식비 얼마 썼어?',
+  state: {
+    keyword: '',
+    type: 'expense',
+    sort: 'latest',
+    period: { kind: 'custom', from: '2026-10-01', to: '2026-10-31' },
+    fields: { category: { kind: 'select', values: ['식비'] } },
+  },
+  aggregate: { intent: 'sum', field: 'amount' },
+};
 
 const select = (answer: Answer, field: string) => {
   const filter = answer.state?.fields[field];
@@ -103,6 +122,39 @@ const CASES: Case[] = [
       expect(a.aggregate).toEqual({ intent: 'max', field: 'amount' });
     },
   },
+  // 이어 묻기 (2026-10-26)
+  {
+    question: '그럼 지난달은?',
+    previous: OCTOBER_FOOD,
+    check: (a) => {
+      expect(a.state?.type).toBe('expense');
+      expect(select(a, 'category')).toEqual(['식비']);
+      expect(a.state?.period).toEqual({
+        kind: 'custom',
+        from: '2026-09-01',
+        to: '2026-09-30',
+      });
+      expect(a.aggregate).toEqual({ intent: 'sum', field: 'amount' });
+    },
+  },
+  {
+    question: '그중 카페는 몇 번이야?',
+    previous: OCTOBER_FOOD,
+    check: (a) => {
+      expect(a.state?.type).toBe('expense');
+      expect(a.aggregate.intent).toBe('count');
+      expect(a.state?.period).toEqual(OCTOBER_FOOD.state.period);
+    },
+  },
+  {
+    // 스스로 무엇을 찾는지 말하는 새 질문은 앞 조건을 끌고 오지 않는다
+    question: '이번 주 운동 몇 번 했어?',
+    previous: OCTOBER_FOOD,
+    check: (a) => {
+      expect(a.state?.type).toBe('workout');
+      expect(select(a, 'category')).toEqual([]);
+    },
+  },
 ];
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -113,17 +165,17 @@ describe.runIf(process.env.NAKI_EVAL === '1')(
     it(
       `질문 ${CASES.length}개`,
       async () => {
-        const instructions = buildNakiInstructions(
-          TODAY,
-          describeTypesForAi(ALL_TYPES, NAMES),
-          NAMES.tags,
-        );
         const failures: string[] = [];
         for (const [index, item] of CASES.entries()) {
           if (index > 0) await sleep(GAP_MS);
           const result = await askNakiModel({
             question: item.question,
-            instructions,
+            instructions: buildNakiInstructions(
+              TODAY,
+              describeTypesForAi(ALL_TYPES, NAMES),
+              NAMES.tags,
+              item.previous,
+            ),
             signal: AbortSignal.timeout(20_000),
           });
           const state =

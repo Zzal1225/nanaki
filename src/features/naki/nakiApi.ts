@@ -3,6 +3,7 @@ import {
   parseRecordType,
   type RecordType,
 } from '@/features/records/schema/recordTypes';
+import { PERIOD_PRESETS } from '@/features/search/searchFilters';
 import { isDateString } from '@/shared/date/calendar';
 import { LIST_AGGREGATE, NAKI_INTENTS } from './nakiAggregate';
 import { EMPTY_CUSTOM_NAMES, nakiCustomNamesSchema } from './nakiCustomNames';
@@ -13,6 +14,42 @@ import { EMPTY_CUSTOM_NAMES, nakiCustomNamesSchema } from './nakiCustomNames';
 export const NAKI_API_PATH = '/api/naki';
 // 질문 글자 상한. 조건 하나를 묻기에 충분하고, 긴 글을 붙여 넣어 무료 한도를 쓰지 않게
 export const MAX_NAKI_QUESTION_LENGTH = 200;
+
+// 검색 조건은 SearchState 모양 그대로 돌아온다 (searchState). 브라우저에서 다시 거를 일이 없도록 서버가 이미 걸렀다
+const searchStateSchema = z.object({
+  keyword: z.string(),
+  type: z.string().nullable(),
+  sort: z.enum(['latest', 'oldest']),
+  // 나키 답은 늘 직접 고른 기간(custom)이다. 이어 묻기로 돌아오는 앞 조건도 같은 모양을 받되,
+  // 화면의 검색 조건 타입(PeriodFilter)과 맞추려고 프리셋도 받는다
+  period: z
+    .discriminatedUnion('kind', [
+      z.object({ kind: z.literal('custom'), from: z.string(), to: z.string() }),
+      z.object({ kind: z.literal('preset'), preset: z.enum(PERIOD_PRESETS) }),
+    ])
+    .nullable(),
+  fields: z.record(z.string(), z.unknown()),
+});
+
+const aggregateSchema = z.object({
+  intent: z.enum(NAKI_INTENTS),
+  field: z.string().nullable(),
+});
+
+// 앞 조건을 AI 지시문에 넣을 때의 글자 상한. 화면이 보낸 값이라 믿지 않는다: 칸 조건이 끝없이 길면 이어 묻기를 버린다
+export const MAX_NAKI_PREVIOUS_STATE_LENGTH = 1_000;
+
+// 이어 묻기 (2026-10-26 사용자 결정): 바로 앞 질문 하나만, 그 문장과 나키가 이해한 조건만 보낸다.
+// 결과(합계 숫자·기록)는 보내지 않는다: AI에 기록 내용을 보내지 않는 원칙(CLAUDE.md) 그대로.
+// 문장은 이미 앞 요청에서 AI에 보낸 것이고, 조건은 그 답을 서버가 거른 것이다
+export const nakiPreviousSchema = z.object({
+  question: z.string().trim().min(1).max(MAX_NAKI_QUESTION_LENGTH),
+  state: searchStateSchema.refine(
+    (state) => JSON.stringify(state).length <= MAX_NAKI_PREVIOUS_STATE_LENGTH,
+  ),
+  aggregate: aggregateSchema,
+});
+export type NakiPrevious = z.infer<typeof nakiPreviousSchema>;
 
 export const nakiRequestSchema = z.object({
   question: z.string().trim().min(1).max(MAX_NAKI_QUESTION_LENGTH),
@@ -31,27 +68,17 @@ export const nakiRequestSchema = z.object({
     .pipe(z.array(z.custom<RecordType>()).min(1)),
   // 사용자가 만든 분류·태그 이름 (기록 내용은 없다, nakiCustomNames). 없으면 빈 목록: 예전 브라우저가 보낸 요청도 받는다
   customNames: nakiCustomNamesSchema.default(EMPTY_CUSTOM_NAMES),
+  // 이어 묻기: 대화의 첫 질문이거나 앞 질문을 이해하지 못했으면 없다
+  // 모양이 틀리거나 너무 길면 이어 묻기만 버리고 질문은 받는다 (catch): 앞 조건은 덤이고, 질문 자체를 막을 이유는 없다
+  previous: nakiPreviousSchema.optional().catch(undefined),
 });
 export type NakiRequest = z.infer<typeof nakiRequestSchema>;
-
-// 검색 조건은 SearchState 모양 그대로 돌아온다 (searchState). 브라우저에서 다시 거를 일이 없도록 서버가 이미 걸렀다
-const searchStateSchema = z.object({
-  keyword: z.string(),
-  type: z.string().nullable(),
-  sort: z.enum(['latest', 'oldest']),
-  period: z
-    .object({ kind: z.literal('custom'), from: z.string(), to: z.string() })
-    .nullable(),
-  fields: z.record(z.string(), z.unknown()),
-});
 
 export const nakiAnswerSchema = z.object({
   // null = 잘 이해하지 못했어요
   state: searchStateSchema.nullable(),
   // 34e 무엇을 계산할지 (서버가 걸렀다, nakiAggregate). 없으면 목록: 새 화면이 예전 서버 응답을 받아도 그린다
-  aggregate: z
-    .object({ intent: z.enum(NAKI_INTENTS), field: z.string().nullable() })
-    .default(LIST_AGGREGATE),
+  aggregate: aggregateSchema.default(LIST_AGGREGATE),
   remaining: z.number().int(),
 });
 

@@ -134,6 +134,17 @@ export default function NakiScreen() {
     setDraft('');
     const controller = new AbortController();
     controllerRef.current = controller;
+    // 이어 묻기 (2026-10-26 사용자 결정): 바로 앞 질문을 이해했을 때만 그 문장과 조건을 함께 보낸다.
+    // 앞 질문이 실패·이해 못 함이면 이어받을 조건이 없다
+    const last = turns.at(-1);
+    const previous =
+      last?.status === 'answered' && last.state
+        ? {
+            question: last.question,
+            state: last.state,
+            aggregate: last.aggregate,
+          }
+        : undefined;
     try {
       const result = await askNaki(
         {
@@ -142,6 +153,7 @@ export default function NakiScreen() {
           today: toLocalDateString(new Date()),
           types: visibleTypes,
           customNames,
+          previous,
         },
         controller.signal,
       );

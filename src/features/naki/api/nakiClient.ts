@@ -10,6 +10,7 @@ import {
   nakiErrorSchema,
   nakiQuotaSchema,
   type NakiError,
+  type NakiPrevious,
   type NakiQuota,
 } from '../nakiApi';
 import type { NakiAggregate } from '../nakiAggregate';
@@ -49,6 +50,8 @@ export async function askNaki(
     types: readonly RecordType[];
     // 사용자가 만든 분류·태그 이름 (기록 내용은 없다, nakiCustomNames)
     customNames: NakiCustomNames;
+    // 이어 묻기: 바로 앞에 이해한 질문 (문장 + 조건, 결과는 보내지 않는다)
+    previous?: NakiPrevious;
   },
   signal: AbortSignal,
 ): Promise<NakiAskResult> {

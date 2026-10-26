@@ -16,6 +16,7 @@ import {
 import { isDateString } from '@/shared/date/calendar';
 import { formatDisplayDate } from '@/shared/date/formatDisplayDate';
 import { getMetricFields } from './nakiAggregate';
+import type { NakiPrevious } from './nakiApi';
 import { EMPTY_CUSTOM_NAMES, type NakiCustomNames } from './nakiCustomNames';
 
 // 나키: 질문 → AI가 만든 조건 → 우리 검색 조건(SearchState). AI는 조건만 만들고, 찾기·계산은 우리가 한다 (README 6).
@@ -109,11 +110,73 @@ export function describeTypesForAi(
   }));
 }
 
+// ── 이어 묻기: 앞 조건을 AI 답과 같은 모양으로 ─────────────
+
+type AiConditions = Pick<
+  NakiAiOutput,
+  | 'type'
+  | 'from'
+  | 'to'
+  | 'keyword'
+  | 'selects'
+  | 'ranges'
+  | 'ratingMin'
+  | 'intent'
+  | 'metric'
+>;
+
+// 앞 질문의 조건(SearchState)을 AI 답과 같은 모양으로 되돌린다: AI가 그 모양을 그대로 고쳐 쓰면 되도록.
+// 화면이 보낸 값이라 칸 조건은 모양을 하나씩 확인하고 모르는 것은 뺀다 (어차피 새 답은 toSearchState가 다시 거른다)
+export function toPreviousConditions(previous: NakiPrevious): AiConditions {
+  const { state, aggregate } = previous;
+  const selects: AiConditions['selects'] = [];
+  const ranges: AiConditions['ranges'] = [];
+  let ratingMin: number | null = null;
+  for (const [field, filter] of Object.entries(state.fields)) {
+    if (!filter || typeof filter !== 'object' || !('kind' in filter)) continue;
+    const value = filter as {
+      kind: unknown;
+      values?: unknown;
+      min?: unknown;
+      max?: unknown;
+    };
+    if (value.kind === 'select' && Array.isArray(value.values)) {
+      selects.push({
+        field,
+        values: value.values.filter(
+          (item): item is string => typeof item === 'string',
+        ),
+      });
+    } else if (value.kind === 'range') {
+      ranges.push({
+        field,
+        min: typeof value.min === 'number' ? value.min : null,
+        max: typeof value.max === 'number' ? value.max : null,
+      });
+    } else if (value.kind === 'rating' && typeof value.min === 'number') {
+      ratingMin = value.min;
+    }
+  }
+  return {
+    type: state.type,
+    // 프리셋(이번 주 등)은 날짜로 풀지 않고 비운다: 나키 답은 늘 날짜(custom)라 화면에서만 생기는 경우다
+    from: state.period?.kind === 'custom' ? state.period.from : null,
+    to: state.period?.kind === 'custom' ? state.period.to : null,
+    keyword: state.keyword || null,
+    selects,
+    ranges,
+    ratingMin,
+    intent: aggregate.intent,
+    metric: aggregate.field,
+  };
+}
+
 // 시스템 지시. 날짜 계산은 AI에 맡기되 기준(오늘·주 시작 요일)을 정해 준다: 앱의 "이번 주"는 일요일 시작 (calendar.ts)
 export function buildNakiInstructions(
   today: string,
   types: readonly NakiTypeDescription[],
   tags: readonly string[] = [],
+  previous?: NakiPrevious,
 ): string {
   return [
     '너는 개인 기록 앱 nanaki의 검색 도우미다. 사용자의 질문을 기록 검색 조건으로만 바꾼다.',
@@ -139,6 +202,15 @@ export function buildNakiInstructions(
     ...(tags.length > 0
       ? [
           `사용자 태그: ${JSON.stringify(tags)}. 질문의 말이 태그와 같으면 그 태그를 keyword로 넣는다.`,
+        ]
+      : []),
+    // 이어 묻기 (2026-10-26): "그럼 지난달은?"처럼 무엇을 찾는지가 빠진 질문은 앞 조건에서 바뀐 것만 바꾼다.
+    // 새 질문인데 앞 조건을 끌고 오면 엉뚱한 결과가 되므로 "이어지지 않으면 무시"를 같이 정해 준다
+    ...(previous
+      ? [
+          `바로 앞 질문: ${JSON.stringify(previous.question)}`,
+          `앞 질문으로 만든 조건: ${JSON.stringify(toPreviousConditions(previous))}`,
+          '이번 질문이 앞 질문에 이어지는 말이면(그럼·거기서·그중·그건·"지난달은?"처럼 무엇을 찾는지가 빠진 질문) 앞 조건을 이어받아 이번 질문이 바꾸는 것만 바꾼다. 무엇을 찾는지 스스로 말하는 새 질문이면 앞 조건은 무시한다.',
         ]
       : []),
   ].join('\n');
