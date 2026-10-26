@@ -170,3 +170,79 @@ export function orderForPreview(
     ...shown.filter((entry) => entry.id !== summary.entry.id),
   ];
 }
+
+// ── 비교 (2026-10-26 사용자 결정 "지난달보다 많이 썼어?") ─────────
+
+export type NakiComparison =
+  | { kind: 'same'; previousValue: string }
+  | { kind: 'changed'; amount: string; word: string; previousValue: string };
+
+type ComparableValue = {
+  value: number;
+  format: (absolute: number) => string;
+  words: readonly [less: string, more: string];
+};
+
+// 두 기간을 견줄 값. 기록이 없는 기간은 합계·건수 0으로 본다 (평균은 기록이 없으면 견줄 수 없다)
+function toComparable(
+  summary: NakiSummary,
+  shape: NakiSummary,
+): ComparableValue | null {
+  const kind = summary.kind === 'empty' ? shape.kind : summary.kind;
+  if (kind === 'count') {
+    return {
+      value: summary.kind === 'count' ? summary.count : 0,
+      format: (n) => `${n}건`,
+      words: ['적어요', '많아요'],
+    };
+  }
+  if (kind === 'total' && shape.kind === 'total') {
+    const { field } = shape;
+    const isAmount = field.name === 'amount';
+    return {
+      value: summary.kind === 'total' ? summary.total : 0,
+      // 금액 차이는 마이너스 없이 "42,000원 더 썼어요" (지출 표기 -는 차이에 어울리지 않는다)
+      format: (n) =>
+        isAmount
+          ? `${Math.round(n).toLocaleString('ko-KR')}원`
+          : formatValue(field, n),
+      words: isAmount ? ['덜 썼어요', '더 썼어요'] : ['적어요', '많아요'],
+    };
+  }
+  if (kind === 'average' && summary.kind === 'average') {
+    const { field } = summary;
+    return {
+      value: summary.average,
+      format: (n) => formatValue(field, n),
+      words: ['낮아요', '높아요'],
+    };
+  }
+  return null;
+}
+
+// 지금 기간 답(current)과 견줄 기간 답(previous)의 차이. 견줄 수 없으면 null (최고·최저, 둘 다 기록 없음, 평균인데 한쪽이 비었음)
+export function compareNakiSummaries(
+  current: NakiSummary,
+  previous: NakiSummary,
+): NakiComparison | null {
+  // 모양(합계인지 건수인지)은 기록이 있는 쪽으로 정한다
+  const shape = current.kind !== 'empty' ? current : previous;
+  if (shape.kind === 'empty' || shape.kind === 'extreme') return null;
+  const now = toComparable(current, shape);
+  const before = toComparable(previous, shape);
+  if (!now || !before) return null;
+  const previousValue =
+    previous.kind === 'empty'
+      ? before.format(0)
+      : (formatNakiSummaryParts(previous)?.value ??
+        before.format(before.value));
+  // 소수(평균)는 보이는 자리에서 같으면 같다고 본다
+  const difference = Math.round((now.value - before.value) * 10) / 10;
+  if (difference === 0) return { kind: 'same', previousValue };
+  return {
+    kind: 'changed',
+    amount: now.format(Math.abs(difference)),
+    word: difference < 0 ? before.words[0] : before.words[1],
+    previousValue,
+  };
+}

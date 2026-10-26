@@ -7,7 +7,9 @@ import type { NakiCustomNames } from './nakiCustomNames';
 import {
   buildNakiInstructions,
   describeTypesForAi,
+  toNakiCompare,
   toSearchState,
+  type NakiCompare,
 } from './nakiQuery';
 import { askNakiModel } from './server/nakiModel';
 
@@ -30,7 +32,11 @@ const NAMES: NakiCustomNames = {
 // 무료 등급 분당 요청 한도에 걸리지 않게 (질문 10여 개를 연달아 보내면 끝쪽이 429였다)
 const GAP_MS = 4500;
 
-type Answer = { state: SearchState | null; aggregate: NakiAggregate };
+type Answer = {
+  state: SearchState | null;
+  aggregate: NakiAggregate;
+  compare: NakiCompare | null;
+};
 // previous = 이어 묻기의 앞 질문 (2026-10-26)
 type Case = {
   question: string;
@@ -146,6 +152,27 @@ const CASES: Case[] = [
       expect(a.state?.period).toEqual(OCTOBER_FOOD.state.period);
     },
   },
+  // 비교 (2026-10-26)
+  {
+    question: '지난달보다 이번 달 식비 많이 썼어?',
+    check: (a) => {
+      expect(a.state?.type).toBe('expense');
+      expect(select(a, 'category')).toEqual(['식비']);
+      // 지금 기간 끝은 말일이든 오늘이든 같다(앞으로의 기록은 없다). 견줄 기간은 앱이 같은 일수로 자른다
+      expect(a.state?.period).toMatchObject({ from: '2026-10-01' });
+      expect(a.compare).toEqual({ from: '2026-09-01', to: '2026-09-23' });
+      expect(a.aggregate).toEqual({ intent: 'sum', field: 'amount' });
+    },
+  },
+  {
+    question: '이번 주 운동 지난주보다 많이 했어?',
+    check: (a) => {
+      expect(a.state?.type).toBe('workout');
+      expect(a.state?.period).toMatchObject({ from: '2026-10-18' });
+      // 이번 주 일~금(6일) ↔ 지난주 일~금
+      expect(a.compare).toEqual({ from: '2026-10-11', to: '2026-10-16' });
+    },
+  },
   {
     // 스스로 무엇을 찾는지 말하는 새 질문은 앞 조건을 끌고 오지 않는다
     question: '이번 주 운동 몇 번 했어?',
@@ -192,7 +219,16 @@ describe.runIf(process.env.NAKI_EVAL === '1')(
                     state.type,
                   )
                 : { intent: 'list', field: null },
+            compare: null,
           };
+          if (result.kind === 'ok') {
+            answer.compare = toNakiCompare(
+              result.output,
+              state,
+              answer.aggregate.intent,
+              TODAY,
+            );
+          }
           const shown = JSON.stringify({
             kind: result.kind,
             type: state?.type,
@@ -200,6 +236,7 @@ describe.runIf(process.env.NAKI_EVAL === '1')(
             period: state?.period,
             fields: state?.fields,
             aggregate: answer.aggregate,
+            compare: answer.compare,
           });
           try {
             item.check(answer);

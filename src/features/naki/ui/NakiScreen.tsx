@@ -20,6 +20,7 @@ import {
 } from '../nakiApi';
 import { useNakiCustomNames } from '../hooks/useNakiCustomNames';
 import type { NakiAggregate } from '../nakiAggregate';
+import type { NakiCompare } from '../nakiQuery';
 import NakiAnswer from './NakiAnswer';
 import NakiAvatar from '@/shared/ui/NakiAvatar';
 import TypingExamples from './TypingExamples';
@@ -33,6 +34,7 @@ type Turn =
       status: 'answered';
       state: SearchState | null;
       aggregate: NakiAggregate;
+      compare: NakiCompare | null;
     }
   | {
       id: number;
@@ -164,6 +166,7 @@ export default function NakiScreen() {
           status: 'answered',
           state: result.state,
           aggregate: result.aggregate,
+          compare: result.compare,
         });
         setRemaining(result.remaining);
       } else {
@@ -304,6 +307,7 @@ export default function NakiScreen() {
                       <NakiAnswer
                         state={turn.state}
                         aggregate={turn.aggregate}
+                        compare={turn.compare}
                       />
                     ) : (
                       // 해석하지 못함: 탓하지 않고 물을 수 있는 모양을 보여 준다

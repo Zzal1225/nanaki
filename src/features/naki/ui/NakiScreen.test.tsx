@@ -128,6 +128,7 @@ describe('NakiScreen', () => {
   it('답: 이해한 조건을 칩으로, 우리가 계산한 한 줄, 기록 탭으로 이어지는 링크', async () => {
     vi.mocked(askNaki).mockResolvedValue({
       kind: 'answer',
+      compare: null,
       aggregate: { intent: 'list', field: null },
       state: SEPTEMBER_DINING,
       remaining: 19,
@@ -180,6 +181,7 @@ describe('NakiScreen', () => {
   it('집계 질문: 계산은 화면이 하고, 최고면 그 기록을 맨 위에 (34e)', async () => {
     vi.mocked(askNaki).mockResolvedValue({
       kind: 'answer',
+      compare: null,
       aggregate: { intent: 'max', field: 'amount' },
       state: SEPTEMBER_DINING,
       remaining: 19,
@@ -198,6 +200,7 @@ describe('NakiScreen', () => {
   it('이어 묻기: 두 번째 질문에 앞 질문 문장과 조건을 함께 보낸다', async () => {
     vi.mocked(askNaki).mockResolvedValue({
       kind: 'answer',
+      compare: null,
       aggregate: { intent: 'sum', field: 'amount' },
       state: SEPTEMBER_DINING,
       remaining: 19,
@@ -218,6 +221,7 @@ describe('NakiScreen', () => {
   it('이어 묻기: 앞 질문을 이해하지 못했으면 앞 조건 없이 보낸다', async () => {
     vi.mocked(askNaki).mockResolvedValue({
       kind: 'answer',
+      compare: null,
       aggregate: { intent: 'list', field: null },
       state: null,
       remaining: 19,
@@ -230,9 +234,37 @@ describe('NakiScreen', () => {
     expect(vi.mocked(askNaki).mock.calls[1][0].previous).toBeUndefined();
   });
 
+  // 비교 (2026-10-26 "지난달보다 많이 썼어?"): 두 기간을 같은 조건으로 따로 찾아 기기에서 차이를 낸다
+  it('비교: 비교 기간 칩과 "○보다 N원 더 썼어요" 한 줄', async () => {
+    vi.mocked(searchRecords).mockImplementation(async (input) => ({
+      // 9월(지금)은 점심·저녁, 8월(비교)은 점심만
+      entries:
+        input.range?.from === '2026-08-01'
+          ? [LUNCH, COFFEE]
+          : [LUNCH, DINNER, COFFEE],
+      isTruncated: false,
+    }));
+    vi.mocked(askNaki).mockResolvedValue({
+      kind: 'answer',
+      aggregate: { intent: 'sum', field: 'amount' },
+      state: SEPTEMBER_DINING,
+      compare: { from: '2026-08-01', to: '2026-08-31' },
+      remaining: 19,
+    });
+    renderScreen();
+    askByTyping('지난달 외식비 그 전달보다 많이 썼어?');
+    const chips = await screen.findByRole('list', { name: '찾은 조건' });
+    expect(chips.textContent).toContain('비교2026년 8월');
+    expect(
+      await screen.findByText(/2026년 8월보다 31,400원 더 썼어요/),
+    ).toBeTruthy();
+    expect(screen.getByText('(-15,000원)', { exact: false })).toBeTruthy();
+  });
+
   it('이해하지 못하면 탓하지 않고 예시 질문', async () => {
     vi.mocked(askNaki).mockResolvedValue({
       kind: 'answer',
+      compare: null,
       aggregate: { intent: 'list', field: null },
       state: null,
       remaining: 19,
@@ -320,6 +352,7 @@ describe('NakiScreen', () => {
   it('예시 질문을 누르면 그 질문을 바로 보낸다', async () => {
     vi.mocked(askNaki).mockResolvedValue({
       kind: 'answer',
+      compare: null,
       aggregate: { intent: 'list', field: null },
       state: null,
       remaining: 19,
