@@ -79,6 +79,53 @@ describe('나키 질문 처리 (서버)', () => {
     expect(instructions).toContain('2026. 10. 23');
   });
 
+  // 이어 묻기 (2026-10-26 사용자 결정): 앞 질문 문장과 조건만, 결과 숫자·기록은 없다
+  const PREVIOUS = {
+    question: '이번 달 식비 얼마야?',
+    state: {
+      keyword: '',
+      type: 'expense',
+      sort: 'latest',
+      period: { kind: 'custom', from: '2026-10-01', to: '2026-10-31' },
+      fields: { category: { kind: 'select', values: ['식비'] } },
+    },
+    aggregate: { intent: 'sum', field: 'amount' },
+  };
+
+  it('이어 묻기: 앞 질문 문장과 조건이 지시문에 들어간다', async () => {
+    const d = deps();
+    await handleNakiQuestion(
+      { ...BODY, question: '그럼 지난달은?', previous: PREVIOUS },
+      d,
+    );
+    const { instructions } = vi.mocked(d.askModel).mock.calls[0][0];
+    expect(instructions).toContain('바로 앞 질문: "이번 달 식비 얼마야?"');
+    expect(instructions).toContain('"from":"2026-10-01"');
+    expect(instructions).toContain(
+      '"selects":[{"field":"category","values":["식비"]}]',
+    );
+    expect(instructions).toContain('"intent":"sum"');
+  });
+
+  it('이어 묻기가 없으면 앞 질문 줄도 없다', async () => {
+    const d = deps();
+    await handleNakiQuestion(BODY, d);
+    const { instructions } = vi.mocked(d.askModel).mock.calls[0][0];
+    expect(instructions).not.toContain('바로 앞 질문');
+  });
+
+  it('앞 조건이 틀리거나 너무 길면 이어 묻기만 버리고 질문은 처리한다', async () => {
+    const d = deps();
+    const tooLong = {
+      ...PREVIOUS,
+      state: { ...PREVIOUS.state, keyword: 'x'.repeat(2_000) },
+    };
+    const result = await handleNakiQuestion({ ...BODY, previous: tooLong }, d);
+    expect(result.status).toBe(200);
+    const { instructions } = vi.mocked(d.askModel).mock.calls[0][0];
+    expect(instructions).not.toContain('바로 앞 질문');
+  });
+
   it('요청 모양이 틀리면 400, 로그인이 없으면 401 (횟수도 AI도 안 쓴다)', async () => {
     const d = deps();
     expect((await handleNakiQuestion({ question: '' }, d)).status).toBe(400);

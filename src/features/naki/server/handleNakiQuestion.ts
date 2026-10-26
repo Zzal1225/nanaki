@@ -63,7 +63,13 @@ export async function handleNakiQuestion(
   const parsed = nakiRequestSchema.safeParse(rawBody);
   if (!parsed.success) return { status: 400, body: { error: 'badRequest' } };
   // 질문의 "오늘"은 브라우저 날짜(사용자 기준 "지난달"), 횟수의 "오늘"은 서버의 한국 날짜(사용자가 바꿀 수 없게)
-  const { question, today: userToday, types, customNames } = parsed.data;
+  const {
+    question,
+    today: userToday,
+    types,
+    customNames,
+    previous,
+  } = parsed.data;
 
   const user = await deps.getUser();
   if (!user) return { status: 401, body: { error: 'signedOut' } };
@@ -94,6 +100,7 @@ export async function handleNakiQuestion(
         userToday,
         describeTypesForAi(types, customNames),
         customNames.tags,
+        previous,
       ),
     });
   } catch (error) {

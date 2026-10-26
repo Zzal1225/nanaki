@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildNakiInstructions,
   describeTypesForAi,
+  toPreviousConditions,
   toSearchState,
   type NakiAiOutput,
 } from './nakiQuery';
@@ -172,5 +173,60 @@ describe('AI에 보낼 것', () => {
     expect(text).not.toContain('클라이밍');
     expect(text).not.toContain('가짜');
     expect(text).not.toContain('비밀');
+  });
+});
+
+// 이어 묻기 (2026-10-26): 앞 조건을 AI 답과 같은 모양으로 되돌린다. 화면이 보낸 값이라 모르는 모양은 뺀다
+describe('앞 조건 → AI 모양 (이어 묻기)', () => {
+  it('선택·범위·별점·기간·계산을 그대로 옮긴다', () => {
+    expect(
+      toPreviousConditions({
+        question: '별점 4점 이상 후기',
+        state: {
+          keyword: '파스타',
+          type: 'review',
+          sort: 'latest',
+          period: { kind: 'custom', from: '2026-10-01', to: '2026-10-31' },
+          fields: {
+            kind: { kind: 'select', values: ['식당'] },
+            price: { kind: 'range', min: 10000, max: null },
+            rating: { kind: 'rating', min: 4 },
+          },
+        },
+        aggregate: { intent: 'count', field: null },
+      }),
+    ).toEqual({
+      type: 'review',
+      from: '2026-10-01',
+      to: '2026-10-31',
+      keyword: '파스타',
+      selects: [{ field: 'kind', values: ['식당'] }],
+      ranges: [{ field: 'price', min: 10000, max: null }],
+      ratingMin: 4,
+      intent: 'count',
+      metric: null,
+    });
+  });
+
+  it('프리셋 기간은 비우고, 모양이 틀린 칸·글자가 아닌 값은 뺀다', () => {
+    const result = toPreviousConditions({
+      question: '이번 주 지출',
+      state: {
+        keyword: '',
+        type: 'expense',
+        sort: 'latest',
+        period: { kind: 'preset', preset: 'week' },
+        fields: {
+          category: { kind: 'select', values: ['식비', 3] },
+          junk: 'nope',
+          other: { kind: 'unknown' },
+        },
+      },
+      aggregate: { intent: 'list', field: null },
+    });
+    expect(result.from).toBeNull();
+    expect(result.keyword).toBeNull();
+    expect(result.selects).toEqual([{ field: 'category', values: ['식비'] }]);
+    expect(result.ranges).toEqual([]);
   });
 });

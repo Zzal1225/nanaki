@@ -40,7 +40,7 @@
 | CI/CD·운영         | GitHub Actions, Lighthouse CI, Vercel (기본 도메인), Sentry (step2)                                                                                                                                                                                                                                                            |
 
 - 위 목록에 없는 라이브러리를 추가하려면 먼저 사용자에게 **이유와 대안**을 제시하고 승인을 받는다.
-- AI 제공자 SDK는 어댑터 파일 밖에서 import하지 않는다. API 키는 서버(Route Handler)에만 둔다. 기록 내용(금액·메모·제목·날짜·건수)은 AI에 보내지 않는다.
+- AI 제공자 SDK는 어댑터 파일 밖에서 import하지 않는다. API 키는 서버(Route Handler)에만 둔다. 기록 내용(금액·메모·제목·날짜·건수)은 AI에 보내지 않는다. 이어 묻기는 바로 앞 질문 하나의 문장과 서버가 거른 조건만 함께 보낸다(답·기록은 아님, 2026-10-26 사용자 결정).
 - 사용자가 만든 분류·태그 이름(선택 칸의 직접 입력값, 태그)은 이름 문자열만 칸마다·태그 각각 최대 50개 보낸다(사용 횟수는 붙이지 않음). 이유: 정확도("Ott"를 분류 조건으로 정확히 잡음) vs 이름 자체가 민감할 수 있음(예: "병원"). 나키 화면 안내 문구에 알린다 (2026-10-23 사용자 결정).
 - 기록 저장·조회는 한 파일의 함수로만 한다(컴포넌트·훅에서 Supabase를 직접 부르지 않음). step2에서 그 안만 Dexie + outbox로 바꾼다.
 - `RecordEntry`는 `type`으로 갈라지는 판별 유니온으로 쓰고, `fields` 타입은 타입별 Zod 스키마에서 `z.infer`로 만든다. `Record<string, unknown>`은 검증 전 단계에서만.
@@ -77,7 +77,7 @@ src/
                   AppSplash = 앱을 새로 열 때의 로딩 화면(앱 틀에 하나, 최소 1초 → TanStack Query 요청이 0개면 사라짐, 8초 상한은 CSS도, 오프라인이면 생략, 로그인 버튼을 누르고 왔으면 등장 동작 없이 이어짐),
                   splashRules = 시간 규칙·이어지기 표시(sessionStorage)·첫 그리기 전 <head> 스크립트(app/layout).
                   naki/ = AI 챗봇 나키(step3). nakiQuery = AI 답 모양(Zod)·AI에 보낼 필드 정의·지시문·AI 답 → 검색 조건(허용된 타입·칸·연산자만),
-                  nakiApi = API 요청·응답 스키마(서버·브라우저 공용), nakiAggregate = 계산 종류·숫자 칸 거르기(list·sum·count·avg·max·min), nakiSummary = 숫자 한 줄 계산·표기(기기에서),
+                  nakiApi = API 요청·응답 스키마(서버·브라우저 공용, 이어 묻기 previous는 틀리면 버림), toPreviousConditions = 앞 조건 → AI 답 모양, nakiAggregate = 계산 종류·숫자 칸 거르기(list·sum·count·avg·max·min), nakiSummary = 숫자 한 줄 계산·표기(기기에서),
                   nakiCustomNames = AI에 보낼 사용자가 만든 분류·태그 이름 모으기(이름만, 각 50개), hooks/useNakiCustomNames, nakiEval.test = 실제 AI 질문 묶음(npm run naki:eval, CI는 건너뜀), nakiLimits = 하루 횟수 규칙(환경 변수, 한국 날짜, DB 결과 읽기), api/nakiClient = 브라우저의 유일한 입구,
                   server/nakiModel = AI 제공자 어댑터(이 파일만 ai·@ai-sdk/* import, ESLint로 강제), server/handleNakiQuestion = 로그인·횟수·AI·되돌리기 순서,
                   ui/ = NakiScreen(대화는 메모리만, 안내 3종), NakiAnswer("이렇게 이해했어요" 칩·계산 한 줄·기록 3개·기록 탭에서 보기), TypingExamples(빈 화면 예시 질문 타이핑). 찾기는 검색과 같은 길(기기 사본)

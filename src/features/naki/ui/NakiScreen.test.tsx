@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   cleanup,
   fireEvent,
+  waitFor,
   render,
   screen,
   within,
@@ -191,6 +192,42 @@ describe('NakiScreen', () => {
     expect(screen.getAllByText('-31,400원').length).toBe(2);
     const links = await screen.findAllByRole('link', { name: /\[외식\]/ });
     expect(links[0].textContent).toContain('저녁');
+  });
+
+  // 이어 묻기 (2026-10-26 사용자 결정): 바로 앞에 이해한 질문의 문장과 조건만 함께 보낸다 (결과는 보내지 않는다)
+  it('이어 묻기: 두 번째 질문에 앞 질문 문장과 조건을 함께 보낸다', async () => {
+    vi.mocked(askNaki).mockResolvedValue({
+      kind: 'answer',
+      aggregate: { intent: 'sum', field: 'amount' },
+      state: SEPTEMBER_DINING,
+      remaining: 19,
+    });
+    renderScreen();
+    askByTyping('지난달 외식비 얼마였어?');
+    await screen.findByRole('list', { name: '찾은 조건' });
+    askByTyping('그럼 이번 달은?');
+    await waitFor(() => expect(askNaki).toHaveBeenCalledTimes(2));
+    expect(vi.mocked(askNaki).mock.calls[0][0].previous).toBeUndefined();
+    expect(vi.mocked(askNaki).mock.calls[1][0].previous).toEqual({
+      question: '지난달 외식비 얼마였어?',
+      state: SEPTEMBER_DINING,
+      aggregate: { intent: 'sum', field: 'amount' },
+    });
+  });
+
+  it('이어 묻기: 앞 질문을 이해하지 못했으면 앞 조건 없이 보낸다', async () => {
+    vi.mocked(askNaki).mockResolvedValue({
+      kind: 'answer',
+      aggregate: { intent: 'list', field: null },
+      state: null,
+      remaining: 19,
+    });
+    renderScreen();
+    askByTyping('안녕');
+    await screen.findByText('잘 이해하지 못했어요. 이렇게 물어봐 주세요.');
+    askByTyping('그럼 지난달은?');
+    await waitFor(() => expect(askNaki).toHaveBeenCalledTimes(2));
+    expect(vi.mocked(askNaki).mock.calls[1][0].previous).toBeUndefined();
   });
 
   it('이해하지 못하면 탓하지 않고 예시 질문', async () => {
