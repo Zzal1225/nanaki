@@ -80,7 +80,8 @@ src/
                   nakiApi = API 요청·응답 스키마(서버·브라우저 공용, 이어 묻기 previous는 틀리면 버림), toPreviousConditions = 앞 조건 → AI 답 모양, nakiAggregate = 계산 종류·숫자 칸 거르기(list·sum·count·avg·max·min), nakiSummary = 숫자 한 줄 계산·표기(기기에서)·두 기간 비교(compareNakiSummaries), toNakiCompare = AI가 준 비교 기간 거르기(합계·건수·평균만, 진행 중이면 같은 일수),
                   nakiCustomNames = AI에 보낼 사용자가 만든 분류·태그 이름 모으기(이름만, 각 50개), hooks/useNakiCustomNames, nakiEval.test = 실제 AI 질문 묶음(npm run naki:eval, CI는 건너뜀), nakiLimits = 하루 횟수 규칙(환경 변수, 한국 날짜, DB 결과 읽기), api/nakiClient = 브라우저의 유일한 입구,
                   server/nakiModel = AI 제공자 어댑터(이 파일만 ai·@ai-sdk/* import, ESLint로 강제), server/handleNakiQuestion = 로그인·횟수·AI·되돌리기 순서,
-                  ui/ = NakiScreen(대화는 메모리만, 안내 3종), NakiAnswer("이렇게 이해했어요" 칩·계산 한 줄·기록 3개·기록 탭에서 보기), TypingExamples(빈 화면 예시 질문 타이핑). 찾기는 검색과 같은 길(기기 사본)
+                  api/nakiHistoryStore = 대화 저장의 유일한 입구(이 기기 IndexedDB nakiTurns, 최근 50개, 조건만 저장·답은 다시 계산, 로그아웃 때 사본과 함께 지워짐),
+                  ui/ = NakiScreen(저장한 대화 + 이번 대화, 대화 지우기, 안내 3종), NakiAnswer("이렇게 이해했어요" 칩·계산 한 줄·기록 3개·기록 탭에서 보기), TypingExamples(빈 화면 예시 질문 타이핑). 찾기는 검색과 같은 길(기기 사본)
                   report/ = 보고서(step4 40). reportModel = 기간 칩·주소(reportHref·parseReportQuery)·제목·개수·운동 묶음·별점 높은 후기·루틴은 오늘까지(순수 함수),
                   ui/ = ReportFromUrl(조건 없으면 고르기) → ReportSetup(기간·타입) / ReportView(기기 사본으로 카드, 한 달이면 예산 줄) + ReportSections(타입별 카드, 그리기만), ReportEntryLink(기록 탭 검색창 옆).
                   PDF = window.print(): globals.css 6. 인쇄(@page는 @media 밖, data-print-root 칸과 조상만 남김), 인쇄 중 라이트. 사진·평균 별점 없음

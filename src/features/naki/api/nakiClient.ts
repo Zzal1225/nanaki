@@ -40,9 +40,9 @@ export type NakiAskResult =
       userLimit?: number;
     };
 
-// 서버가 걸러 준 조건을 주소 모양으로 바꿨다가 다시 읽는다. 검색 화면이 주소를 읽는 것과 같은 길이라
+// 서버가 걸러 준 조건을 주소 모양으로 바꿨다가 다시 읽는다 (저장한 대화를 다시 읽을 때도, nakiHistoryStore). 검색 화면이 주소를 읽는 것과 같은 길이라
 // "기록 탭에서 보기" 링크로 간 화면과 여기 결과가 늘 같은 조건이다 (틀린 칸 값도 같은 규칙으로 버려진다)
-function normalizeState(state: SearchState): SearchState {
+export function normalizeState(state: SearchState): SearchState {
   return parseSearchState(new URLSearchParams(toSearchParams(state)));
 }
 

@@ -71,6 +71,18 @@ export type LocalFixedExpense = {
 // 계정마다 다른 데이터베이스 안에 두어 계정을 바꿔도 섞이지 않는다 (localStorage였다면 계정끼리 공유된다)
 export type PullMark = { name: string; pulledAt: string };
 
+// 나키 대화 한 턴 (2026-10-26 사용자 결정: 이 기기에만, 최근 50개). 답을 받은 것만 둔다.
+// 결과(합계·기록)는 두지 않고 조건만: 다시 열 때 지금 기기 사본으로 다시 계산한다 (기록을 고쳤으면 고친 대로)
+export type LocalNakiTurn = {
+  seq?: number;
+  question: string;
+  // 나키 API 응답 그대로(서버가 거른 조건). 모양 검사는 읽는 쪽(nakiHistoryStore)이 Zod로 한다
+  state: unknown;
+  aggregate: unknown;
+  compare: unknown;
+  askedAt: string;
+};
+
 export class LocalDb extends Dexie {
   records!: Table<LocalRecordRow, string>;
   routines!: Table<LocalRoutineRow, string>;
@@ -80,6 +92,7 @@ export class LocalDb extends Dexie {
   budgets!: Table<LocalBudget, string>;
   fixedExpenses!: Table<LocalFixedExpense, string>;
   pulls!: Table<PullMark, string>;
+  nakiTurns!: Table<LocalNakiTurn, number>;
 
   constructor(
     name: string,
@@ -114,6 +127,10 @@ export class LocalDb extends Dexie {
     this.version(5).stores({
       fixedExpenses: 'id',
       pulls: 'name',
+    });
+    // 6: 나키 대화 (2026-10-26). ++seq = 물은 순서. 계정마다 다른 데이터베이스라 로그아웃 때 사본과 함께 지워진다 (deviceData)
+    this.version(6).stores({
+      nakiTurns: '++seq',
     });
   }
 }

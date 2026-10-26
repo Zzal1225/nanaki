@@ -16,8 +16,19 @@ import {
 import type { RecordEntry } from '@/features/records/schema/recordEntry';
 import { getUserSettings } from '@/features/settings/api/settingsStore';
 import { askNaki, getNakiQuota } from '../api/nakiClient';
+import {
+  clearNakiHistory,
+  loadNakiHistory,
+  saveNakiTurn,
+} from '../api/nakiHistoryStore';
 import NakiScreen from './NakiScreen';
 
+// 저장한 대화 (2026-10-26): 기기 사본 대신 가짜. 기본은 저장한 것 없음
+vi.mock('../api/nakiHistoryStore', () => ({
+  loadNakiHistory: vi.fn(),
+  saveNakiTurn: vi.fn(),
+  clearNakiHistory: vi.fn(),
+}));
 vi.mock('../api/nakiClient', () => ({
   askNaki: vi.fn(),
   getNakiQuota: vi.fn(),
@@ -92,6 +103,9 @@ describe('NakiScreen', () => {
       isGuest: false,
     });
     vi.mocked(askNaki).mockReset();
+    vi.mocked(loadNakiHistory).mockResolvedValue([]);
+    vi.mocked(saveNakiTurn).mockReset().mockResolvedValue(undefined);
+    vi.mocked(clearNakiHistory).mockReset().mockResolvedValue(undefined);
     vi.mocked(searchRecords).mockResolvedValue({
       entries: [LUNCH, DINNER, COFFEE],
       isTruncated: false,
@@ -259,6 +273,63 @@ describe('NakiScreen', () => {
       await screen.findByText(/2026년 8월보다 31,400원 더 썼어요/),
     ).toBeTruthy();
     expect(screen.getByText('(-15,000원)', { exact: false })).toBeTruthy();
+  });
+
+  // 대화 저장 (2026-10-26 사용자 결정: 이 기기에만 최근 50개)
+  it('대화 저장: 답을 받으면 조건을 기기에 저장하고, 다시 열면 저장한 대화가 보인다', async () => {
+    vi.mocked(askNaki).mockResolvedValue({
+      kind: 'answer',
+      compare: null,
+      aggregate: { intent: 'list', field: null },
+      state: SEPTEMBER_DINING,
+      remaining: 19,
+    });
+    renderScreen();
+    askByTyping('지난달 외식비 얼마였어?');
+    await screen.findByRole('list', { name: '찾은 조건' });
+    expect(saveNakiTurn).toHaveBeenCalledWith({
+      question: '지난달 외식비 얼마였어?',
+      state: SEPTEMBER_DINING,
+      aggregate: { intent: 'list', field: null },
+      compare: null,
+    });
+
+    cleanup();
+    vi.mocked(loadNakiHistory).mockResolvedValue([
+      {
+        seq: 1,
+        question: '지난달 외식비 얼마였어?',
+        state: SEPTEMBER_DINING,
+        aggregate: { intent: 'list', field: null },
+        compare: null,
+      },
+    ]);
+    renderScreen();
+    const conversation = await screen.findByRole('list', {
+      name: '나키와의 대화',
+    });
+    expect(conversation.textContent).toContain('지난달 외식비 얼마였어?');
+    // 결과는 저장하지 않고 지금 기기 사본으로 다시 계산한다
+    expect(await screen.findByText('-46,400원')).toBeTruthy();
+  });
+
+  it('대화 지우기: 확인하면 저장한 대화를 지우고 처음 화면으로', async () => {
+    vi.mocked(loadNakiHistory).mockResolvedValue([
+      {
+        seq: 1,
+        question: '지난달 외식비 얼마였어?',
+        state: SEPTEMBER_DINING,
+        aggregate: { intent: 'list', field: null },
+        compare: null,
+      },
+    ]);
+    renderScreen();
+    fireEvent.click(await screen.findByRole('button', { name: '대화 지우기' }));
+    fireEvent.click(await screen.findByRole('button', { name: '지우기' }));
+    await waitFor(() => expect(clearNakiHistory).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(screen.queryByRole('list', { name: '나키와의 대화' })).toBeNull(),
+    );
   });
 
   it('이해하지 못하면 탓하지 않고 예시 질문', async () => {
