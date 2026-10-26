@@ -1,8 +1,15 @@
 'use client';
 
-// 'use client' 이유: 대화(메모리)·입력·요청 중단·연결 상태가 모두 브라우저에서 일어난다
+// 'use client' 이유: 대화(이 기기 IndexedDB에 저장)·입력·요청 중단·연결 상태가 모두 브라우저에서 일어난다
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowUp, Search, Sparkles, Square, WifiOff } from 'lucide-react';
+import {
+  ArrowUp,
+  Search,
+  Sparkles,
+  Square,
+  Trash2,
+  WifiOff,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { RecordType } from '@/features/records/schema/recordTypes';
@@ -13,6 +20,12 @@ import { toLocalDateString } from '@/shared/date/toLocalDateString';
 import { useOnlineStatus } from '@/shared/network/useOnlineStatus';
 import { ICON_SIZE, ICON_STROKE_WIDTH } from '@/shared/ui/icon';
 import { askNaki, getNakiQuota } from '../api/nakiClient';
+import {
+  clearNakiHistory,
+  loadNakiHistory,
+  saveNakiTurn,
+} from '../api/nakiHistoryStore';
+import ConfirmDialog from '@/shared/ui/ConfirmDialog';
 import {
   MAX_NAKI_QUESTION_LENGTH,
   type NakiError,
@@ -53,6 +66,7 @@ const EXAMPLES: readonly { question: string; type: RecordType }[] = [
 ];
 
 const quotaKey = ['naki', 'quota'] as const;
+const historyKey = ['naki', 'history'] as const;
 
 // 실패 안내 (2026-10-23 사용자 결정: 개인 한도 / 전체 한도·AI 제공자 한도 / 해석 실패를 구분).
 // 개인 한도는 아래 limitMessage가 계정에 따라 고른다 (체험 계정에는 로그인을 권한다)
@@ -87,7 +101,21 @@ export default function NakiScreen() {
     queryFn: getNakiQuota,
     enabled: isOnline,
   });
-  const [turns, setTurns] = useState<Turn[]>([]);
+  // 저장한 대화 (2026-10-26 사용자 결정: 이 기기에만 최근 50개). 이번에 연 화면에서 묻는 것은 sessionTurns에 붙이고
+  // 답을 받으면 기기에도 저장한다. 다음에 화면을 열면 저장한 것이 history로 온다 (답은 지금 기기 사본으로 다시 계산)
+  const history = useQuery({ queryKey: historyKey, queryFn: loadNakiHistory });
+  const [sessionTurns, setTurns] = useState<Turn[]>([]);
+  const [isClearOpen, setIsClearOpen] = useState(false);
+  const savedTurns: Turn[] = (history.data ?? []).map((item) => ({
+    // 이번 화면의 id(1부터)와 겹치지 않게 음수
+    id: -item.seq,
+    question: item.question,
+    status: 'answered',
+    state: item.state,
+    aggregate: item.aggregate,
+    compare: item.compare,
+  }));
+  const turns = [...savedTurns, ...sessionTurns];
   const [draft, setDraft] = useState('');
   // 지금 기다리는 요청. 중단 버튼과 화면을 떠날 때 끊는다
   const controllerRef = useRef<AbortController | null>(null);
@@ -103,9 +131,11 @@ export default function NakiScreen() {
 
   // 새 질문·답이 붙으면 맨 아래가 보이게 (대화 화면의 기본 동작)
   // 처음(대화 없음)에는 움직이지 않는다: 들어오자마자 화면이 밀리면 어지럽다
+  // 저장한 대화가 있으면 들어오자마자 맨 아래(최근 질문)로: 대화 화면의 기본 동작
+  const turnCount = turns.length;
   useEffect(() => {
-    if (turns.length > 0) endRef.current?.scrollIntoView({ block: 'end' });
-  }, [turns]);
+    if (turnCount > 0) endRef.current?.scrollIntoView({ block: 'end' });
+  }, [turnCount, sessionTurns]);
 
   function updateTurn(id: number, next: Turn) {
     setTurns((current) =>
@@ -169,6 +199,13 @@ export default function NakiScreen() {
           compare: result.compare,
         });
         setRemaining(result.remaining);
+        // 저장이 실패해도(사본을 못 엶 등) 지금 대화는 그대로 보인다: 다음에 열 때 이 질문만 빠진다
+        void saveNakiTurn({
+          question: trimmed,
+          state: result.state,
+          aggregate: result.aggregate,
+          compare: result.compare,
+        }).catch(() => undefined);
       } else {
         updateTurn(id, {
           id,
@@ -187,6 +224,13 @@ export default function NakiScreen() {
     } finally {
       controllerRef.current = null;
     }
+  }
+
+  async function clearHistory() {
+    await clearNakiHistory().catch(() => undefined);
+    setTurns([]);
+    queryClient.setQueryData(historyKey, []);
+    setIsClearOpen(false);
   }
 
   function handleSubmit(event: FormEvent) {
@@ -222,7 +266,31 @@ export default function NakiScreen() {
             오늘 {Math.max(remaining, 0)}/{limit}회
           </span>
         )}
+        {/* 대화 지우기: 이 기기에 저장한 대화 전부 (확인 창으로 한 번 더 묻는다). 기다리는 중에는 숨긴다(지우는 사이 답이 와 다시 저장되지 않게) */}
+        {turns.length > 0 && !isAsking && (
+          <button
+            type='button'
+            aria-label='대화 지우기'
+            onClick={() => setIsClearOpen(true)}
+            className='-mr-2 inline-flex size-11 items-center justify-center rounded-md text-fg-secondary hover:bg-surface-hover active:bg-surface-pressed'
+          >
+            <Trash2
+              aria-hidden='true'
+              size={ICON_SIZE.md}
+              strokeWidth={ICON_STROKE_WIDTH}
+            />
+          </button>
+        )}
       </header>
+      <ConfirmDialog
+        open={isClearOpen}
+        onOpenChange={setIsClearOpen}
+        title='대화를 지울까요?'
+        description='이 기기에 저장한 나키와의 대화가 모두 지워져요. 기록은 그대로예요.'
+        confirmLabel='지우기'
+        confirmVariant='danger'
+        onConfirm={() => void clearHistory()}
+      />
 
       <div className='flex flex-1 flex-col gap-4 px-4 pt-2 pb-4 md:px-6'>
         {!isOnline ? (
