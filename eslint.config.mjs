@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     'next-env.d.ts',
     // 시안 참고용 파일이라 앱 코드가 아니다 (design/README.md)
     'design/**',
+    // 커밋하지 않는 개인 폴더(.gitignore): 학습 노트, 포트폴리오 영상을 만드는 일회용 스크립트 등. CI에는 없어서 로컬 lint만 막혔다
+    'private/**',
   ]),
   // AI 제공자 SDK는 어댑터 파일 하나에서만 (CLAUDE.md). 다른 곳에서 import하면 lint가 막는다:
   // 제공자를 바꿀 때 고칠 곳이 그 파일 하나라는 약속을 말이 아니라 규칙으로 지킨다

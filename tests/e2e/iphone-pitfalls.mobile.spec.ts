@@ -113,8 +113,17 @@ test('주요 화면에 아이폰 단골 함정이 없다', async ({ page }) => {
     .click();
   await expect(page.getByRole('dialog', { name: '필터' })).toBeVisible();
   await expectNoProblems(page, '필터 시트');
-  await page.keyboard.press('Escape');
-  await expect(page.getByRole('dialog', { name: '필터' })).toBeHidden();
+  // 필터를 걸면 필터 버튼에 개수 배지가 붙는다. 배지가 화면 끝을 넘어 화면이 좌우로 밀렸다 (2026-10-26 아이폰 확인)
+  const sheet = page.getByRole('dialog', { name: '필터' });
+  await sheet.getByRole('button', { name: '식비', exact: true }).click();
+  await sheet.getByRole('button', { name: /개 결과 보기$/ }).click();
+  await expect(sheet).toBeHidden();
+  await expect(
+    page
+      .getByRole('button', { name: /^필터, 1개 적용됨/ })
+      .filter({ visible: true }),
+  ).toBeVisible();
+  await expectNoProblems(page, '필터 적용 뒤 (개수 배지)');
 
   // 설정 (기록 탭의 ⚙에서)
   await page
