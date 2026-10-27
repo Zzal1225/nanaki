@@ -2,9 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { addSampleRecords } from '@/features/records/sample/addSampleRecords';
 import GoogleSignInButton from './GoogleSignInButton';
-import { signInAsGuest, signInWithGoogle } from './authActions';
 import { markSplashContinue } from './login/splashRules';
 
 type SignInMethod = 'google' | 'guest';
@@ -12,6 +10,16 @@ type SignInMethod = 'google' | 'guest';
 const HOME_PATH = '/';
 const SIGN_IN_ERROR_MESSAGE =
   '로그인하지 못했어요. 잠시 후 다시 시도해 주세요.';
+
+// 로그인 동작(supabase-js)과 체험 예시 넣기(기록 저장 = zod·Dexie·supabase)는 버튼을 누를 때 받는다 (2026-10-27, Lighthouse 3단계).
+// 맨 위에서 import하면 이 화면을 여는 모든 사람이 약 150KiB(압축)를 첫 화면보다 먼저 받는다. 로그인 화면은 그림·글자만 먼저 보이면 되는데,
+// Lighthouse는 LCP 전에 시작된 요청을 모두 느린 망에서 다시 계산해서 이 JS가 LCP 추정을 늦췄다 (docs/performance.md).
+// 대가: 누른 뒤 한 번 받는 시간이 더해진다. 버튼은 누르자마자 "진행 중"으로 바뀌고, 구글 로그인은 어차피 화면을 떠나서 감수한다.
+// 고르지 않은 것: 한가할 때 미리 받기(requestIdleCallback). 등장 애니메이션(3.5초) 중 글자가 LCP로 늦게 잡히는 실행이 있어
+// 그 전에 받기 시작하면 다시 LCP 전 요청에 섞인다
+const loadAuthActions = () => import('./authActions');
+const loadSampleRecords = () =>
+  import('@/features/records/sample/addSampleRecords');
 
 // 'use client'인 이유: 버튼 클릭 이벤트와 "어떤 로그인이 진행 중인지" 같은 상태가 필요하다
 export default function SignInButtons() {
@@ -27,6 +35,7 @@ export default function SignInButtons() {
     // 구글 화면을 다녀와 앱이 열리면 로딩 화면이 지금 모습(나나키)에서 이어지게 (AppSplash, 2026-10-25 사용자 결정)
     markSplashContinue();
 
+    const { signInWithGoogle } = await loadAuthActions();
     const error = await signInWithGoogle();
     // 성공하면 구글 화면으로 떠나므로 여기서는 실패만 처리한다
     if (error) {
@@ -40,6 +49,7 @@ export default function SignInButtons() {
     setErrorMessage(null);
     markSplashContinue();
 
+    const { signInAsGuest } = await loadAuthActions();
     const error = await signInAsGuest();
     if (error) {
       setErrorMessage(SIGN_IN_ERROR_MESSAGE);
@@ -49,6 +59,7 @@ export default function SignInButtons() {
 
     // 빈 화면 대신 바로 둘러볼 수 있게 예시 기록을 넣고 들어간다. 홈이 기록을 불러오기 전에 끝나야
     // 처음부터 채워진 캘린더가 보여서 기다린다 (요청 한 번). 실패해도 체험은 시작한다
+    const { addSampleRecords } = await loadSampleRecords();
     await addSampleRecords();
 
     // 체험하기는 페이지를 떠나지 않으므로 직접 홈으로 보낸다.
