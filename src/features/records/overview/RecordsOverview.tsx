@@ -145,7 +145,7 @@ function RecordsOverviewView({ openId }: { openId: string | null }) {
           {/* 카드 위 "10월 요약" 제목은 두지 않는다 (2026-10-22 사용자 결정). 화면 읽기 프로그램에는 이름만 알린다 */}
           <section
             aria-label='이번 달 요약'
-            // 불러오는 중에는 숫자 대신 회색 자리만. 스크린 리더에는 "불러오는 중"을 알린다
+            // 불러오는 중에는 카드 틀과 흐린 줄표만. 스크린 리더에는 "불러오는 중"을 알린다
             aria-busy={isPending}
             className='grid grid-cols-2 gap-2 px-4 py-4 md:px-6'
           >
@@ -154,22 +154,26 @@ function RecordsOverviewView({ openId }: { openId: string | null }) {
               // 시안: 첫 카드는 한 줄 전체, 나머지가 홀수 개면 마지막 카드도 한 줄 전체
               const isWide =
                 index === 0 || ((visibleTypes.length - 1) % 2 === 1 && isLast);
-              return isPending ? (
-                <div
-                  key={type}
-                  className={`h-[90px] animate-pulse rounded-lg bg-surface-hover ${isWide ? 'col-span-2' : ''}`}
-                />
-              ) : (
+              // 불러오는 중에도 같은 카드를 그린다(값만 null): 데이터가 와도 같은 DOM이라 글자만 바뀐다 (MonthSummaryCard의 LCP 설명)
+              return (
                 <MonthSummaryCard
                   key={type}
                   type={type}
-                  value={getMonthValue(type, monthEntries, monthContext)}
-                  comparison={getPreviousMonthComparison(
-                    type,
-                    currentPeriodEntries,
-                    previousPeriodEntries,
-                    monthContext,
-                  )}
+                  value={
+                    isPending
+                      ? null
+                      : getMonthValue(type, monthEntries, monthContext)
+                  }
+                  comparison={
+                    isPending
+                      ? null
+                      : getPreviousMonthComparison(
+                          type,
+                          currentPeriodEntries,
+                          previousPeriodEntries,
+                          monthContext,
+                        )
+                  }
                   isEmpty={monthEntries.every((entry) => entry.type !== type)}
                   isWide={isWide}
                   href={`/records/type/${type}`}

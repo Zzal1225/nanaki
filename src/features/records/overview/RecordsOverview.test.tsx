@@ -81,6 +81,33 @@ describe('RecordsOverview', () => {
     expect(screen.getByText('★ 4.0')).toBeTruthy();
   });
 
+  // 회색 상자가 아니라 같은 카드를 그려 두어야 데이터가 와도 글자만 바뀐다 (MonthSummaryCard의 LCP 설명)
+  it('불러오는 중에도 카드 틀(타입 이름)을 그리고 값 자리는 줄표, 데이터가 오면 같은 자리에 값', async () => {
+    // 이번 달·지난달 두 번 불린다. 둘 다 붙잡아 두었다가 한꺼번에 돌려준다
+    const pending: ((entries: RecordEntry[]) => void)[] = [];
+    vi.mocked(listRecords).mockImplementation(
+      () => new Promise((resolve) => pending.push(resolve)),
+    );
+    const resolveMonth = (entries: RecordEntry[]) =>
+      pending.forEach((resolve) => resolve(entries));
+    vi.mocked(listRecentRecords).mockResolvedValue([LUNCH]);
+    renderOverview();
+
+    const summary = await screen.findByRole('region', { name: '이번 달 요약' });
+    const card = await screen.findByRole('link', { name: /^가계부/ });
+    expect(summary.getAttribute('aria-busy')).toBe('true');
+    expect(card.textContent).toContain('—');
+    const valueSpan = Array.from(card.querySelectorAll('span')).find(
+      (span) => span.textContent === '—',
+    );
+
+    resolveMonth([LUNCH]);
+    await waitFor(() =>
+      expect(summary.getAttribute('aria-busy')).toBe('false'),
+    );
+    expect(valueSpan?.textContent).toBe('-12,500원');
+  });
+
   it('최근 기록 한 줄은 그 기록의 상세로 가는 링크', async () => {
     vi.mocked(listRecords).mockResolvedValue([LUNCH]);
     vi.mocked(listRecentRecords).mockResolvedValue([LUNCH]);
