@@ -1,3 +1,4 @@
+import { preconnect } from 'react-dom';
 import AppSplash from '@/features/auth/login/AppSplash';
 import SidebarNewRecordMenu from '@/features/records/entry/SidebarNewRecordMenu';
 import SpeedDial from '@/features/records/entry/SpeedDial';
@@ -12,7 +13,16 @@ import Toaster from '@/shared/toast/Toaster';
 
 // 로그인 뒤 화면들의 공통 틀. (app) 괄호 폴더는 주소에 나타나지 않아서
 // /login, /design-system은 이 틀 밖에 남는다
+// 로그인 뒤 화면의 데이터는 모두 Supabase(다른 출처)에서 온다. 연결(DNS·TCP·TLS)은 보통 JS가 받아져 돌고 첫 조회를 보낼 때
+// 시작돼서, 느린 망에서는 JS를 받는 시간 뒤에 연결 시간이 그대로 더해진다. HTML을 받자마자 미리 연결해 두면 JS를 받는 동안 끝난다.
+// 배포 Lighthouse 진단(2026-10-27): Supabase 요청을 막으면 기록 탭 추정 LCP가 6.7~7.3초 → 2.1~2.6초 (docs/performance.md).
+// crossOrigin anonymous: supabase-js는 쿠키 없이(Authorization 헤더) CORS로 부른다. 연결 모드가 다르면 미리 연 연결을 쓰지 않는다.
+// 로그인 화면에는 두지 않는다: 첫 화면에서 Supabase를 부르지 않아 쓰이지 않는 연결이 된다.
+// 환경 변수가 없는 빌드(테스트 등)에서는 건너뛴다: 미리 연결은 빨라지게 할 뿐 없어도 동작은 같다
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
 export default function AppLayout({ children }: LayoutProps<'/'>) {
+  if (SUPABASE_URL) preconnect(SUPABASE_URL, { crossOrigin: 'anonymous' });
   return (
     // 기록 데이터는 로그인 뒤 화면에서만 쓰므로 Provider도 이 틀 안에만 둔다
     <QueryProvider>
