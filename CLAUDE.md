@@ -37,7 +37,7 @@
 | AI                 | Gemini 무료 등급 + Vercel AI SDK(ai, @ai-sdk/google), Next.js Route Handler에서 호출, 어댑터 파일 하나로 감싼다(ESLint로 강제). 질문과 필드 정의(이름·종류·기본 선택지 + 사용자가 만든 분류·태그 이름)만 보내고 조건 JSON을 받아 Zod로 검증·허용된 것만 남긴 뒤 검색과 같은 길(기기 사본)로 찾는다. 하루 횟수는 DB 함수가 센다 |
 | 알림               | pg_cron + Edge Function + Web Push                                                                                                                                                                                                                                                                                             |
 | 테스트             | Vitest, Testing Library (+ jsdom: 훅·컴포넌트 테스트용 가짜 브라우저 환경), Playwright (E2E + 375/768/1024/1280/1440 + 1280×700 + 터치 기기 프리셋 화면 비교)                                                                                                                                                                  |
-| CI/CD·운영         | GitHub Actions, Lighthouse CI, Vercel (기본 도메인), Sentry (step2)                                                                                                                                                                                                                                                            |
+| CI/CD·운영         | GitHub Actions, Lighthouse CI, Vercel (기본 도메인), Sentry (step2), Vercel Web Analytics (방문 집계, 주소의 ? 뒤는 보내지 않음)                                                                                                                                                                                               |
 
 - 위 목록에 없는 라이브러리를 추가하려면 먼저 사용자에게 **이유와 대안**을 제시하고 승인을 받는다.
 - AI 제공자 SDK는 어댑터 파일 밖에서 import하지 않는다. API 키는 서버(Route Handler)에만 둔다. 기록 내용(금액·메모·제목·날짜·건수)은 AI에 보내지 않는다. 이어 묻기는 바로 앞 질문 하나의 문장과 서버가 거른 조건만 함께 보낸다(답·기록은 아님, 2026-10-26 사용자 결정).
@@ -135,6 +135,7 @@ src/
   lib/supabase/   Supabase 클라이언트 (client.ts = 브라우저용, server.ts = 서버용, admin.ts = secret 키 관리자용·서버 전용), database.types.ts = DB 타입(자동 생성, 직접 수정 금지)
   lib/pushPayload  푸시 알림 내용 { title, body, url, tag } 읽기 (서비스 워커가 쓰고, 보내는 Edge Function이 같은 모양으로 보낸다)
   lib/sentry/     Sentry 공통 설정(sentryOptions: 켜는 조건, 개인 데이터 수집 끔). instrumentation(-client).ts와 app/global-error.tsx가 쓴다
+  lib/analytics/  방문 집계(Vercel Web Analytics). SiteAnalytics = 실제 서비스에서만 켬(루트 layout), analyticsEvent = 주소의 ? 뒤 지우기·내 기기 빼기(localStorage va-disable)
   lib/db/         기기 사본(Dexie). localDb = 계정마다 IndexedDB(서버 줄 그대로), sync = (updated_at, id) 커서로 바뀐 것만 받기,
                   currentLocalDb = 지금 계정의 사본. 기록·루틴 조회는 recordStore·routineStore가 이걸 거쳐 사본에서 읽는다
                   deviceData = 로그아웃·계정 삭제 때 사본과 화면 캐시 지우기 (로그아웃 성공 뒤에만, 앱 파일 캐시는 남김)
