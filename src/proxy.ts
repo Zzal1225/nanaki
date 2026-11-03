@@ -16,9 +16,10 @@ export async function proxy(request: NextRequest) {
   }
 }
 
-// 이미지·글꼴·Next 내부 파일까지 문지기를 거치면 느려지고, 로그인 화면의 CSS까지 막힐 수 있어서 뺀다
+// 이미지·글꼴·Next 내부 파일까지 문지기를 거치면 느려지고, 로그인 화면의 CSS까지 막힐 수 있어서 뺀다.
+// _vercel: 방문 집계 요청. 문지기를 거치면 로그인 전 방문자의 집계가 로그인 화면으로 돌려보내져 사라질 수 있다
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2)$).*)',
+    '/((?!_next/static|_next/image|_vercel|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2)$).*)',
   ],
 };

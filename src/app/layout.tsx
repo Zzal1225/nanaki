@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { SerwistProvider } from '@serwist/turbopack/react';
 import { SPLASH_INIT_SCRIPT } from '@/features/auth/login/splashRules';
+import SiteAnalytics from '@/lib/analytics/SiteAnalytics';
 import ThemeSync from '@/shared/theme/ThemeSync';
 import { THEME_INIT_SCRIPT } from '@/shared/theme/themeInitScript';
 // 동적 서브셋: 글자를 92조각으로 나눠 두고 화면에 나온 글자가 든 조각만 받는다 (전체 파일은 약 2MB).
@@ -63,6 +64,8 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         >
           {children}
         </SerwistProvider>
+        {/* 앱 틀((app)/layout)이 아니라 여기: 로그인하지 않고 로그인 화면만 보고 나간 방문자도 세려고 */}
+        <SiteAnalytics />
       </body>
     </html>
   );
