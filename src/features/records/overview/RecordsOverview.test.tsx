@@ -69,7 +69,13 @@ describe('RecordsOverview', () => {
   afterEach(() => cleanup());
 
   it('이번 달 카드에 타입별 값, 최근 기록에 한 줄씩 보여 준다', async () => {
-    vi.mocked(listRecords).mockResolvedValue([LUNCH, CAFE]);
+    // 지난달 조회에는 빈 배열을 준다. 같은 기록을 두 달 모두에 돌려주면 고정 날짜(10.16·10.19) 기록이
+    // "지난달 1일~오늘과 같은 날" 안에 드는 매달 16일부터 비교 줄("지난달보다 1건 …")이 생겨,
+    // 카드의 "1건"과 글자가 겹쳐 getByText가 실패했다 (2026-11-16 CI)
+    const thisMonth = toMonthString(toLocalDateString(new Date()));
+    vi.mocked(listRecords).mockImplementation(async (from) =>
+      from.startsWith(thisMonth) ? [LUNCH, CAFE] : [],
+    );
     vi.mocked(listRecentRecords).mockResolvedValue([LUNCH, CAFE]);
     renderOverview();
 
