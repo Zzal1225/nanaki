@@ -37,10 +37,42 @@ jobs:
       - run: npm test
       - run: npm run build
 
+  # PR이 바꾼 파일을 보고 "문서만 바뀌었나"를 판단한다 (2026-11-16).
+  # docs/ 아래나 .md 파일만 바뀐 PR은 아래 integration(Supabase·통합·E2E·Lighthouse, 약 10분)을 건너뛴다.
+  # 워크플로 수준 paths-ignore를 쓰지 않는 이유: 그러면 integration 체크가 아예 생기지 않아
+  # 필수 검사(ruleset)가 "대기 중"으로 남고 병합이 막힌다. 작업 수준 if로 건너뛰면 "skipped"로 보고돼 통과로 친다.
+  # main에 푸시(병합)될 때는 판단하지 않고 늘 전부 돈다: 배포되는 코드의 마지막 확인
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      docs_only: ${{ steps.diff.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # PR 체크아웃은 "base에 PR을 합친 임시 커밋"이다. 그 첫 번째 부모(base)와 비교하면 PR이 바꾼 파일만 나온다
+          fetch-depth: 2
+      - id: diff
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          CHANGED=$(git diff --name-only HEAD^1 HEAD)
+          echo "$CHANGED"
+          # 바뀐 파일이 하나라도 있고, 그중 docs/ 밖의 .md가 아닌 파일이 없을 때만 문서 전용
+          if [ -n "$CHANGED" ] && ! echo "$CHANGED" | grep -vqE '^docs/|\.md$'; then
+            echo "docs_only=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+          fi
+
   # 진짜 Supabase에 붙는 통합 테스트 (RLS 사용자 격리, 계정 삭제 cascade).
   # 실제 서비스 DB가 아니라 이 실행 안에서만 사는 빈 로컬 Supabase(Docker)를 띄운다.
   # 마이그레이션을 처음부터 전부 적용하므로 "빈 DB에 마이그레이션이 깨끗이 들어가는지"도 함께 확인된다
   integration:
+    needs: changes
+    if: needs.changes.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     # 보통 7~10분, 느린 날은 13분까지 걸렸다. WebKit E2E(32단계)를 더해 15 → 20분.
     # 20 → 30분 (2026-10-23 #99): 우분투 패키지 서버가 느린 날 크로미움 설치(--with-deps)만 12분(평소 20초)이 걸려
